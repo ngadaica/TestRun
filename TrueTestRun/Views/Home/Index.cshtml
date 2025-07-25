@@ -1,0 +1,45 @@
+﻿@model TrueTestRun.ViewModels.DashboardViewModel
+@{
+    ViewBag.Title = "Hệ thống test run nội bộ EPE-PCB";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body d-flex align-items-center">
+                <div class="me-3">
+                    <i class="fas fa-check-circle fa-3x text-success"></i>
+                </div>
+                <div>
+                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Request đã hoàn thành</div>
+                    <div class="h3 mb-0 font-weight-bold text-gray-800">@Model.CompletedCount</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body d-flex align-items-center">
+                <div class="me-3">
+                    <i class="fas fa-hourglass-half fa-3x text-warning"></i>
+                </div>
+                <div>
+                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Request đang xử lý</div>
+                    <div class="h3 mb-0 font-weight-bold text-gray-800">@Model.PendingCount</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body text-center py-5">
+        <h4 class="mb-3 text-primary"><i class="fas fa-rocket me-2"></i>Chào mừng đến với hệ thống Test Run!</h4>
+        <p class="lead text-muted">Quản lý, theo dõi và phê duyệt các request test run một cách nhanh chóng, thuận tiện.</p>
+        <a href="@Url.Action("Index", "Request")" class="btn btn-lg btn-success mt-3">
+            <i class="fas fa-list"></i> Xem danh sách Request
+        </a>
+    </div>
+</div>

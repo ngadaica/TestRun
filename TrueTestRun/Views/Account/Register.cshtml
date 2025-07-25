@@ -1,0 +1,76 @@
+﻿@model TrueTestRun.Models.User
+@{
+    ViewBag.Title = "Đăng ký tài khoản";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>@ViewBag.Title</h2>
+
+@using (Html.BeginForm("Register", "Account", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="mb-3">
+        @Html.LabelFor(m => m.ADID, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.ADID, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.ADID, "", new { @class = "text-danger" })
+    </div>
+
+    <div class="mb-3">
+        @Html.LabelFor(m => m.Name, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Name, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger" })
+    </div>
+
+    <div class="mb-3">
+        @Html.LabelFor(m => m.DeptCode, new { @class = "form-label" })
+        @Html.DropDownListFor(
+            m => m.DeptCode,
+            (SelectList)ViewBag.DeptCodes,
+            "-- Chọn phòng ban --",
+            new { @class = "form-select" })
+        @Html.ValidationMessageFor(m => m.DeptCode, "", new { @class = "text-danger" })
+    </div>
+
+
+    <div class="mb-3">
+        @Html.LabelFor(m => m.Group, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Group, new { @class = "form-control" })
+    </div>
+
+    <div class="mb-3">
+        @Html.LabelFor(m => m.Title, new { @class = "form-label" })
+        @Html.DropDownListFor(
+            m => m.Title,
+            (SelectList)ViewBag.Titles,
+            "-- Chọn chức vụ --",
+            new { @class = "form-select" })
+    </div>
+
+
+    <div class="mb-3">
+        @Html.LabelFor(m => m.Email, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", type = "email" })
+        @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+    </div>
+
+    <div class="mb-3">
+        @Html.LabelFor(m => m.Factory, new { @class = "form-label" })
+        @Html.DropDownListFor(
+            m => m.Factory,
+            (SelectList)ViewBag.Factories,
+            "-- Chọn nhà máy --",
+            new { @class = "form-select" })
+    </div>
+
+    if (ViewBag.Roles != null)
+    {
+        <div class="mb-3">
+            @Html.LabelFor(m => m.Role, new { @class = "form-label" })
+            @Html.DropDownListFor(m => m.Role, (SelectList)ViewBag.Roles, "-- Chọn vai trò --", new { @class = "form-select" })
+            @Html.ValidationMessageFor(m => m.Role, "", new { @class = "text-danger" })
+        </div>
+    }
+    <button type="submit" class="btn btn-primary">Đăng ký</button>
+    <a href="@Url.Action("Login","Account")" class="btn btn-link">Đã có tài khoản? Đăng nhập</a>
+}

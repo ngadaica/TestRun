@@ -1,0 +1,55 @@
+﻿@model TrueTestRun.Models.User
+@{ var isEdit = !string.IsNullOrEmpty(Model.ADID);
+    ViewBag.Title = isEdit ? "Sửa User" : "Thêm User";
+    Layout = "~/Views/Shared/_Layout.cshtml"; }
+
+<h2>@ViewBag.Title</h2>
+
+@using (Html.BeginForm())
+{
+@Html.AntiForgeryToken()
+                <div class="mb-3">
+                    @Html.LabelFor(m => m.ADID, new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.ADID,
+                                  @Html.TextBoxFor(m => m.ADID,
+         isEdit
+         ? new { @class = "form-control", @readonly = "readonly" }
+         : new { @class = "form-control" }
+     ))
+                    @Html.ValidationMessageFor(m => m.ADID, "",
+                                  new { @class = "text-danger" })
+                </div>
+                                <div class="mb-3">
+                                    @Html.LabelFor(m => m.Name, new { @class = "form-label" })
+                                    @Html.TextBoxFor(m => m.Name, new { @class = "form-control" })
+                                </div>
+                                                <div class="mb-3">
+                                                    @Html.LabelFor(m => m.DeptCode, new { @class = "form-label" })
+                                                    @Html.TextBoxFor(m => m.DeptCode, new { @class = "form-control" })
+                                                </div>
+                                                                <div class="mb-3">
+                                                                    @Html.LabelFor(m => m.Group, new { @class = "form-label" })
+                                                                    @Html.TextBoxFor(m => m.Group, new { @class = "form-control" })
+                                                                </div>
+                                                                                <div class="mb-3">
+                                                                                    @Html.LabelFor(m => m.Title, new { @class = "form-label" })
+                                                                                    @Html.TextBoxFor(m => m.Title, new { @class = "form-control" })
+                                                                                </div>
+                                                                                                <div class="mb-3">
+                                                                                                    @Html.LabelFor(m => m.Email, new { @class = "form-label" })
+                                                                                                    @Html.TextBoxFor(m => m.Email, new { @class = "form-control" })
+                                                                                                </div>
+                                                                                                                <div class="mb-3">
+                                                                                                                    @Html.LabelFor(m => m.Factory, new { @class = "form-label" })
+                                                                                                                    @Html.TextBoxFor(m => m.Factory, new { @class = "form-control" })
+                                                                                                                </div>
+                                                                                                                                @*<div class="mb-3">
+                                                                                                                                    @Html.LabelFor(m => m.Role, new { @class = "form-label" })
+                                                                                                                                    @Html.DropDownListFor(
+                                                                                                                                          m => m.Role,
+                                                                                                                                          new SelectList(new[] { "User", "Admin" }),
+                                                                                                                                          new { @class = "form-select" })
+                                                                                                                                </div>*@
+                                                                                                                                                <button type="submit" class="btn btn-primary">Lưu</button>
+                                                                                                                                                                <a class="btn btn-secondary"
+                                                                                                                                                                   href="@Url.Action("Index","User")">Hủy</a>}

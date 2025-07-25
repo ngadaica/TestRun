@@ -1,0 +1,117 @@
+﻿@model TrueTestRun.Models.Request
+@{
+    ViewBag.Title = "Tạo Request";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var allowedDept = (Session["CurrentUser"] as TrueTestRun.Models.User)?.DeptCode;
+}
+
+<h2>Tạo Request mới</h2>
+@using (Html.BeginForm("Create", "Request", FormMethod.Post, new { id = "createForm" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-md-6">
+            <!-- THÔNG TIN CƠ BẢN -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4><i class="fas fa-info-circle"></i> Thông tin chung</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        @Html.Label("NgayPhatHanh", "Ngày Phát Hành", new { @class = "form-label" })
+                        <input name="Fields[NgayPhatHanh]" class="form-control" type="date" />
+                    </div>
+                    <div class="mb-3">
+                        @Html.Label("Model", "Model", new { @class = "form-label" })
+                        <input name="Fields[Model]" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        @Html.Label("MaLinhKien", "Mã Linh Kiện", new { @class = "form-label" })
+                        <input name="Fields[MaLinhKien]" class="form-control" type="text" />
+                    </div>
+                    <div class="mb-3">
+                        @Html.Label("TenLinhKien", "Tên Linh Kiện", new { @class = "form-label" })
+                        <input name="Fields[TenLinhKien]" class="form-control" type="text" />
+                    </div>
+                    <div class="mb-3">
+                        @Html.Label("NhaCungCap", "Nhà Cung Cấp", new { @class = "form-label" })
+                        <input name="Fields[NhaCungCap]" class="form-control" type="text" />
+                    </div>
+                    <div class="mb-3">
+                        @Html.Label("SoLuong", "Số Lượng", new { @class = "form-label" })
+                        <input name="Fields[SoLuong]" class="form-control" type="number" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- NÚT SUBMIT -->
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Tạo và Gửi phê duyệt
+                </button>
+                <a href="@Url.Action("Index", "Request")" class="btn btn-secondary btn-lg ms-2">
+                    <i class="fas fa-times me-2"></i>
+                    Hủy
+                </a>
+            </div>
+        </div>
+
+        <!-- CỘT PREVIEW -->
+        <div class="col-md-6">
+            <div class="card sticky-top">
+                <div class="card-header">
+                    <h5><i class="fas fa-eye"></i> Preview Excel</h5>
+                    <small class="text-muted">Ảnh preview sẽ tự động cập nhật khi bạn nhập liệu</small>
+                </div>
+                <div class="card-body text-center">
+                    <img id="excelPreview"
+                         src="@Url.Action("GeneratePreviewImage", "Request")"
+                         class="img-fluid border rounded shadow-sm"
+                         alt="Excel Preview"
+                         style="max-height: 600px;" />
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i>
+                            Preview tự động cập nhật khi bạn thay đổi thông tin
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            function debounce(func, delay) {
+                let timeout;
+                return function (...args) {
+                    const context = this;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(context, args), delay);
+                };
+            }
+
+            const updatePreview = () => {
+                const formData = $('#createForm').serialize();
+                $.ajax({
+                    url: '@Url.Action("LivePreviewData", "Request")',
+                    type: 'POST',
+                    data: formData,
+                    success: function (response) {
+                        if (response.success) {
+                            const newSrc = '@Url.Action("GeneratePreviewImage", "Request")' + '?t=' + new Date().getTime();
+                            $('#excelPreview').attr('src', newSrc);
+                        }
+                    }
+                });
+            };
+
+            // Cập nhật preview khi thay đổi input
+            $('#createForm input, #createForm select, #createForm textarea').on('keyup change', debounce(updatePreview, 500));
+            updatePreview();
+        });
+    </script>
+}

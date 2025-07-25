@@ -1,0 +1,161 @@
+﻿@model TrueTestRun.Models.Request
+@{
+    ViewBag.Title = "Phê duyệt Request - " + Model.RequestID;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var currentUser = ViewBag.CurrentUser as TrueTestRun.Models.User;
+    var currentStep = ViewBag.CurrentStep as TrueTestRun.Models.WorkflowStep;
+
+    // Kiểm tra bước nhập liệu dựa trên ActionType
+    bool isDataEntryStep = currentStep.ActionType == TrueTestRun.Models.StepActionType.FillCheckboxesAndNotes
+        || currentStep.ActionType == TrueTestRun.Models.StepActionType.FillNotesTemplate
+        || currentStep.ActionType == TrueTestRun.Models.StepActionType.FillComplexForm
+        || currentStep.ActionType == TrueTestRun.Models.StepActionType.CreateForm;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Phê duyệt Request: @Model.RequestID</h2>
+    <a href="javascript:history.back()" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Quay lại
+    </a>
+</div>
+
+<!-- Thông tin bước hiện tại -->
+<div class="alert alert-info">
+    <h5><i class="fas fa-info-circle me-2"></i>Bước hiện tại: @currentStep.StepName</h5>
+    <p class="mb-0">
+        <strong>Vai trò:</strong> @currentStep.DeptCode - @currentStep.Role<br />
+        <strong>Hành động:</strong> @currentStep.ActionType
+    </p>
+</div>
+
+<!-- Form phê duyệt -->
+@using (Html.BeginForm("ProcessApproval", "Approval", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    @Html.Hidden("RequestID", Model.RequestID)
+
+    <div class="row">
+        <div class="col-md-6">
+            <!-- Thông tin request -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-file-alt me-2"></i>Thông tin Request</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td><strong>Request ID:</strong></td>
+                            <td>@Model.RequestID</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ngày tạo:</strong></td>
+                            <td>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Người tạo:</strong></td>
+                            <td>@Model.CreatedByADID</td>
+                        </tr>
+                        @if (Model.Fields != null)
+                        {
+                            foreach (var field in Model.Fields)
+                            {
+                                <tr>
+                                    <td><strong>@field.Key:</strong></td>
+                                    <td>@field.Value</td>
+                                </tr>
+                            }
+                        }
+                    </table>
+                </div>
+            </div>
+
+            <!-- Form action -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-tasks me-2"></i>Hành động</h5>
+                </div>
+                <div class="card-body">
+                    @if (isDataEntryStep)
+                    {
+                        <!-- Form nhập liệu -->
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú:</label>
+                            <textarea name="Comments" class="form-control" rows="3" placeholder="Nhập ghi chú nếu cần..."></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" name="IsCompleted" value="true" class="form-check-input" id="completedCheck">
+                                <label class="form-check-label" for="completedCheck">
+                                    Đã hoàn thành công việc này
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" name="action" value="complete" class="btn btn-success">
+                            <i class="fas fa-check me-1"></i> Hoàn thành & Chuyển tiếp
+                        </button>
+                    }
+                    else if (currentStep.ActionType == TrueTestRun.Models.StepActionType.ApproveOnly)
+                    {
+                        <!-- Form phê duyệt -->
+                        <div class="mb-3">
+                            <label class="form-label">Ý kiến phê duyệt:</label>
+                            <textarea name="Comments" class="form-control" rows="3" placeholder="Nhập ý kiến phê duyệt..."></textarea>
+                        </div>
+
+                        <div class="btn-group" role="group">
+                            <button type="submit" name="action" value="approve" class="btn btn-success">
+                                <i class="fas fa-check me-1"></i> Phê duyệt
+                            </button>
+                            <button type="submit" name="action" value="reject" class="btn btn-danger">
+                                <i class="fas fa-times me-1"></i> Từ chối
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Trường hợp khác nếu cần -->
+                        <div class="alert alert-warning">
+                            Không xác định loại hành động cho bước này.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <!-- Preview Excel -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-file-excel me-2"></i>Preview Excel</h5>
+                </div>
+                <div class="card-body text-center">
+                    <img src="@Url.Action("GeneratePreviewImage", "Request", new { id = Model.RequestID })"
+                         class="img-fluid border rounded"
+                         alt="Excel Preview"
+                         style="max-height: 500px;" />
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Form validation
+            $('form').on('submit', function (e) {
+                var action = $('button[type="submit"]:focus').val();
+                if (action === 'reject') {
+                    var comments = $('textarea[name="Comments"]').val().trim();
+                    if (!comments) {
+                        alert('Vui lòng nhập lý do từ chối!');
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+            });
+        });
+    </script>
+}

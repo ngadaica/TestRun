@@ -1,0 +1,257 @@
+﻿@model TrueTestRun.Models.Request
+@{ ViewBag.Title = "Sửa Request " + Model.RequestID;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    // Lấy thông tin phòng ban của người dùng hiện tại
+    var currentUser = Session["CurrentUser"] as TrueTestRun.Models.User;
+    var allowedDept = currentUser?.DeptCode; }
+
+<h2>@ViewBag.Title</h2>
+
+@* Form này sẽ POST đến action Edit(POST) *@
+@using (Html.BeginForm("Edit", "Request", FormMethod.Post, new { id = "editForm" }))
+{
+@Html.AntiForgeryToken() @* Quan trọng: phải có ID của request để biết đang sửa bản ghi nào *@
+                @Html.HiddenFor(m => m.RequestID)
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h4>Thông tin Request</h4>
+                                        <hr />
+
+                                        @* --- CÁC Ô NHẬP LIỆU THÔNG THƯỜNG --- *@
+                                        <div class="mb-3">
+                                            <label class="form-label">Sale Order</label>
+                                            <input name="Fields[SaleOrder]" value="@(Model.Fields.ContainsKey("SaleOrder") ? Model.Fields["SaleOrder"] : "")" class="form-control" />
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Model</label>
+                                            <input name="Fields[Model]" value="@(Model.Fields.ContainsKey("Model") ? Model.Fields["Model"] : "")" class="form-control" />
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Ngày phát hành</label>
+                                            <input name="Fields[NgayPhatHanh]" value="@(Model.Fields.ContainsKey("NgayPhatHanh") ? Model.Fields["NgayPhatHanh"] : "")" class="form-control" />
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Số lượng máy</label>
+                                            <input name="Fields[SoLuongMay]" value="@(Model.Fields.ContainsKey("SoLuongMay") ? Model.Fields["SoLuongMay"] : "")" class="form-control" />
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Mã linh kiện</label>
+                                            <input name="Fields[MaLinhKien]" value="@(Model.Fields.ContainsKey("MaLinhKien") ? Model.Fields["MaLinhKien"] : "")" class="form-control" />
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Tên linh kiện</label>
+                                            <input name="Fields[TenLinhKien]" value="@(Model.Fields.ContainsKey("TenLinhKien") ? Model.Fields["TenLinhKien"] : "")" class="form-control" />
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Nhà cung cấp</label>
+                                            <input name="Fields[NhaCungCap]" value="@(Model.Fields.ContainsKey("NhaCungCap") ? Model.Fields["NhaCungCap"] : "")" class="form-control" />
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Ngày nhập hàng</label>
+                                            <input name="Fields[NgayNhapHang]" value="@(Model.Fields.ContainsKey("NgayNhapHang") ? Model.Fields["NgayNhapHang"] : "")" class="form-control" />
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">PO no</label>
+                                            <input name="Fields[PONO]" value="@(Model.Fields.ContainsKey("PONO") ? Model.Fields["PONO"] : "")" class="form-control" />
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Số lương</label>
+                                            <input name="Fields[SoLuong]" value="@(Model.Fields.ContainsKey("SoLuong") ? Model.Fields["SoLuong"] : "")" class="form-control" />
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Ngày dự kiến LineStop</label>
+                                            <input name="Fields[NgayDuKienLineStop]" value="@(Model.Fields.ContainsKey("NgayDuKienLineStop") ? Model.Fields["NgayDuKienLineStop"] : "")" class="form-control" />
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Chủng loại máy</label>
+                                            <input name="Fields[ChungLoaiMay]" value="@(Model.Fields.ContainsKey("ChungLoaiMay") ? Model.Fields["ChungLoaiMay"] : "")" class="form-control" />
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Hạng mục khác</label>
+                                            <input name="Fields[HangMucKhac]" value="@(Model.Fields.ContainsKey("HangMucKhac") ? Model.Fields["HangMucKhac"] : "")" class="form-control" />
+                                        </div>
+
+                                        @* --- CÁC CHECKBOX PHÂN QUYỀN --- *@
+                                        <h4 class="mt-4">Xác nhận của các bộ phận</h4>
+                                        <hr />
+
+                                        @* Template an toàn cho checkbox IQC *@
+                                        @{ var key_IQC = "IQC";
+                                            var dept_IQC = "IQC";
+                                            var isAllowed_IQC = (allowedDept == dept_IQC);
+                                            var originalValue_IQC = Model?.Fields?.ContainsKey(key_IQC) == true ? Model.Fields[key_IQC] : "false"; }
+                                        <div class="form-check mb-3">
+                                            @if (isAllowed_IQC)
+                                            {
+                            <input type="hidden" name="Fields[@key_IQC]" value="false" />
+                                                <input type="checkbox" class="form-check-input" name="Fields[@key_IQC]" value="true" id="@key_IQC" @(originalValue_IQC.ToLower().Contains("true") ? "checked" : "") /> }
+                                            else
+                                            {
+                            <input type="hidden" name="Fields[@key_IQC]" value="@originalValue_IQC" />
+                                                <input type="checkbox" class="form-check-input" value="true" id="@key_IQC" @(originalValue_IQC.ToLower().Contains("true") ? "checked" : "") disabled />}
+                                            <label class="form-check-label" for="@key_IQC">IQC xác nhận</label>
+                                        </div>
+
+                                        @* Template an toàn cho checkbox IQC *@
+                                        @{ var key_RD = "R&D-DE/EPE-EE";
+                                            var dept_RD = "R&D-DE/EPE-EE";
+                                            var isAllowed_RD = (allowedDept == dept_RD);
+                                            var originalValue_RD = Model?.Fields?.ContainsKey(key_RD) == true ? Model.Fields[key_RD] : "false"; }
+                                        <div class="form-check mb-3">
+                                            @if (isAllowed_RD)
+                                            {
+                            <input type="hidden" name="Fields[@key_RD]" value="false" />
+                                                <input type="checkbox" class="form-check-input" name="Fields[@key_RD]" value="true" id="@key_RD" @(originalValue_RD.ToLower().Contains("true") ? "checked" : "") /> }
+                                            else
+                                            {
+                            <input type="hidden" name="Fields[@key_RD]" value="@originalValue_RD" />
+                                                <input type="checkbox" class="form-check-input" value="true" id="@key_RD" @(originalValue_RD.ToLower().Contains("true") ? "checked" : "") disabled />}
+                                            <label class="form-check-label" for="@key_RD">R&D-DE/EPE-EE xác nhận</label>
+                                        </div>
+
+                                        @{ var key_EPEPCB = "EPE-PCB1";
+                                            var dept_EPEPCB = "EPE-PCB";
+                                            var isAllowed_EPEPCB = (allowedDept == dept_EPEPCB);
+                                            var originalValue_EPEPCB = Model?.Fields?.ContainsKey(key_EPEPCB) == true ? Model.Fields[key_EPEPCB] : "false"; }
+                                        <div class="form-check mb-3">
+                                            @if (isAllowed_EPEPCB)
+                                            {
+                            <input type="hidden" name="Fields[@key_EPEPCB]" value="false" />
+                                                <input type="checkbox" class="form-check-input" name="Fields[@key_EPEPCB]" value="true" id="@key_EPEPCB" @(originalValue_EPEPCB.ToLower().Contains("true") ? "checked" : "") /> }
+                                            else
+                                            {
+                            <input type="hidden" name="Fields[@key_EPEPCB]" value="@originalValue_EPEPCB" />
+                                                <input type="checkbox" class="form-check-input" value="true" id="@key_EPEPCB" @(originalValue_EPEPCB.ToLower().Contains("true") ? "checked" : "") disabled />}
+                                            <label class="form-check-label" for="@key_EPEPCB">Lắp ráp EPE-PCB</label>
+                                        </div>
+
+                                        @{ var key_EPEPCB1 = "EPE-PCB2";
+                                            var dept_EPEPCB1 = "EPE-PCB";
+                                            var isAllowed_EPEPCB1 = (allowedDept == dept_EPEPCB);
+                                            var originalValue_EPEPCB1 = Model?.Fields?.ContainsKey(key_EPEPCB1) == true ? Model.Fields[key_EPEPCB1] : "false"; }
+                                        <div class="form-check mb-3">
+                                            @if (isAllowed_EPEPCB1)
+                                            {
+                            <input type="hidden" name="Fields[@key_EPEPCB1]" value="false" />
+                                                <input type="checkbox" class="form-check-input" name="Fields[@key_EPEPCB1]" value="true" id="@key_EPEPCB1" @(originalValue_EPEPCB1.ToLower().Contains("true") ? "checked" : "") /> }
+                                            else
+                                            {
+                            <input type="hidden" name="Fields[@key_EPEPCB1]" value="@originalValue_EPEPCB1" />
+                                                <input type="checkbox" class="form-check-input" value="true" id="@key_EPEPCB1" @(originalValue_EPEPCB1.ToLower().Contains("true") ? "checked" : "") disabled />}
+                                            <label class="form-check-label" for="@key_EPEPCB1">Ngoại quan EPE-PCB</label>
+                                        </div>
+
+                                        @{ var key_EPEPCB3 = "EPE-PCB3";
+                                            var dept_EPEPCB3 = "EPE-PCB";
+                                            var isAllowed_EPEPCB3 = (allowedDept == dept_EPEPCB3);
+                                            var originalValue_EPEPCB3 = Model?.Fields?.ContainsKey(key_EPEPCB3) == true ? Model.Fields[key_EPEPCB3] : "false"; }
+                                        <div class="form-check mb-3">
+                                            @if (isAllowed_EPEPCB3)
+                                            {
+                            <input type="hidden" name="Fields[@key_EPEPCB3]" value="false" />
+                                                <input type="checkbox" class="form-check-input" name="Fields[@key_EPEPCB3]" value="true" id="@key_EPEPCB3" @(originalValue_EPEPCB3.ToLower().Contains("true") ? "checked" : "") /> }
+                                            else
+                                            {
+                            <input type="hidden" name="Fields[@key_EPEPCB3]" value="@originalValue_EPEPCB3" />
+                                                <input type="checkbox" class="form-check-input" value="true" id="@key_EPEPCB3" @(originalValue_EPEPCB3.ToLower().Contains("true") ? "checked" : "") disabled />}
+                                            <label class="form-check-label" for="@key_EPEPCB3">Tính năng EPE-PCB</label>
+                                        </div>
+
+                                        @{ var key_EPEPCB4 = "QA1";
+                                            var dept_EPEPCB4 = "QA";
+                                            var isAllowed_EPEPCB4 = (allowedDept == dept_EPEPCB4);
+                                            var originalValue_EPEPCB4 = Model?.Fields?.ContainsKey(key_EPEPCB4) == true ? Model.Fields[key_EPEPCB4] : "false"; }
+                                        <div class="form-check mb-3">
+                                            @if (isAllowed_EPEPCB4)
+                                            {
+                            <input type="hidden" name="Fields[@key_EPEPCB4]" value="false" />
+                                                <input type="checkbox" class="form-check-input" name="Fields[@key_EPEPCB4]" value="true" id="@key_EPEPCB4" @(originalValue_EPEPCB4.ToLower().Contains("true") ? "checked" : "") /> }
+                                            else
+                                            {
+                            <input type="hidden" name="Fields[@key_EPEPCB4]" value="@originalValue_EPEPCB4" />
+                                                <input type="checkbox" class="form-check-input" value="true" id="@key_EPEPCB4" @(originalValue_EPEPCB4.ToLower().Contains("true") ? "checked" : "") disabled />}
+                                            <label class="form-check-label" for="@key_EPEPCB4">Ngoại quan QA</label>
+                                        </div>
+
+                                        @{ var key_EPEPCB5 = "QA2";
+                                            var dept_EPEPCB5 = "QA";
+                                            var isAllowed_EPEPCB5 = (allowedDept == dept_EPEPCB5);
+                                            var originalValue_EPEPCB5 = Model?.Fields?.ContainsKey(key_EPEPCB5) == true ? Model.Fields[key_EPEPCB5] : "false"; }
+                                        <div class="form-check mb-3">
+                                            @if (isAllowed_EPEPCB5)
+                                            {
+                            <input type="hidden" name="Fields[@key_EPEPCB5]" value="false" />
+                                                <input type="checkbox" class="form-check-input" name="Fields[@key_EPEPCB5]" value="true" id="@key_EPEPCB5" @(originalValue_EPEPCB5.ToLower().Contains("true") ? "checked" : "") /> }
+                                            else
+                                            {
+                            <input type="hidden" name="Fields[@key_EPEPCB5]" value="@originalValue_EPEPCB5" />
+                                                <input type="checkbox" class="form-check-input" value="true" id="@key_EPEPCB5" @(originalValue_EPEPCB5.ToLower().Contains("true") ? "checked" : "") disabled />}
+                                            <label class="form-check-label" for="@key_EPEPCB5">Tính năng QA</label>
+                                        </div>
+
+                                        <button type="submit" class="btn btn-primary mt-3">
+                                            <i class="fas fa-save me-1"></i> Lưu thay đổi
+                                        </button>
+                                        <a href="@Url.Action("Index", "Request")" class="btn btn-secondary mt-3">Quay lại danh sách</a>
+                                    </div>
+
+                                    @* --- KHUNG LIVE PREVIEW --- *@
+                                    <div class="col-md-6">
+                                        <h5>Preview Excel</h5>
+                                        <p class="text-muted">Ảnh sẽ tự động cập nhật khi bạn sửa thông tin.</p>
+                                        <img id="excelPreview"
+                                             src="@Url.Action("GeneratePreviewImage", "Request")"
+                                             class="img-fluid border"
+                                             alt="Excel Preview" />
+                                    </div>
+                                </div>}
+
+@* --- SCRIPT CHO LIVE PREVIEW --- *@
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            function debounce(func, delay) {
+                let timeout;
+                return function (...args) {
+                    const context = this;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(context, args), delay);
+                };
+            }
+
+            const updatePreview = () => {
+                const formData = $('#editForm').serialize();
+
+                $.ajax({
+                    url: '@Url.Action("LivePreviewData", "Request")',
+                    type: 'POST',
+                    data: formData,
+                    success: function (response) {
+                        if (response.success) {
+                            const newSrc = '@Url.Action("GeneratePreviewImage", "Request")' + '?t=' + new Date().getTime();
+                            $('#excelPreview').attr('src', newSrc);
+                        }
+                    }
+                });
+            };
+
+            $('#editForm input, #editForm select').on('keyup change', debounce(updatePreview, 500));
+
+            // Cập nhật preview lần đầu khi tải trang
+            updatePreview();
+        });
+    </script>
+}

@@ -1,0 +1,165 @@
+﻿@model TrueTestRun.Models.Request
+@using TrueTestRun.Models
+@{
+    ViewBag.Title = "Phê duyệt đơn " + Model.RequestID;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var currentUser = Session["CurrentUser"] as TrueTestRun.Models.User;
+    var allowedDept = currentUser?.DeptCode;
+    var isApprover = currentUser != null && currentUser.Role == UserRole.Approver;
+}
+
+<h2>@ViewBag.Title</h2>
+<p>Bạn đang xem chi tiết đơn test run. Vui lòng kiểm tra thông tin và file đính kèm trước khi phê duyệt.</p>
+
+<div class="mb-4">
+    <img src="@Url.Action("PreviewImage", "Request", new { id = Model.RequestID })" class="img-fluid border shadow-sm" alt="Preview File Excel" />
+</div>
+
+<h5 class="mt-4">Xác nhận của các bộ phận</h5>
+@* EPE-EE *@
+@{ var key = "EPE-EE"; var department = "EPE-EE"; }
+<div class="form-check mb-2">
+    <input type="checkbox"
+           class="form-check-input"
+           name="Fields[@key]"
+           value="true"
+           id="@key"
+           @(Model?.Fields?.ContainsKey(key) == true && Model.Fields[key] == "true" ? "checked" : "")
+           @(isApprover && allowedDept == department ? "" : "disabled") />
+    <label class="form-check-label" for="@key">Đã xác nhận FA sample/FAｻﾝﾌﾟﾙ確認済</label>
+</div>
+@{ var key1 = "EPE-EE1"; var department1 = "EPE-EE"; }
+<div class="form-check mb-2">
+    <input type="checkbox"
+           class="form-check-input"
+           name="Fields[@key1]"
+           value="true"
+           id="@key1"
+           @(Model?.Fields?.ContainsKey(key1) == true && Model.Fields[key1] == "true" ? "checked" : "")
+           @(isApprover && allowedDept == department1 ? "" : "disabled") />
+    <label class="form-check-label" for="@key1">EPE-EEの検査/EPE-EE kiểm tra</label>
+</div>
+@{ var key2 = "EPE-EE2"; var department2 = "EPE-EE"; }
+<div class="form-check mb-2">
+    <input type="checkbox"
+           class="form-check-input"
+           name="Fields[@key2]"
+           value="true"
+           id="@key2"
+           @(Model?.Fields?.ContainsKey(key2) == true && Model.Fields[key2] == "true" ? "checked" : "")
+           @(isApprover && allowedDept == department2 ? "" : "disabled") />
+    <label class="form-check-label" for="@key2">Đã xác nhận lắp ráp trước/事前組付確認実施済</label>
+</div>
+@{ var key3 = "EPE-EE3"; var department3 = "EPE-EE"; }
+<div class="form-check mb-2">
+    <input type="checkbox"
+           class="form-check-input"
+           name="Fields[@key3]"
+           value="true"
+           id="@key3"
+           @(Model?.Fields?.ContainsKey(key3) == true && Model.Fields[key3] == "true" ? "checked" : "")
+           @(isApprover && allowedDept == department3 ? "" : "disabled") />
+    <label class="form-check-label" for="@key3">EPE-EE 出荷検査結果/Kết quả kiểm tra xuất hàng EPE-EE Tính năng/機能検査</label>
+</div>
+@{ var key4 = "EPE-EE4"; var department4 = "EPE-EE"; }
+<div class="form-check mb-2">
+    <input type="checkbox"
+           class="form-check-input"
+           name="Fields[@key4]"
+           value="true"
+           id="@key4"
+           @(Model?.Fields?.ContainsKey(key4) == true && Model.Fields[key4] == "true" ? "checked" : "")
+           @(isApprover && allowedDept == department4 ? "" : "disabled") />
+    <label class="form-check-label" for="@key4">EPE-EE 出荷検查結果/Kết quả kiểm tra xuất hàng EPE-EE Ngoại quan/ 外観検査</label>
+</div>
+@* EPE-PCB *@
+@{ var key5 = "EPE-PCB"; var department5 = "EPE-PCB"; }
+<div class="form-check mb-2">
+    <input type="checkbox"
+           class="form-check-input"
+           name="Fields[@key5]"
+           value="true"
+           id="@key5"
+           @(Model?.Fields?.ContainsKey(key5) == true && Model.Fields[key5] == "true" ? "checked" : "")
+           @(isApprover && allowedDept == department5 ? "" : "disabled") />
+    <label class="form-check-label" for="@key5">Đã nhận hàng test run テストラン品受け取り済</label>
+</div>
+@{ var key6 = "EPE-PCB1"; var department6 = "EPE-PCB"; }
+<div class="form-check mb-2">
+    <input type="checkbox"
+           class="form-check-input"
+           name="Fields[@key6]"
+           value="true"
+           id="@key6"
+           @(Model?.Fields?.ContainsKey(key6) == true && Model.Fields[key6] == "true" ? "checked" : "")
+           @(isApprover && allowedDept == department6 ? "" : "disabled") />
+    <label class="form-check-label" for="@key6">Hạng mục đánh giá/ 価項目 Lắp ráp/組立性</label>
+</div>
+@{ var key7 = "EPE-PCB2"; var department7 = "EPE-PCB"; }
+<div class="form-check mb-2">
+    <input type="checkbox"
+           class="form-check-input"
+           name="Fields[@key7]"
+           value="true"
+           id="@key7"
+           @(Model?.Fields?.ContainsKey(key7) == true && Model.Fields[key7] == "true" ? "checked" : "")
+           @(isApprover && allowedDept == department7 ? "" : "disabled") />
+    <label class="form-check-label" for="@key7">Hạng mục đánh giá/ 価項目 Ngoại quan/ 外観検査</label>
+</div>
+@{ var key8 = "EPE-PCB3"; var department8 = "EPE-PCB"; }
+<div class="form-check mb-2">
+    <input type="checkbox"
+           class="form-check-input"
+           name="Fields[@key8]"
+           value="true"
+           id="@key8"
+           @(Model?.Fields?.ContainsKey(key8) == true && Model.Fields[key8] == "true" ? "checked" : "")
+           @(isApprover && allowedDept == department8 ? "" : "disabled") />
+    <label class="form-check-label" for="@key8">Hạng mục đánh giá/ 価項目 Tính năng/ 機能検査</label>
+</div>
+
+<form action="@Url.Action("Approve", "Approval")" method="post" class="card card-body">
+    @Html.AntiForgeryToken()
+    @Html.Hidden("id", Model.RequestID)
+
+    <h4>Thực hiện phê duyệt</h4>
+    <hr />
+
+    <div class="mb-3">
+        <label for="comment" class="form-label">Ghi chú (tùy chọn)</label>
+        <textarea name="comment" class="form-control" rows="3" placeholder="Nhập ghi chú của bạn ở đây..."></textarea>
+    </div>
+
+    @* Chọn người phê duyệt tiếp theo *@
+    <div class="mb-3">
+        <label for="nextApproverADID" class="form-label">Chọn người phê duyệt tiếp theo</label>
+        <select name="nextApproverADID" id="nextApproverADID" class="form-select">
+            <option value="">-- Chọn tự động theo quy trình --</option>
+            @if (ViewBag.NextApprovers != null)
+            {
+                foreach (var approver in (List<TrueTestRun.Models.User>)ViewBag.NextApprovers)
+                {
+                    <option value="@approver.ADID">@approver.Name (@approver.DeptCode - @approver.Title)</option>
+                }
+            }
+        </select>
+        <div class="form-text">Nếu không chọn, hệ thống sẽ tự động chọn người phê duyệt theo quy trình mặc định.</div>
+    </div>
+
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" name="shouldStamp" value="true" checked id="shouldStampCheck">
+        <label class="form-check-label" for="shouldStampCheck">
+            <strong>Đóng dấu kèm theo phê duyệt này</strong>
+        </label>
+    </div>
+
+    <div>
+        <button type="submit" class="btn btn-success">
+            <i class="fas fa-check"></i> Phê duyệt
+        </button>
+
+        <button type="submit" class="btn btn-danger" formaction="@Url.Action("Reject", "Approval", new { id = Model.RequestID })">
+            <i class="fas fa-times"></i> Từ chối
+        </button>
+    </div>
+</form>

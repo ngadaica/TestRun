@@ -1,0 +1,59 @@
+﻿@model TrueTestRun.Models.Request
+@{ ViewBag.Title = "Xem trước đơn " + Model.RequestID;
+    Layout = "~/Views/Shared/_Layout.cshtml"; }
+
+<h2>@ViewBag.Title</h2>
+
+
+<!-- Bảng dữ liệu đã nhập -->
+@if (Model.Fields.Any())
+{
+    <table class="table table-bordered mb-4">
+        <thead class="table-light">
+            <tr><th>Field</th><th>Value</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var kv in Model.Fields)
+            {
+                <tr>
+                    <td>@kv.Key</td>
+                    <td>@kv.Value</td>
+                </tr>
+            }
+        </tbody>
+    </table>}
+
+<!-- Ảnh preview Excel -->
+<div class="mb-4">
+    <h5>Preview file Excel</h5>
+    <img src="@Url.Action("PreviewImage", "Request", new { id = Model.RequestID })"
+         class="img-fluid border shadow-sm"
+         alt="Xem trước Excel" />
+</div>
+
+@* Chỉ hiển thị các nút Xác nhận và Chỉnh sửa nếu request chưa hoàn thành *@
+@if (!Model.IsCompleted)
+{
+    <form action="@Url.Action("Confirm", "Request")" method="post">
+        @Html.AntiForgeryToken()
+        @Html.Hidden("id", Model.RequestID)
+
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-check-circle me-1"></i> Xác nhận
+        </button>
+        <a href="@Url.Action("Edit", "Request", new { id = Model.RequestID })" class="btn btn-secondary ms-2">
+            <i class="fas fa-undo me-1"></i> Chỉnh sửa lại
+        </a>
+    </form>
+}
+else
+{
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i> <strong>Request này đã hoàn thành.</strong>
+        Bạn chỉ có thể xem thông tin, không thể chỉnh sửa.
+    </div>
+
+    <a href="@Url.Action("Completed", "Request")" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Quay lại danh sách đã hoàn thành
+    </a>
+}

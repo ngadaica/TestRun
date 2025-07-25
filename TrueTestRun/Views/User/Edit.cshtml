@@ -1,0 +1,95 @@
+﻿@model TrueTestRun.Models.User
+@using TrueTestRun.Models
+
+@{
+    ViewBag.Title = "Chỉnh sửa Người dùng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h2 class="card-title mb-0"><i class="fas fa-user-edit text-primary me-2"></i>@ViewBag.Title</h2>
+                <p class="card-subtitle text-muted">Cập nhật thông tin cho tài khoản: @Model.Name</p>
+            </div>
+
+            @using (Html.BeginForm("Edit", "User", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="card-body">
+
+                    @* ADID là khóa chính, không được thay đổi.
+                        Ta dùng HiddenFor để đảm bảo giá trị của nó được gửi về server.
+                        Ta cũng dùng TextBoxFor với thuộc tính readonly để hiển thị cho người dùng biết họ đang sửa ai.
+                    *@
+                    @Html.HiddenFor(m => m.ADID)
+
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.ADID, "ADID (Tên đăng nhập)", new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.ADID, new { @class = "form-control", @readonly = "readonly", @disabled = "disabled" })
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.Name, "Họ và Tên", new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.Name, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.Email, "Email", new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", type = "email" })
+                        @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            @Html.LabelFor(m => m.DeptCode, "Mã Phòng ban", new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.DeptCode, new { @class = "form-control" })
+                            @Html.ValidationMessageFor(m => m.DeptCode, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            @Html.LabelFor(m => m.Title, "Chức vụ", new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.Title, new { @class = "form-control" })
+                            @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            @Html.LabelFor(m => m.Group, "Nhóm", new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.Group, new { @class = "form-control" })
+                            @Html.ValidationMessageFor(m => m.Group, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            @Html.LabelFor(m => m.Factory, "Nhà máy", new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.Factory, new { @class = "form-control" })
+                            @Html.ValidationMessageFor(m => m.Factory, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.Role, "Vai trò hệ thống", new { @class = "form-label" })
+                        @Html.DropDownListFor(
+    m => m.Role,
+    new SelectList(Enum.GetValues(typeof(UserRole))),
+    "--- Chọn vai trò ---",
+    new { @class = "form-select" }
+)
+                        @Html.ValidationMessageFor(m => m.Role, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="card-footer text-end">
+                    <a href="@Url.Action("Index", "User")" class="btn btn-secondary">
+                        <i class="fas fa-times me-1"></i>Hủy
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Lưu thay đổi
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>

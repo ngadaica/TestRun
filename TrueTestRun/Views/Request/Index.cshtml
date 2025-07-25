@@ -1,0 +1,110 @@
+﻿@using TrueTestRun.Models
+@{
+    ViewBag.Title = "Danh sách Requests";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var currentUser = Session["CurrentUser"] as TrueTestRun.Models.User;
+}
+
+<h2 class="mb-4"><i class="fas fa-list-alt text-primary me-2"></i>@ViewBag.Title</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (currentUser != null && currentUser.Role != UserRole.Approver)
+{
+    <p>
+        <a class="btn btn-success" href="@Url.Action("Create","Request")">
+            <i class="fas fa-plus"></i> Tạo Request mới
+        </a>
+    </p>
+}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Ngày tạo</th>
+                        <th scope="col">Bước hiện tại</th>
+                        <th scope="col">Trạng thái</th>
+                        <th scope="col">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Count > 0)
+                    {
+                        foreach (var r in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold">@r.RequestID</td>
+                                <td>@r.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    @if (r.IsCompleted)
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check"></i> Hoàn thành
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info text-dark">
+                                            @(r.History[r.CurrentStepIndex].DeptCode + " / " + r.History[r.CurrentStepIndex].Role)
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (r.IsCompleted)
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check"></i> Done
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-hourglass-half"></i> Đang xử lý
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    @* Chỉ hiện nút Sửa cho DataEntry và Admin *@
+                                    @if (currentUser.Role != UserRole.Approver)
+                                    {
+                                        <a class="btn btn-sm btn-primary"
+                                           href="@Url.Action("Edit","Request", new { id = r.RequestID })">
+                                            <i class="fas fa-edit"></i> Sửa
+                                        </a>
+                                    }
+
+                                    @* Chỉ hiện nút Phê duyệt cho Approver *@
+                                    @if (currentUser.Role == UserRole.Approver)
+                                    {
+                                        <a class="btn btn-sm btn-success"
+                                           href="@Url.Action("Index","Approval", new { id = r.RequestID })">
+                                            <i class="fas fa-check-circle"></i> Phê duyệt
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                <i class="fas fa-folder-open fa-2x mb-2"></i><br />
+                                Không có request nào đang xử lý.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

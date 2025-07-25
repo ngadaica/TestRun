@@ -1,0 +1,264 @@
+﻿@model List<TrueTestRun.Models.Request>
+@{
+    ViewBag.Title = ViewBag.CurrentPhaseTitle ?? "Danh sách Request theo Giai đoạn";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var currentUser = Session["CurrentUser"] as TrueTestRun.Models.User;
+    var phase = ViewBag.CurrentPhase as TrueTestRun.Models.TestRunPhase?;
+
+    // Helper hàm cho phân quyền
+    bool IsStaff = (currentUser != null && currentUser.Title != null)
+        ? currentUser.Title.Trim().Equals("Staff", StringComparison.OrdinalIgnoreCase)
+        : false;
+
+    bool IsManagerOrGM = (currentUser != null && currentUser.Title != null) &&
+        (
+            currentUser.Title.Trim().Equals("Quản lý sơ cấp", StringComparison.OrdinalIgnoreCase)
+            || currentUser.Title.Trim().Equals("Quản lý trung cấp", StringComparison.OrdinalIgnoreCase)
+            || currentUser.Title.Trim().Equals("G.M", StringComparison.OrdinalIgnoreCase)
+        );
+
+    bool IsAdmin = (currentUser != null && currentUser.Role != null)
+        ? currentUser.Role == TrueTestRun.Models.UserRole.Admin
+        : false;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>@ViewBag.Title</h2>
+    @if (IsStaff)
+    {
+        <a href="@Url.Action("Create", "Request")" class="btn btn-success">
+            <i class="fas fa-plus me-1"></i> Tạo Request mới
+        </a>
+    }
+</div>
+
+<!-- Tab Navigation cho các phase -->
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <a class="nav-link @(phase == TrueTestRun.Models.TestRunPhase.TruocTestRun ? "active" : "")"
+           href="@Url.Action("TruocTestRun", "Request")">
+            <i class="fas fa-play text-primary"></i> Trước Test Run
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(phase == TrueTestRun.Models.TestRunPhase.GiuaTestRun ? "active" : "")"
+           href="@Url.Action("GiuaTestRun", "Request")">
+            <i class="fas fa-cogs text-warning"></i> Giữa Test Run
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(phase == TrueTestRun.Models.TestRunPhase.SauTestRun ? "active" : "")"
+           href="@Url.Action("SauTestRun", "Request")">
+            <i class="fas fa-flag-checkered text-success"></i> Sau Test Run
+        </a>
+    </li>
+</ul>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info text-center">
+        <i class="fas fa-info-circle me-2"></i>
+        Chưa có request nào trong giai đoạn <strong>@ViewBag.CurrentPhaseTitle</strong>.
+        @if (IsStaff)
+        {
+            <br />
+            <a href="@Url.Action("Create", "Request")" class="btn btn-success btn-sm mt-2">
+                <i class="fas fa-plus me-1"></i> Tạo Request đầu tiên
+            </a>
+        }
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Request ID</th>
+                    <th>Ngày tạo</th>
+                    <th>Người tạo</th>
+                    <th>Bước hiện tại</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var request in Model)
+                {
+                    var currentStep = request.History != null && request.CurrentStepIndex < request.History.Count
+                                    ? request.History[request.CurrentStepIndex]
+                                    : null;
+
+                    // Staff chỉ được sửa đơn mình tạo, không phê duyệt
+                    bool canEdit = IsStaff && request.CreatedByADID == currentUser?.ADID && !request.IsCompleted && !request.IsRejected;
+                    // Quản lý sơ cấp, trung cấp, G.M chỉ được phê duyệt, không sửa đơn
+                    bool canApprove = IsManagerOrGM && currentStep != null &&
+                        (currentStep.NextApproverADID == currentUser?.ADID
+                        || (string.IsNullOrEmpty(currentStep.NextApproverADID)
+                            && currentStep.DeptCode == currentUser?.DeptCode
+                            && currentStep.Role == currentUser?.Title))
+                        && !request.IsCompleted && !request.IsRejected;
+                    // Admin: có thể sửa đơn
+                    bool canAdminEdit = IsAdmin;
+
+                    <tr>
+                        <td>
+                            <a href="@Url.Action("Detail", "Request", new { id = request.RequestID })"
+                               class="text-decoration-none fw-bold">
+                                @request.RequestID
+                            </a>
+                        </td>
+                        <td>@request.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@request.CreatedByADID</td>
+                        <td>
+                            @if (currentStep != null)
+                            {
+                                <span class="badge bg-primary">@currentStep.StepName</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Không xác định</span>
+                            }
+                        </td>
+                        <td>
+                            @if (request.IsCompleted)
+                            {
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle me-1"></i>Hoàn thành
+                                </span>
+                            }
+                            else if (request.IsRejected)
+                            {
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-times-circle me-1"></i>Từ chối
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-clock me-1"></i>Đang xử lý
+                                </span>
+                            }
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <!-- Nút xem chi tiết luôn hiển thị -->
+                                <a href="@Url.Action("Detail", "Request", new { id = request.RequestID })"
+                                   class="btn btn-outline-primary btn-sm"
+                                   title="Xem chi tiết">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+
+                                <!-- Nút sửa chỉ Staff (của mình) và Admin mới thấy -->
+                                @if (canEdit || canAdminEdit)
+                                {
+                                    <a href="@Url.Action("Edit", "Request", new { id = request.RequestID })"
+                                       class="btn btn-outline-warning btn-sm"
+                                       title="Chỉnh sửa">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                }
+
+                                <!-- Nút phê duyệt chỉ Quản lý sơ cấp/trung cấp/G.M thấy -->
+                                @if (canApprove)
+                                {
+                                    <a href="@Url.Action("ProcessRequest", "Approval", new { id = request.RequestID })"
+                                       class="btn btn-outline-success btn-sm"
+                                       title="Phê duyệt/Xử lý">
+                                        <i class="fas fa-check"></i>
+                                    </a>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-start align-items-center mt-3">
+        <small class="text-muted">
+            Hiển thị @Model.Count request trong giai đoạn @ViewBag.CurrentPhaseTitle
+        </small>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Auto dismiss alerts after 5 seconds
+            setTimeout(function () {
+                $('.alert').fadeOut('slow');
+            }, 5000);
+
+            // Tooltip cho các nút action
+            $('[title]').tooltip();
+
+            // Refresh page every 30 seconds để cập nhật trạng thái
+            setTimeout(function () {
+                location.reload();
+            }, 30000);
+        });
+    </script>
+}
+
+<style>
+    .nav-tabs .nav-link {
+        border: 1px solid transparent;
+        border-top-left-radius: 0.375rem;
+        border-top-right-radius: 0.375rem;
+    }
+
+        .nav-tabs .nav-link:hover {
+            border-color: #e9ecef #e9ecef #dee2e6;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: #495057;
+            background-color: #fff;
+            border-color: #dee2e6 #dee2e6 #fff;
+        }
+
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .btn-group .btn {
+        margin-right: 2px;
+    }
+
+        .btn-group .btn:last-child {
+            margin-right: 0;
+        }
+
+    .badge {
+        font-size: 0.75em;
+    }
+
+    .table-responsive {
+        border-radius: 0.375rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+</style>

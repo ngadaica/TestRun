@@ -1,0 +1,87 @@
+﻿@model List<TrueTestRun.Models.User>
+@using TrueTestRun.Models
+@{
+    ViewBag.Title = "Danh sách Users";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@if (ViewBag.WindowsUser != null)
+{
+    <div class="mb-4">
+        <span class="h5 mb-0">Xin chào, <span class="text-primary">@ViewBag.WindowsUser</span>!</span>
+    </div>
+}
+
+<h2 class="mb-4"><i class="fas fa-users text-primary me-2"></i>@ViewBag.Title</h2>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>ADID</th>
+                        <th>Họ tên</th>
+                        <th>Phòng ban</th>
+                        <th>Nhóm</th>
+                        <th>Chức vụ</th>
+                        <th>Email</th>
+                        <th>Nhà máy</th>
+                        <th>Con dấu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Count > 0)
+                    {
+                        foreach (var u in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold">@u.ADID</td>
+                                <td>@u.Name</td>
+                                <td>
+                                    <span class="badge bg-info text-dark">@u.DeptCode</span>
+                                </td>
+                                <td>@u.Group</td>
+                                <td>
+                                    <span class="badge bg-secondary">@u.Title</span>
+                                </td>
+                                <td>@u.Email</td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">@u.Factory</span>
+                                </td>
+                                <td class="text-center">
+                                    @if (u.Role != UserRole.DataEntry)
+                                    {
+                                        <img src="@Url.Action("UserSeal", "Account", new { department = u.DeptCode, name = u.Name })"
+                                             alt="Con dấu của @u.Name"
+                                             class="border rounded shadow-sm"
+                                             style="width: 60px; height: 60px; object-fit: contain;" />
+                                    }
+                                </td>
+                                <td>
+                                    <a class="btn btn-sm btn-warning me-1"
+                                       href="@Url.Action("Edit", "User", new { id = u.ADID })">
+                                        <i class="fas fa-edit"></i> Sửa
+                                    </a>
+                                    <a class="btn btn-sm btn-danger"
+                                       href="@Url.Action("Delete", "User", new { id = u.ADID })"
+                                       onclick="return confirm('Xóa @u.Name?');">
+                                        <i class="fas fa-trash"></i> Xóa
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center text-muted py-4">
+                                <i class="fas fa-folder-open fa-2x mb-2"></i><br />
+                                Không có user nào trong hệ thống.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

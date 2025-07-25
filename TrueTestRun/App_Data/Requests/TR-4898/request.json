@@ -1,0 +1,115 @@
+{
+  "RequestID": "TR-4898",
+  "CreatedAt": "2025-07-18T08:42:20.1275513+07:00",
+  "CreatedByADID": "111",
+  "Fields": {
+    "SaleOrder": "99",
+    "NgayPhatHanh": "2025-07-19",
+    "Model": "DE-99",
+    "SoLuongMay": "2",
+    "MaLinhKien": "4",
+    "TenLinhKien": "grgr",
+    "NhaCungCap": "Broth",
+    "NgayNhapHang": "7/3/2025",
+    "PONO": "21",
+    "SoLuong": "1",
+    "NgayDuKienLineStop": "9/8/2025",
+    "ChungLoaiMay": "Fax",
+    "HangMucKhac": ""
+  },
+  "CurrentStepIndex": 5,
+  "IsCompleted": false,
+  "IsRejected": false,
+  "History": [
+    {
+      "Index": 1,
+      "DeptCode": "EPE-EE",
+      "Role": "Quản lý trung cấp",
+      "Status": "Approver",
+      "ApproverADID": "123",
+      "ApprovedAt": "2025-07-18T08:43:06.8494129+07:00",
+      "Comment": "OK",
+      "NextApproverADID": "123"
+    },
+    {
+      "Index": 2,
+      "DeptCode": "EPE-EE",
+      "Role": "Quản lý trung cấp",
+      "Status": "Approver",
+      "ApproverADID": "1111",
+      "ApprovedAt": "2025-07-18T08:43:54.6577163+07:00",
+      "Comment": "",
+      "NextApproverADID": "12"
+    },
+    {
+      "Index": 3,
+      "DeptCode": "EPE-EE",
+      "Role": "Quản lý trung cấp",
+      "Status": "Approver",
+      "ApproverADID": "12",
+      "ApprovedAt": "2025-07-18T08:45:10.8893337+07:00",
+      "Comment": "OK",
+      "NextApproverADID": "01PCB"
+    },
+    {
+      "Index": 4,
+      "DeptCode": "EPE-PCB",
+      "Role": "Quản lý trung cấp",
+      "Status": "Approver",
+      "ApproverADID": "01PCB",
+      "ApprovedAt": "2025-07-18T08:47:14.2222266+07:00",
+      "Comment": "OK",
+      "NextApproverADID": null
+    },
+    {
+      "Index": 5,
+      "DeptCode": "EPE-PCB",
+      "Role": "Quản lý trung cấp",
+      "Status": "Approver",
+      "ApproverADID": "01PCB",
+      "ApprovedAt": "2025-07-18T08:56:17.2203534+07:00",
+      "Comment": "OK",
+      "NextApproverADID": "02PCB"
+    },
+    {
+      "Index": 6,
+      "DeptCode": "EPE-PCB",
+      "Role": "Quản lý trung cấp",
+      "Status": "Processing",
+      "ApproverADID": null,
+      "ApprovedAt": null,
+      "Comment": null,
+      "NextApproverADID": null
+    },
+    {
+      "Index": 7,
+      "DeptCode": "EPE-EE",
+      "Role": "Quản lý trung cấp",
+      "Status": "Pending",
+      "ApproverADID": null,
+      "ApprovedAt": null,
+      "Comment": null,
+      "NextApproverADID": null
+    },
+    {
+      "Index": 8,
+      "DeptCode": "EPE-EE",
+      "Role": "Quản lý trung cấp",
+      "Status": "Pending",
+      "ApproverADID": null,
+      "ApprovedAt": null,
+      "Comment": null,
+      "NextApproverADID": null
+    },
+    {
+      "Index": 9,
+      "DeptCode": "EPE-G.M",
+      "Role": "G.M",
+      "Status": "Pending",
+      "ApproverADID": null,
+      "ApprovedAt": null,
+      "Comment": null,
+      "NextApproverADID": null
+    }
+  ]
+}
