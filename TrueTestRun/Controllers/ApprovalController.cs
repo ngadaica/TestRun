@@ -11,6 +11,7 @@ namespace TrueTestRun.Controllers
     [Authorize]
     public class ApprovalController : Controller
     {
+        private readonly TrueTestRunDbContext _context;
         private readonly FileStorageService _fs;
         private readonly WorkflowService _wf;
         private readonly EmailService _email;
@@ -19,6 +20,7 @@ namespace TrueTestRun.Controllers
 
         public ApprovalController()
         {
+            _context = new TrueTestRunDbContext();
             _fs = new FileStorageService();
             _wf = new WorkflowService();
             _email = new EmailService();
@@ -48,32 +50,61 @@ namespace TrueTestRun.Controllers
             }
 
             var currentStep = _wf.GetCurrentStep(request);
+
             if (currentStep == null)
             {
-                TempData["ErrorMessage"] = "Không xác định được bước hiện tại của request.";
+                TempData["ErrorMessage"] = $"Không xác định được bước hiện tại của request.";
                 return RedirectToAction("TruocTestRun", "Request");
             }
 
-            // Kiểm tra quyền xử lý/phê duyệt
+            // ========== SỬA: LOGIC KIỂM TRA QUYỀN ĐƠN GIẢN HƠN ==========
+            // Thay vì kiểm tra ActionType phức tạp, chỉ kiểm tra:
+            // 1. Staff có thể điền form (các step DataEntry)
+            // 2. Manager có thể phê duyệt (các step Approval)
+            
+            bool hasPermission = true; // Mặc định cho phép xem
             bool canApprove = CanApprove(currentUser);
             bool canEdit = CanEdit(currentUser, request);
 
-            if (!canApprove && !canEdit)
+            // Kiểm tra quyền dựa trên Actor
+            if (currentStep.Actor == StepActor.Approver && !canApprove)
             {
-                TempData["ErrorMessage"] = "Bạn không có quyền xử lý request này.";
+                TempData["ErrorMessage"] = $"Bạn không có quyền phê duyệt. Cần: Manager thuộc phòng {currentStep.DeptCode}";
+                return RedirectToAction("TruocTestRun", "Request");
+            }
+
+            if (currentStep.Actor == StepActor.DataEntry && !canEdit)
+            {
+                TempData["ErrorMessage"] = $"Bạn không có quyền điền form. Cần: Staff thuộc phòng {currentStep.DeptCode}";
                 return RedirectToAction("TruocTestRun", "Request");
             }
 
             ViewBag.CurrentUser = currentUser;
             ViewBag.CurrentStep = currentStep;
-            ViewBag.CanApprove = canApprove;
-            ViewBag.CanEdit = canEdit;
+            ViewBag.CanApprove = canApprove && currentStep.Actor == StepActor.Approver;
+            ViewBag.CanEdit = canEdit && currentStep.Actor == StepActor.DataEntry;
 
-            var requestFolder = Server.MapPath($"~/App_Data/Requests/{id}");
-            var excelPath = Path.Combine(requestFolder, "request.xlsx");
-            ViewBag.ExcelPath = excelPath;
+            // Chọn view dựa trên step index
+            string viewName = "ApprovalForm"; // Default
 
-            return View("ApprovalForm", request);
+            if (currentStep.Index == 2) // Step 2 - PCB Staff điền form
+            {
+                viewName = "DataEntryStep2";
+            }
+            else if (currentStep.Index == 4) // Step 4 - PCB Staff điền form
+            {
+                viewName = "DataEntryStep4";
+            }
+            else if (currentStep.Index == 6) // Step 6 - PCB Staff điền kết quả
+            {
+                viewName = "DataEntryStep6";
+            }
+            else if (currentStep.Index == 8) // THÊM: Step 8 - EE Staff điền form
+            {
+                viewName = "DataEntryStep8";
+            }
+
+            return View(viewName, request);
         }
 
         [HttpPost]
@@ -101,9 +132,35 @@ namespace TrueTestRun.Controllers
 
             var currentStep = _wf.GetCurrentStep(request);
 
-            if (currentStep == null || !CanApprove(currentUser))
+            if (currentStep == null)
             {
-                TempData["ErrorMessage"] = "Bạn không có quyền phê duyệt request này.";
+                TempData["ErrorMessage"] = "Không xác định được bước hiện tại của request.";
+                return GetRedirectToPhase(request);
+            }
+
+            // ========== SỬA: LOGIC KIỂM TRA QUYỀN ĐƠN GIẢN ==========
+            bool canPerformAction = false;
+
+            // SỬA: Logic đơn giản dựa trên Actor
+            switch (action?.ToLower())
+            {
+                case "approve":
+                case "reject":
+                    canPerformAction = CanApprove(currentUser) && currentStep.Actor == StepActor.Approver;
+                    break;
+
+                case "complete":
+                    canPerformAction = CanEdit(currentUser, request) && currentStep.Actor == StepActor.DataEntry;
+                    break;
+
+                default:
+                    canPerformAction = false;
+                    break;
+            }
+
+            if (!canPerformAction)
+            {
+                TempData["ErrorMessage"] = $"Bạn không có quyền thực hiện '{action}'. Cần: {(action == "approve" || action == "reject" ? "Manager" : "Staff")} thuộc phòng {currentStep.DeptCode}";
                 return GetRedirectToPhase(request);
             }
 
@@ -117,28 +174,22 @@ namespace TrueTestRun.Controllers
                         break;
 
                     case "reject":
-                        if (string.IsNullOrWhiteSpace(Comments))
-                        {
-                            TempData["ErrorMessage"] = "Vui lòng nhập lý do từ chối.";
-                            return View("ApprovalForm", request);
-                        }
+                        // SỬA: Bỏ validation bắt buộc comment cho reject
                         ProcessRejectAction(request, currentUser, currentStep, Comments);
                         TempData["SuccessMessage"] = $"Đã từ chối đơn {request.RequestID}.";
                         break;
 
                     case "complete":
-                        // Chỉ cho Staff hoàn thành bước nhập liệu (không cho các chức vụ còn lại)
-                        if (!CanEdit(currentUser, request))
-                        {
-                            TempData["ErrorMessage"] = "Bạn không có quyền hoàn thành bước này!";
-                            return View("ApprovalForm", request);
-                        }
                         ProcessCompleteAction(request, currentUser, currentStep, Comments);
                         TempData["SuccessMessage"] = $"Đã hoàn thành công việc cho đơn {request.RequestID}!";
                         break;
 
                     default:
                         TempData["ErrorMessage"] = "Hành động không hợp lệ.";
+                        ViewBag.CurrentUser = currentUser;
+                        ViewBag.CurrentStep = currentStep;
+                        ViewBag.CanApprove = CanApprove(currentUser);
+                        ViewBag.CanEdit = CanEdit(currentUser, request);
                         return View("ApprovalForm", request);
                 }
 
@@ -147,6 +198,10 @@ namespace TrueTestRun.Controllers
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = $"Có lỗi xảy ra: {ex.Message}";
+                ViewBag.CurrentUser = currentUser;
+                ViewBag.CurrentStep = currentStep;
+                ViewBag.CanApprove = CanApprove(currentUser);
+                ViewBag.CanEdit = CanEdit(currentUser, request);
                 return View("ApprovalForm", request);
             }
         }
@@ -154,14 +209,295 @@ namespace TrueTestRun.Controllers
         private void ProcessApproveAction(Request request, User currentUser, WorkflowStep currentStep, string comment)
         {
             var excelPath = Server.MapPath($"~/App_Data/Requests/{request.RequestID}/request.xlsx");
+
+            // Lấy ảnh con dấu
             byte[] sealImage = _imageService.GetOrCreateSealImage(currentUser.DeptCode, currentUser.Name, currentUser.Role);
-            if (sealImage != null)
+
+            if (sealImage != null && sealImage.Length > 0)
             {
                 _ex.AddSealImage(excelPath, currentStep.Index, sealImage);
             }
 
+            // SỬA: Debug log để theo dõi phase transition
+            var oldPhase = request.CurrentPhase;
+            System.Diagnostics.Debug.WriteLine($"[ApprovalController] Request {request.RequestID} completing step {currentStep.Index}, current phase: {oldPhase}");
+
+            // Advance workflow (phase sẽ được cập nhật tự động trong WorkflowService)
             _wf.AdvanceStep(request, currentUser.ADID, comment);
+            
+            // SỬA: Debug log sau khi advance
+            System.Diagnostics.Debug.WriteLine($"[ApprovalController] Request {request.RequestID} advanced to step {request.CurrentStepIndex}, new phase: {request.CurrentPhase}");
+
             _fs.SaveRequest(request);
+            _ex.FillFields(excelPath, request);
+
+            SendEmailForNextStep(request);
+        }
+
+        private void ProcessCompleteAction(Request request, User currentUser, WorkflowStep currentStep, string comment)
+        {
+            // Xử lý dữ liệu form cho Step 2
+            if (currentStep.Index == 2) // Step 2 - PCB Staff điền form
+            {
+                // Lấy dữ liệu từ form
+                var formData = new List<RequestField>();
+                
+                // Xử lý checkbox
+                foreach (string key in Request.Form.AllKeys)
+                {
+                    if (key.StartsWith("EPE-PCB") || key == "DaNhanHangTestRun")
+                    {
+                        var value = Request.Form[key];
+                        if (!string.IsNullOrEmpty(value))
+                        {
+                            formData.Add(new RequestField
+                            {
+                                RequestID = request.RequestID,
+                                Key = key,
+                                Value = value == "true" ? "true" : value
+                            });
+                        }
+                    }
+                }
+                
+                // SỬA: Xử lý comment - chỉ thêm nếu có nội dung
+                if (!string.IsNullOrEmpty(comment))
+                {
+                    formData.Add(new RequestField
+                    {
+                        RequestID = request.RequestID,
+                        Key = "CommentStep2",
+                        Value = comment
+                    });
+                }
+                
+                // Đảm bảo checkbox không được check có giá trị false
+                var checkboxKeys = new[] { "DaNhanHangTestRun", "EPE-PCB1", "EPE-PCB2", "EPE-PCB3" };
+                var submittedKeys = formData.Select(f => f.Key).ToHashSet();
+                
+                foreach (var cbKey in checkboxKeys)
+                {
+                    if (!submittedKeys.Contains(cbKey))
+                    {
+                        formData.Add(new RequestField
+                        {
+                            RequestID = request.RequestID,
+                            Key = cbKey,
+                            Value = "false"
+                        });
+                    }
+                }
+                
+                // Cập nhật fields
+                var existingFields = request.Fields.Where(f => !checkboxKeys.Contains(f.Key) && f.Key != "CommentStep2").ToList();
+                request.Fields.Clear();
+                
+                foreach (var field in existingFields.Concat(formData))
+                {
+                    request.Fields.Add(field);
+                }
+            }
+            // Xử lý dữ liệu form cho Step 4
+            else if (currentStep.Index == 4) // Step 4 - PCB Staff điền form
+            {
+                var formData = new List<RequestField>();
+                
+                // Xử lý 7 ô thông tin
+                var infoKeys = new[] { "ThongTin1Step4", "ThongTin2Step4", "ThongTin3Step4", "ThongTin4Step4", "ThongTin5Step4", "ThongTin6Step4", "ThongTin7Step4" };
+                foreach (var key in infoKeys)
+                {
+                    var value = Request.Form[key];
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        formData.Add(new RequestField
+                        {
+                            RequestID = request.RequestID,
+                            Key = key,
+                            Value = value
+                        });
+                    }
+                }
+                
+                // Xử lý 3 checkbox
+                var checkboxKeys = new[] { "LapRapStep4", "TinhNangStep4", "NgoaiQuanStep4" };
+                foreach (var key in checkboxKeys)
+                {
+                    var value = Request.Form[key];
+                    formData.Add(new RequestField
+                    {
+                        RequestID = request.RequestID,
+                        Key = key,
+                        Value = value == "true" ? "true" : "false"
+                    });
+                }
+                
+                // SỬA: Xử lý comment tổng quát - chỉ thêm nếu có nội dung
+                if (!string.IsNullOrEmpty(comment))
+                {
+                    formData.Add(new RequestField
+                    {
+                        RequestID = request.RequestID,
+                        Key = "CommentStep4",
+                        Value = comment
+                    });
+                }
+                
+                // Cập nhật fields - remove existing Step 4 fields first
+                var allStep4Keys = infoKeys.Concat(checkboxKeys).Concat(new[] { "CommentStep4" }).ToHashSet();
+                var existingFields = request.Fields.Where(f => !allStep4Keys.Contains(f.Key)).ToList();
+                request.Fields.Clear();
+                
+                foreach (var field in existingFields.Concat(formData))
+                {
+                    request.Fields.Add(field);
+                }
+            }
+            // Xử lý dữ liệu form cho Step 6 - Step này không có comment tổng quát
+            else if (currentStep.Index == 6) // Step 6 - PCB Staff điền kết quả
+            {
+                var formData = new List<RequestField>();
+                
+                // Xử lý kết quả OK/NG
+                var ketQua = Request.Form["KetQuaStep6"];
+                if (!string.IsNullOrEmpty(ketQua))
+                {
+                    formData.Add(new RequestField
+                    {
+                        RequestID = request.RequestID,
+                        Key = "KetQuaStep6",
+                        Value = ketQua
+                    });
+                }
+                
+                // SỬA: LUÔN xử lý NG số (không phụ thuộc vào kết quả)
+                var ngR = Request.Form["NGSo_R_Step6"];
+                var ngN = Request.Form["NGSo_N_Step6"];
+                var noiDungNG = Request.Form["NoiDungNG_Step6"];
+                
+                if (!string.IsNullOrEmpty(ngR))
+                {
+                    formData.Add(new RequestField
+                    {
+                        RequestID = request.RequestID,
+                        Key = "NGSo_R_Step6",
+                        Value = ngR
+                    });
+                }
+                
+                if (!string.IsNullOrEmpty(ngN))
+                {
+                    formData.Add(new RequestField
+                    {
+                        RequestID = request.RequestID,
+                        Key = "NGSo_N_Step6",
+                        Value = ngN
+                    });
+                }
+                
+                if (!string.IsNullOrEmpty(noiDungNG))
+                {
+                    formData.Add(new RequestField
+                    {
+                        RequestID = request.RequestID,
+                        Key = "NoiDungNG_Step6",
+                        Value = noiDungNG
+                    });
+                }
+                
+                // Cập nhật fields - remove existing Step 6 fields first
+                var allStep6Keys = new[] { "KetQuaStep6", "NGSo_R_Step6", "NGSo_N_Step6", "NoiDungNG_Step6" };
+                var existingFields = request.Fields.Where(f => !allStep6Keys.Contains(f.Key)).ToList();
+                request.Fields.Clear();
+                
+                foreach (var field in existingFields.Concat(formData))
+                {
+                    request.Fields.Add(field);
+                }
+            }
+            // THÊM: Xử lý dữ liệu form cho Step 8
+            else if (currentStep.Index == 8) // Step 8 - EE Staff điền form
+            {
+                var formData = new List<RequestField>();
+                
+                // Xử lý 2 checkbox chính
+                var checkboxKeys = new[] { "TinhNangStep8", "NgoaiQuanStep8" };
+                foreach (var key in checkboxKeys)
+                {
+                    var value = Request.Form[key];
+                    formData.Add(new RequestField
+                    {
+                        RequestID = request.RequestID,
+                        Key = key,
+                        Value = value == "true" ? "true" : "false"
+                    });
+                }
+                
+                // SỬA: Xử lý 2 comment KTTB và KTLM - chỉ thêm nếu có nội dung
+                var commentKeys = new[] { "CommentKTTB_Step8", "CommentKTLM_Step8" };
+                foreach (var key in commentKeys)
+                {
+                    var value = Request.Form[key];
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        formData.Add(new RequestField
+                        {
+                            RequestID = request.RequestID,
+                            Key = key,
+                            Value = value
+                        });
+                    }
+                }
+                
+                // SỬA: Xử lý dữ liệu bảng 1: Kiểm tra toàn bộ - chỉ thêm nếu có nội dung
+                var toanBoKeys = new[] { "NGSo_R_ToanBo_Step8", "OKSo_N_ToanBo_Step8", "NoiDungNG_ToanBo_Step8" };
+                foreach (var key in toanBoKeys)
+                {
+                    var value = Request.Form[key];
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        formData.Add(new RequestField
+                        {
+                            RequestID = request.RequestID,
+                            Key = key,
+                            Value = value
+                        });
+                    }
+                }
+                
+                // SỬA: Xử lý dữ liệu bảng 2: Kiểm tra lấy mẫu - chỉ thêm nếu có nội dung
+                var layMauKeys = new[] { "NGSo_R_LayMau_Step8", "OKSo_N_LayMau_Step8", "NoiDungNG_LayMau_Step8" };
+                foreach (var key in layMauKeys)
+                {
+                    var value = Request.Form[key];
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        formData.Add(new RequestField
+                        {
+                            RequestID = request.RequestID,
+                            Key = key,
+                            Value = value
+                        });
+                    }
+                }
+                
+                // Cập nhật fields - remove existing Step 8 fields first (bỏ CommentStep8)
+                var allStep8Keys = checkboxKeys.Concat(commentKeys).Concat(toanBoKeys).Concat(layMauKeys).ToHashSet();
+                var existingFields = request.Fields.Where(f => !allStep8Keys.Contains(f.Key)).ToList();
+                request.Fields.Clear();
+                
+                foreach (var field in existingFields.Concat(formData))
+                {
+                    request.Fields.Add(field);
+                }
+            }
+
+            // Advance workflow
+            var oldPhase = request.CurrentPhase;
+            _wf.AdvanceStep(request, currentUser.ADID, comment ?? ""); // SỬA: Cho phép comment rỗng
+
+            _fs.SaveRequest(request);
+
+            var excelPath = Server.MapPath($"~/App_Data/Requests/{request.RequestID}/request.xlsx");
             _ex.FillFields(excelPath, request);
 
             SendEmailForNextStep(request);
@@ -169,30 +505,32 @@ namespace TrueTestRun.Controllers
 
         private void ProcessRejectAction(Request request, User currentUser, WorkflowStep currentStep, string comment)
         {
+            // Đánh dấu request bị từ chối
             request.IsRejected = true;
+            
+            // Cập nhật step hiện tại với thông tin từ chối
             currentStep.Status = "Rejected";
             currentStep.ApproverADID = currentUser.ADID;
-            currentStep.Comment = comment;
+            currentStep.Comment = comment ?? ""; // SỬA: Cho phép comment rỗng
             currentStep.ApprovedAt = DateTime.Now;
+            
+            // Lưu request với trạng thái bị từ chối
             _fs.SaveRequest(request);
 
-            var creator = _fs.LoadUsers().FirstOrDefault(u => u.ADID == request.CreatedByADID);
-            if (creator != null)
+            // Gửi email thông báo từ chối cho người tạo đơn
+            try
             {
-                var editUrl = Url.Action("Edit", "Request", new { id = request.RequestID }, protocol: Request.Url.Scheme);
-                // _email.SendRejectNotificationToCreator(request, creator, currentUser, comment, editUrl);
+                var creator = _context.Users.FirstOrDefault(u => u.ADID == request.CreatedByADID);
+                if (creator != null)
+                {
+                    var editUrl = Url.Action("Edit", "Request", new { id = request.RequestID }, protocol: Request.Url.Scheme);
+                    _email.SendRejectNotificationToPrevApprover(request, creator, currentUser, comment ?? "Không có lý do cụ thể", editUrl);
+                }
             }
-        }
-
-        private void ProcessCompleteAction(Request request, User currentUser, WorkflowStep currentStep, string comment)
-        {
-            _wf.AdvanceStep(request, currentUser.ADID, comment);
-            _fs.SaveRequest(request);
-
-            var excelPath = Server.MapPath($"~/App_Data/Requests/{request.RequestID}/request.xlsx");
-            _ex.FillFields(excelPath, request);
-
-            SendEmailForNextStep(request);
+            catch (Exception)
+            {
+                // Không throw exception vì việc gửi email không critical
+            }
         }
 
         private ActionResult GetRedirectToPhase(Request request)
@@ -218,9 +556,7 @@ namespace TrueTestRun.Controllers
 
         private TestRunPhase GetPhaseByCurrentStep(int stepIndex)
         {
-            if (stepIndex <= 1) return TestRunPhase.TruocTestRun;
-            if (stepIndex <= 7) return TestRunPhase.GiuaTestRun;
-            return TestRunPhase.SauTestRun;
+            return _wf.GetPhaseByStepIndex(stepIndex);
         }
 
         public ActionResult Index(string id)
@@ -254,6 +590,249 @@ namespace TrueTestRun.Controllers
             return ProcessApproval(id, "reject", comment);
         }
 
+        [HttpPost]
+        public ActionResult UpdateStep2Preview(string RequestID, string DaNhanHangTestRun, string Comments)
+        {
+            try
+            {
+                var request = _fs.LoadRequest(RequestID);
+                if (request == null)
+                {
+                    return Json(new { success = false, message = "Request not found" });
+                }
+
+                // Tạo temporary request với dữ liệu step 2 mới
+                var tempRequest = new Request
+                {
+                    RequestID = request.RequestID,
+                    Fields = new List<RequestField>(request.Fields),
+                    History = request.History
+                };
+
+                // Cập nhật hoặc thêm field cho Step 2
+                var step2Fields = tempRequest.Fields.Where(f => f.Key == "DaNhanHangTestRun" || f.Key == "CommentStep2").ToList();
+                foreach (var field in step2Fields)
+                {
+                    tempRequest.Fields.Remove(field);
+                }
+
+                // Thêm dữ liệu mới
+                tempRequest.Fields.Add(new RequestField
+                {
+                    RequestID = RequestID,
+                    Key = "DaNhanHangTestRun",
+                    Value = DaNhanHangTestRun == "true" ? "true" : "false"
+                });
+
+                if (!string.IsNullOrEmpty(Comments))
+                {
+                    tempRequest.Fields.Add(new RequestField
+                    {
+                        RequestID = RequestID,
+                        Key = "CommentStep2",
+                        Value = Comments
+                    });
+                }
+
+                // Cập nhật Excel với dữ liệu tạm thời
+                var excelPath = Server.MapPath($"~/App_Data/Requests/{RequestID}/request.xlsx");
+                _ex.FillFields(excelPath, tempRequest);
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public ActionResult UpdateStep4Preview(string RequestID, FormCollection form)
+        {
+            try
+            {
+                var request = _fs.LoadRequest(RequestID);
+                if (request == null)
+                {
+                    return Json(new { success = false, message = "Request not found" });
+                }
+
+                // Tạo temporary request với dữ liệu step 4 mới
+                var tempRequest = new Request
+                {
+                    RequestID = request.RequestID,
+                    Fields = new List<RequestField>(request.Fields),
+                    History = request.History
+                };
+
+                // Remove existing Step 4 fields
+                var step4Keys = new[] { 
+                    "ThongTin1Step4", "ThongTin2Step4", "ThongTin3Step4", "ThongTin4Step4", 
+                    "ThongTin5Step4", "ThongTin6Step4", "ThongTin7Step4",
+                    "LapRapStep4", "TinhNangStep4", "NgoaiQuanStep4", "CommentStep4"
+                };
+                
+                var step4Fields = tempRequest.Fields.Where(f => step4Keys.Contains(f.Key)).ToList();
+                foreach (var field in step4Fields)
+                {
+                    tempRequest.Fields.Remove(field);
+                }
+
+                // SỬA: Thêm tất cả fields, kể cả empty values để đảm bảo override
+                foreach (var key in step4Keys)
+                {
+                    var value = form[key] ?? ""; // Lấy value từ form, default là empty string
+                    
+                    // Đặc biệt xử lý checkbox
+                    if (key.Contains("LapRap") || key.Contains("TinhNang") || key.Contains("NgoaiQuan"))
+                    {
+                        if (key.EndsWith("Step4") && !key.Contains("Comment"))
+                        {
+                            value = value == "true" ? "true" : "false";
+                        }
+                    }
+                    
+                    tempRequest.Fields.Add(new RequestField
+                    {
+                        RequestID = RequestID,
+                        Key = key,
+                        Value = value
+                    });
+                }
+
+                // Cập nhật Excel với dữ liệu tạm thời
+                var excelPath = Server.MapPath($"~/App_Data/Requests/{RequestID}/request.xlsx");
+                _ex.FillFields(excelPath, tempRequest);
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // THÊM: Method cho Step 6 preview
+        [HttpPost]
+        public ActionResult UpdateStep6Preview(string RequestID, FormCollection form)
+        {
+            try
+            {
+                var request = _fs.LoadRequest(RequestID);
+                if (request == null)
+                {
+                    return Json(new { success = false, message = "Request not found" });
+                }
+
+                // Tạo temporary request với dữ liệu step 6 mới
+                var tempRequest = new Request
+                {
+                    RequestID = request.RequestID,
+                    Fields = new List<RequestField>(request.Fields),
+                    History = request.History
+                };
+
+                // Remove existing Step 6 fields
+                var step6Keys = new[] { "KetQuaStep6", "NGSo_R_Step6", "NGSo_N_Step6", "NoiDungNG_Step6" }; // Bỏ CommentStep6
+                
+                var step6Fields = tempRequest.Fields.Where(f => step6Keys.Contains(f.Key)).ToList();
+                foreach (var field in step6Fields)
+                {
+                    tempRequest.Fields.Remove(field);
+                }
+
+                // Thêm tất cả fields mới
+                foreach (var key in step6Keys)
+                {
+                    var value = form[key] ?? "";
+                    
+                    tempRequest.Fields.Add(new RequestField
+                    {
+                        RequestID = RequestID,
+                        Key = key,
+                        Value = value
+                    });
+                }
+
+                // Cập nhật Excel với dữ liệu tạm thời
+                var excelPath = Server.MapPath($"~/App_Data/Requests/{RequestID}/request.xlsx");
+                _ex.FillFields(excelPath, tempRequest);
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // THÊM: Method cho Step 8 preview
+        [HttpPost]
+        public ActionResult UpdateStep8Preview(string RequestID, FormCollection form)
+        {
+            try
+            {
+                var request = _fs.LoadRequest(RequestID);
+                if (request == null)
+                {
+                    return Json(new { success = false, message = "Request not found" });
+                }
+
+                // Tạo temporary request với dữ liệu step 8 mới
+                var tempRequest = new Request
+                {
+                    RequestID = request.RequestID,
+                    Fields = new List<RequestField>(request.Fields),
+                    History = request.History
+                };
+
+                var step8Keys = new[] { 
+                    "TinhNangStep8", "NgoaiQuanStep8", 
+                    "CommentKTTB_Step8", "CommentKTLM_Step8",
+                    "NGSo_R_ToanBo_Step8", "OKSo_N_ToanBo_Step8", "NoiDungNG_ToanBo_Step8",
+                    "NGSo_R_LayMau_Step8", "OKSo_N_LayMau_Step8", "NoiDungNG_LayMau_Step8"
+                };
+                
+                var step8Fields = tempRequest.Fields.Where(f => step8Keys.Contains(f.Key)).ToList();
+                foreach (var field in step8Fields)
+                {
+                    tempRequest.Fields.Remove(field);
+                }
+
+                // Thêm tất cả fields mới
+                foreach (var key in step8Keys)
+                {
+                    var value = form[key] ?? "";
+                    
+                    // Đặc biệt xử lý checkbox
+                    if (key.Contains("TinhNang") || key.Contains("NgoaiQuan"))
+                    {
+                        if (key.EndsWith("Step8"))
+                        {
+                            value = value == "true" ? "true" : "false";
+                        }
+                    }
+                    
+                    tempRequest.Fields.Add(new RequestField
+                    {
+                        RequestID = RequestID,
+                        Key = key,
+                        Value = value
+                    });
+                }
+
+                // Cập nhật Excel với dữ liệu tạm thời
+                var excelPath = Server.MapPath($"~/App_Data/Requests/{RequestID}/request.xlsx");
+                _ex.FillFields(excelPath, tempRequest);
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         // ===== HELPER METHODS =====
 
         /// <summary>
@@ -261,22 +840,38 @@ namespace TrueTestRun.Controllers
         /// </summary>
         private bool CanApprove(User user)
         {
-            if (user == null || string.IsNullOrEmpty(user.Title)) return false;
+            if (user == null || string.IsNullOrEmpty(user.Title))
+            {
+                return false;
+            }
+
             var title = user.Title.Trim();
-            return title.Equals("Quản lý sơ cấp", StringComparison.OrdinalIgnoreCase) ||
-                   title.Equals("Quản lý trung cấp", StringComparison.OrdinalIgnoreCase) ||
-                   title.Equals("G.M", StringComparison.OrdinalIgnoreCase);
+
+            bool result = title.Equals("Quản lý sơ cấp", StringComparison.OrdinalIgnoreCase) ||
+                         title.Equals("Quản lý trung cấp", StringComparison.OrdinalIgnoreCase) ||
+                         title.Equals("G.M", StringComparison.OrdinalIgnoreCase);
+
+            return result;
         }
 
-        /// <summary>
-        /// Chỉ Staff được chỉnh sửa/hoàn thành đơn của mình
-        /// </summary>
         private bool CanEdit(User user, Request request)
         {
-            return user != null
-                && user.Title != null
-                && user.Title.Trim().Equals("Staff", StringComparison.OrdinalIgnoreCase)
-                && request.CreatedByADID == user.ADID;
+            if (user == null || string.IsNullOrEmpty(user.Title) || request == null)
+            {
+                return false;
+            }
+
+            var title = user.Title.Trim();
+            bool isStaff = title.Equals("Staff", StringComparison.OrdinalIgnoreCase);
+            
+            // Staff có thể edit nếu:
+            // 1. Là owner của request, HOẶC
+            // 2. Thuộc cùng phòng ban với step hiện tại (để xử lý cross-department workflow)
+            var currentStep = _wf.GetCurrentStep(request);
+            bool isOwner = request.CreatedByADID == user.ADID;
+            bool isSameDept = currentStep != null && currentStep.DeptCode == user.DeptCode;
+
+            return isStaff && (isOwner || isSameDept);
         }
 
         private void SendEmailForNextStep(Request request)
@@ -286,7 +881,8 @@ namespace TrueTestRun.Controllers
 
             if (!string.IsNullOrEmpty(nextStep.NextApproverADID))
             {
-                var specificUser = _fs.LoadUsers().FirstOrDefault(u => u.ADID == nextStep.NextApproverADID);
+                // Sử dụng SQL Database thay vì JSON
+                var specificUser = _context.Users.FirstOrDefault(u => u.ADID == nextStep.NextApproverADID);
                 if (specificUser != null)
                 {
                     var url = Url.Action("ProcessRequest", "Approval", new { id = request.RequestID }, protocol: Request.Url.Scheme);
@@ -295,7 +891,8 @@ namespace TrueTestRun.Controllers
                 }
             }
 
-            var recipients = _fs.LoadUsers().Where(u =>
+            // Sử dụng SQL Database thay vì JSON
+            var recipients = _context.Users.Where(u =>
                 u.DeptCode == nextStep.DeptCode && u.Title == nextStep.Role
             ).ToList();
 
@@ -304,6 +901,15 @@ namespace TrueTestRun.Controllers
                 var url = Url.Action("ProcessRequest", "Approval", new { id = request.RequestID }, protocol: Request.Url.Scheme);
                 _email.SendApprovalRequest(request, nextStep, url, false);
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _context?.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 }

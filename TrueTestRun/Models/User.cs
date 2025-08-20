@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TrueTestRun.Models
 {
@@ -11,22 +10,38 @@ namespace TrueTestRun.Models
         DataEntry,
         Approver
     }
+
     public class User
     {
+        [Key]
+        [MaxLength(50)]
         public string ADID { get; set; }
+
+        [MaxLength(255)]
         public string Name { get; set; }
+
+        [MaxLength(50)]
         public string DeptCode { get; set; }
+
+        [MaxLength(100)]
         public string Group { get; set; }
-        public string Title { get; set; }    // "Quản lý sơ cấp" hoặc "Quản lý trung cấp"
+
+        [MaxLength(100)]
+        public string Title { get; set; }
+
+        [MaxLength(255)]
         public string Email { get; set; }
+
+        [MaxLength(100)]
         public string Factory { get; set; }
+
+        [MaxLength(500)]
         public string AvatarUrl { get; set; }
-        public UserRole Role
-        {
-            get; set;
-        }
+
+        public UserRole Role { get; set; }
 
         // Sinh ra role dùng cho Approval
+        [NotMapped]
         public ApprovalRole ApprovalRole
         {
             get
@@ -35,7 +50,4 @@ namespace TrueTestRun.Models
             }
         }
     }
-
-
-
 }

@@ -1,0 +1,462 @@
+﻿@model TrueTestRun.Models.Request
+@{
+    ViewBag.Title = $"Staff EE điền form Step 8 - {Model.RequestID}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var currentUser = Session["CurrentUser"] as TrueTestRun.Models.User;
+    var currentStep = ViewBag.CurrentStep as TrueTestRun.Models.WorkflowStep;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>
+            <span style="font-size:1.2em;">✏️</span>
+            Staff EE điền form Step 8 - @Model.RequestID
+        </h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="@Url.Action("SauTestRun", "Request")">
+                        <span style="font-size:1em;">🏠</span> Sau Test Run
+                    </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Kết quả kiểm tra xuất hàng EPE-EE</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <span style="font-size:1em;">✅</span> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span style="font-size:1em;">⚠️</span> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row">
+    <!-- CỘT FORM - THU NHỎ LẠI -->
+    <div class="col-lg-4 col-md-5">
+        @using (Html.BeginForm("ProcessApproval", "Approval", FormMethod.Post, new { id = "step8Form" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.Hidden("RequestID", Model.RequestID)
+
+            <!-- FORM 1: HẠNG MỤC ĐÁNH GIÁ -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><span style="font-size:1.1em;">📝</span> Hạng mục đánh giá</h5>
+                    <small class="text-light">評価項目</small>
+                </div>
+                <div class="card-body">
+                    <!-- 2 Checkbox chính -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="TinhNangStep8" value="true" id="chkTinhNangStep8"
+                                       @(Model.Fields.FirstOrDefault(f => f.Key == "TinhNangStep8")?.Value == "true" ? "checked" : "") />
+                                <label class="form-check-label fw-bold" for="chkTinhNangStep8">
+                                    1. Tính năng
+                                </label>
+                                <div class="small text-muted">機能検査</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="NgoaiQuanStep8" value="true" id="chkNgoaiQuanStep8"
+                                       @(Model.Fields.FirstOrDefault(f => f.Key == "NgoaiQuanStep8")?.Value == "true" ? "checked" : "") />
+                                <label class="form-check-label fw-bold" for="chkNgoaiQuanStep8">
+                                    2. Ngoại quan
+                                </label>
+                                <div class="small text-muted">外観検査</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2 Ô comment -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">KTTB:</label>
+                        <textarea name="CommentKTTB_Step8" class="form-control form-control-sm" rows="2"
+                                  placeholder="Nhập ghi chú KTTB...">@(Model.Fields.FirstOrDefault(f => f.Key == "CommentKTTB_Step8")?.Value ?? "")</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">KTLM:</label>
+                        <textarea name="CommentKTLM_Step8" class="form-control form-control-sm" rows="2"
+                                  placeholder="Nhập ghi chú KTLM...">@(Model.Fields.FirstOrDefault(f => f.Key == "CommentKTLM_Step8")?.Value ?? "")</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FORM 2: KẾT QUẢ KIỂM TRA -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><span style="font-size:1.1em;">📈</span> Kết quả</h5>
+                    <small class="text-light">結果</small>
+                </div>
+                <div class="card-body">
+                    <!-- BẢNG 1: Kiểm tra toàn bộ -->
+                    <div class="inspection-table mb-3">
+                        <h6 class="text-primary mb-2">
+                            <span style="font-size:0.9em;">🔍</span> 1. Kiểm tra toàn bộ
+                            <small class="text-muted d-block">全検(QA Line)</small>
+                        </h6>
+
+                        <!-- NG数 và OK数 -->
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <label class="form-label fw-bold text-danger small">NG数：r =</label>
+                                <input name="NGSo_R_ToanBo_Step8" class="form-control form-control-sm" type="number" min="0"
+                                       value="@(Model.Fields.FirstOrDefault(f => f.Key == "NGSo_R_ToanBo_Step8")?.Value ?? "")"
+                                       placeholder="r" />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold text-success small">OK数：n =</label>
+                                <input name="OKSo_N_ToanBo_Step8" class="form-control form-control-sm" type="number" min="0"
+                                       value="@(Model.Fields.FirstOrDefault(f => f.Key == "OKSo_N_ToanBo_Step8")?.Value ?? "")"
+                                       placeholder="n" />
+                            </div>
+                        </div>
+
+                        <!-- NG内容 -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">NG内容：</label>
+                            <textarea name="NoiDungNG_ToanBo_Step8" class="form-control form-control-sm" rows="2"
+                                      placeholder="Mô tả nội dung NG...">@(Model.Fields.FirstOrDefault(f => f.Key == "NoiDungNG_ToanBo_Step8")?.Value ?? "")</textarea>
+                        </div>
+                    </div>
+
+                    <!-- BẢNG 2: Kiểm tra lấy mẫu -->
+                    <div class="inspection-table mb-3">
+                        <h6 class="text-warning mb-2">
+                            <span style="font-size:0.9em;">🎲</span> 2. Kiểm tra lấy mẫu
+                            <small class="text-muted d-block">抜取(QA Line)</small>
+                        </h6>
+
+                        <!-- NG数 và OK数 -->
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <label class="form-label fw-bold text-danger small">NG数：r =</label>
+                                <input name="NGSo_R_LayMau_Step8" class="form-control form-control-sm" type="number" min="0"
+                                       value="@(Model.Fields.FirstOrDefault(f => f.Key == "NGSo_R_LayMau_Step8")?.Value ?? "")"
+                                       placeholder="r" />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold text-success small">OK数：n =</label>
+                                <input name="OKSo_N_LayMau_Step8" class="form-control form-control-sm" type="number" min="0"
+                                       value="@(Model.Fields.FirstOrDefault(f => f.Key == "OKSo_N_LayMau_Step8")?.Value ?? "")"
+                                       placeholder="n" />
+                            </div>
+                        </div>
+
+                        <!-- NG内容 -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">NG内容：</label>
+                            <textarea name="NoiDungNG_LayMau_Step8" class="form-control form-control-sm" rows="2"
+                                      placeholder="Mô tả nội dung NG...">@(Model.Fields.FirstOrDefault(f => f.Key == "NoiDungNG_LayMau_Step8")?.Value ?? "")</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mb-3">
+                @Html.Partial("_DocumentViewButton", Model.RequestID)
+            </div>
+            <!-- NÚT SUBMIT -->
+            <div class="text-center mb-4">
+                <button type="submit" name="action" value="complete" class="btn btn-success btn-lg">
+                    <span style="font-size:1em;">✅</span>
+                    Hoàn thành và chuyển tiếp
+                </button>
+                <a href="@Url.Action("SauTestRun", "Request")" class="btn btn-secondary btn-lg ms-2">
+                    <span style="font-size:1em;">⬅️</span>
+                    Quay lại
+                </a>
+            </div>
+
+        }
+    </div>
+
+    <!-- CỘT PREVIEW - MỞ RỘNG RA -->
+    <div class="col-lg-8 col-md-7">
+        <div class="card sticky-top">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><span style="font-size:1.1em;">📊</span> Preview Excel</h5>
+                <small class="text-light">Xem trước form sẽ được cập nhật</small>
+            </div>
+            <div class="card-body text-center p-3">
+                <div class="excel-preview-container-large">
+                    <img src="@Url.Action("PreviewImage", "Request", new { id = Model.RequestID })"
+                         class="img-fluid excel-preview-enhanced"
+                         alt="Excel Preview"
+                         id="excelPreviewImage" />
+                </div>
+                <div class="mt-3">
+                    <small class="text-muted">
+                        <span style="font-size:0.9em;">🔄</span>
+                        Ảnh preview sẽ được cập nhật khi bạn thay đổi thông tin
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Live update preview khi thay đổi input, checkbox hoặc textarea
+            $('#step8Form input, #step8Form textarea').on('change input', function() {
+                clearTimeout(window.previewTimeout);
+                window.previewTimeout = setTimeout(function() {
+                    updatePreview();
+                }, 500);
+            });
+
+            function updatePreview() {
+                var formData = {};
+
+                // Lấy tất cả input fields
+                $('#step8Form input[type="text"], #step8Form input[type="number"], #step8Form textarea').each(function() {
+                    var name = $(this).attr('name');
+                    var value = $(this).val() || '';
+                    if (name) {
+                        formData[name] = value;
+                    }
+                });
+
+                // Lấy checkbox values
+                $('#step8Form input[type="checkbox"]').each(function() {
+                    var name = $(this).attr('name');
+                    if (name) {
+                        formData[name] = $(this).is(':checked') ? 'true' : 'false';
+                    }
+                });
+
+                // Thêm RequestID và antiforgery token
+                formData['RequestID'] = $('input[name="RequestID"]').val();
+                formData['__RequestVerificationToken'] = $('input[name="__RequestVerificationToken"]').val();
+
+                console.log('Sending Step 8 form data:', formData);
+
+                $.ajax({
+                    url: '@Url.Action("UpdateStep8Preview", "Approval")',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        console.log('Server response:', response);
+                        if (response.success) {
+                            var timestamp = new Date().getTime();
+                            $('#excelPreviewImage').attr('src', '@Url.Action("PreviewImage", "Request", new { id = Model.RequestID })' + '?t=' + timestamp);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('AJAX Error:', status, error);
+                        console.log('Response text:', xhr.responseText);
+                    }
+                });
+            }
+
+            // Form validation
+            $('#step8Form').on('submit', function (e) {
+                if (!confirm('Bạn có chắc chắn muốn hoàn thành và chuyển tiếp đơn này?')) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+            // Auto dismiss alerts after 5 seconds
+            setTimeout(function () {
+                $('.alert').fadeOut('slow');
+            }, 5000);
+
+            // Load initial preview
+            updatePreview();
+        });
+    </script>
+}
+
+<!-- SỬ DỤNG CHUNG CSS ENHANCED -->
+<style>
+    /* ===== ENHANCED PREVIEW STYLES ===== */
+    .excel-preview-container-large {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: 3px dashed #6c757d;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 0 auto;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+        .excel-preview-container-large:hover {
+            border-color: #495057;
+            box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+    .excel-preview-enhanced {
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        max-width: 100%;
+        height: auto;
+        min-height: 700px;
+        max-height: 900px;
+        border: 1px solid #dee2e6;
+    }
+
+        .excel-preview-enhanced:hover {
+            transform: scale(1.02);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+        }
+
+    /* ===== ENHANCED CARD STYLES ===== */
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        transition: box-shadow 0.3s ease;
+    }
+
+        .card:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+    .card-header {
+        border-radius: 12px 12px 0 0 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+        .card-header h5 {
+            font-weight: 600;
+            margin: 0;
+        }
+
+    /* ===== FORM IMPROVEMENTS ===== */
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+        .form-control:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+    .form-check-input:checked {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+
+    /* ===== INSPECTION TABLE STYLING ===== */
+    .inspection-table {
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 10px;
+        background-color: #f8f9fa;
+    }
+
+        .inspection-table h6 {
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+
+    /* ===== BUTTON IMPROVEMENTS ===== */
+    .btn {
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 1.125rem;
+    }
+
+    /* ===== BREADCRUMB ===== */
+    .breadcrumb {
+        background-color: transparent;
+        padding: 0;
+        margin-bottom: 0;
+    }
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+        color: #6c757d;
+    }
+
+    /* ===== STICKY POSITIONING ===== */
+    .sticky-top {
+        top: 20px;
+    }
+
+    /* ===== RESPONSIVE ADJUSTMENTS ===== */
+    @@media (max-width: 991.98px) {
+        .col-lg-4 {
+            margin-bottom: 2rem;
+        }
+
+        .excel-preview-enhanced {
+            min-height: 500px;
+            max-height: 700px;
+        }
+
+        .sticky-top {
+            position: static !important;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .excel-preview-enhanced {
+            min-height: 400px;
+            max-height: 600px;
+        }
+
+        .excel-preview-container-large {
+            padding: 15px;
+        }
+    }
+
+    /* ===== LOADING ANIMATION ===== */
+    .excel-preview-enhanced[src*="base64"] {
+        opacity: 0.7;
+        animation: pulse 1.5s ease-in-out infinite alternate;
+    }
+
+    @@keyframes pulse {
+        from {
+            opacity: 0.7;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* ===== COLOR CODING FOR INPUT LABELS ===== */
+    .text-danger {
+        color: #dc3545 !important;
+    }
+
+    .text-success {
+        color: #28a745 !important;
+    }
+</style>

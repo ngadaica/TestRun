@@ -1,0 +1,97 @@
+﻿@model TrueTestRun.Models.Request
+
+<!-- FORM ĐIỀN THÔNG TIN STEP 8 -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><span style="font-size:1.1em;">📋</span> @HttpContext.GetGlobalResourceObject("Resources", "StaffEEForm") (Step 8)</h5>
+    </div>
+    <div class="card-body">
+        <!-- Checkbox 1: Tính năng -->
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" name="TinhNangStep8" value="true" id="chkTinhNangStep8"
+                   @(Model.Fields.FirstOrDefault(f => f.Key == "TinhNangStep8")?.Value == "true" ? "checked" : "") />
+            <label class="form-check-label fw-bold" for="chkTinhNangStep8">
+                1. @HttpContext.GetGlobalResourceObject("Resources", "FunctionInspection")
+            </label>
+        </div>
+
+        <!-- Comment cho KTTB -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">@HttpContext.GetGlobalResourceObject("Resources", "KTTBComment"):</label>
+            <textarea name="CommentKTTB_Step8" class="form-control" rows="3"
+                      placeholder="@HttpContext.GetGlobalResourceObject("Resources", "EnterKTTBComment")">@(Model.Fields.FirstOrDefault(f => f.Key == "CommentKTTB_Step8")?.Value ?? "")</textarea>
+        </div>
+
+        <!-- Checkbox 2: Ngoại quan -->
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" name="NgoaiQuanStep8" value="true" id="chkNgoaiQuanStep8"
+                   @(Model.Fields.FirstOrDefault(f => f.Key == "NgoaiQuanStep8")?.Value == "true" ? "checked" : "") />
+            <label class="form-check-label fw-bold" for="chkNgoaiQuanStep8">
+                2. @HttpContext.GetGlobalResourceObject("Resources", "AppearanceInspection")
+            </label>
+        </div>
+
+        <!-- Comment cho KTLM -->
+        <div class="mb-4">
+            <label class="form-label fw-bold">@HttpContext.GetGlobalResourceObject("Resources", "KTLMComment"):</label>
+            <textarea name="CommentKTLM_Step8" class="form-control" rows="3"
+                      placeholder="@HttpContext.GetGlobalResourceObject("Resources", "EnterKTLMComment")">@(Model.Fields.FirstOrDefault(f => f.Key == "CommentKTLM_Step8")?.Value ?? "")</textarea>
+        </div>
+    </div>
+</div>
+
+<!-- BẢNG 1: KIỂM TRA TOÀN BỘ -->
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h6 class="mb-0"><span style="font-size:1em;">📊</span> Bảng 1: Kiểm tra toàn bộ</h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-4">
+                <label class="form-label fw-bold small">NG số: r =</label>
+                <input name="NGSo_R_ToanBo_Step8" class="form-control form-control-sm" type="number" min="0"
+                       value="@(Model.Fields.FirstOrDefault(f => f.Key == "NGSo_R_ToanBo_Step8")?.Value ?? "")"
+                       placeholder="r" />
+            </div>
+            <div class="col-4">
+                <label class="form-label fw-bold small">OK số: n =</label>
+                <input name="OKSo_N_ToanBo_Step8" class="form-control form-control-sm" type="number" min="0"
+                       value="@(Model.Fields.FirstOrDefault(f => f.Key == "OKSo_N_ToanBo_Step8")?.Value ?? "")"
+                       placeholder="n" />
+            </div>
+            <div class="col-12 mt-3">
+                <label class="form-label fw-bold small">Nội dung NG:</label>
+                <textarea name="NoiDungNG_ToanBo_Step8" class="form-control form-control-sm" rows="2"
+                          placeholder="Mô tả nội dung NG toàn bộ...">@(Model.Fields.FirstOrDefault(f => f.Key == "NoiDungNG_ToanBo_Step8")?.Value ?? "")</textarea>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BẢNG 2: KIỂM TRA LẤY MẪU -->
+<div class="card mb-4">
+    <div class="card-header bg-warning text-dark">
+        <h6 class="mb-0"><span style="font-size:1em;">📋</span> Bảng 2: Kiểm tra lấy mẫu</h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-4">
+                <label class="form-label fw-bold small">NG số: r =</label>
+                <input name="NGSo_R_LayMau_Step8" class="form-control form-control-sm" type="number" min="0"
+                       value="@(Model.Fields.FirstOrDefault(f => f.Key == "NGSo_R_LayMau_Step8")?.Value ?? "")"
+                       placeholder="r" />
+            </div>
+            <div class="col-4">
+                <label class="form-label fw-bold small">OK số: n =</label>
+                <input name="OKSo_N_LayMau_Step8" class="form-control form-control-sm" type="number" min="0"
+                       value="@(Model.Fields.FirstOrDefault(f => f.Key == "OKSo_N_LayMau_Step8")?.Value ?? "")"
+                       placeholder="n" />
+            </div>
+            <div class="col-12 mt-3">
+                <label class="form-label fw-bold small">Nội dung NG:</label>
+                <textarea name="NoiDungNG_LayMau_Step8" class="form-control form-control-sm" rows="2"
+                          placeholder="Mô tả nội dung NG lấy mẫu...">@(Model.Fields.FirstOrDefault(f => f.Key == "NoiDungNG_LayMau_Step8")?.Value ?? "")</textarea>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,30 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TrueTestRun.Models
 {
-    [Flags] // 1. Thêm attribute [Flags]
+    [Flags]
     public enum ApprovalRole
     {
-        None = 0,      // 00: Không có quyền gì
-        Reviewer = 1,  // 01: Quyền comment (giá trị 2^0)
-        Stampler = 2,  // 10: Quyền đóng dấu (giá trị 2^1)
-
-        // 3. Tạo các vai trò kết hợp bằng toán tử OR (|)
-        // Kết hợp cả hai quyền trên
-        Approver = Reviewer | Stampler // 11: Vừa comment vừa đóng dấu (giá trị 1 | 2 = 3)
+        None = 0,
+        Reviewer = 1,
+        Stampler = 2,
+        Approver = Reviewer | Stampler
     }
 
     public class ApprovalStep
     {
+        [Key]
+        public int Id { get; set; }
+
+        [MaxLength(50)]
         public string DeptCode { get; set; }
+
+        [MaxLength(50)]
         public string ADID { get; set; }
+
         public ApprovalRole Role { get; set; }
         public DateTime? Timestamp { get; set; }
+
+        [MaxLength(4000)]
         public string Comment { get; set; }
+
+        [ForeignKey("Request")]
+        public string RequestID { get; set; }
+        public virtual Request Request { get; set; }
     }
-
-
 }

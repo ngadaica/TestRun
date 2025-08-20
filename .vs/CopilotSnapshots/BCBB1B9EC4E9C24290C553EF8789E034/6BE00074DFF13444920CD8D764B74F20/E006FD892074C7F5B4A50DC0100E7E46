@@ -1,0 +1,1064 @@
+﻿using Org.BouncyCastle.Ocsp;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using TrueTestRun.Models;
+using TrueTestRun.Services;
+
+namespace TrueTestRun.Controllers
+{
+    [Authorize]
+    public class RequestController : Controller
+    {
+        private readonly FileStorageService fs = new FileStorageService();
+        private readonly WorkflowService wf = new WorkflowService();
+        private readonly ExcelService ex = new ExcelService();
+        private readonly EmailService em = new EmailService();
+
+        public ActionResult Index()
+        {
+            // Redirect về TruocTestRun vì giờ đã chia theo giai đoạn
+            return RedirectToAction("TruocTestRun");
+        }
+
+        public ActionResult Completed()
+        {
+            var currentUser = Session["CurrentUser"] as User;
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var allRequests = fs.LoadAllRequests();
+            var completedRequests = allRequests
+                .Where(r => r.IsCompleted)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToList();
+
+            return View(completedRequests);
+        }
+
+        public ActionResult Create()
+        {
+            var currentUser = Session["CurrentUser"] as User;
+            if (currentUser == null || !IsStaff(currentUser))
+                return new HttpStatusCodeResult(403, "Chỉ Staff mới được tạo request.");
+
+            // Khởi tạo session cho live preview với dữ liệu rỗng
+            var emptyFields = new Dictionary<string, string>();
+            var allCheckboxKeys = new List<string> { "EPE-EE", "EPE-EE1", "EPE-EE2", "EPE-EE3", "EPE-EE4", "EPE-PCB", "EPE-PCB1", "EPE-PCB2", "EPE-PCB3", "EPE-G.M", "DaXacNhanFASample", "DaXacNhanLapRapTruoc", "DaKiemTra" };
+
+            foreach (var key in allCheckboxKeys)
+            {
+                emptyFields[key] = "false";
+            }
+
+            Session["LivePreviewFields"] = emptyFields;
+
+            return View(new Request());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Create(Request model, IEnumerable<HttpPostedFileBase> documentFiles)
+        {
+            var allCheckboxKeys = new List<string> { "EPE-PCB", "EPE-PCB1", "EPE-PCB2", "EPE-PCB3", "EPE-EE", "EPE-EE1", "EPE-EE2", "EPE-EE3", "EPE-EE4" };
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // SỬA: Tạo Request ID mới theo format EPE-EE-YY-XXX
+            var id = GenerateNewRequestID();
+
+            // QUAN TRỌNG: Chuyển đổi dữ liệu từ form Fields[key] sang ICollection<RequestField>
+            var fieldsList = new List<RequestField>();
+
+            // Lấy tất cả dữ liệu từ Request.Form
+            foreach (string key in Request.Form.AllKeys)
+            {
+                if (key.StartsWith("Fields[") && key.EndsWith("]"))
+                {
+                    var fieldName = key.Substring(7, key.Length - 8); // Remove "Fields[" and "]"
+                    var value = Request.Form[key];
+
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        fieldsList.Add(new RequestField
+                        {
+                            RequestID = id,
+                            Key = fieldName,
+                            Value = value == "true" ? "true" : value
+                        });
+                    }
+                }
+            }
+
+            // Đảm bảo các checkbox không được check cũng có giá trị "false"
+            var submittedFieldNames = fieldsList.Select(f => f.Key).ToHashSet();
+
+            // Thêm các checkbox bổ sung cho step 0
+            var step0CheckboxKeys = new List<string> { "DaXacNhanFASample", "DaXacNhanLapRapTruoc", "DaKiemTra" };
+            allCheckboxKeys.AddRange(step0CheckboxKeys);
+
+            foreach (var checkboxKey in allCheckboxKeys)
+            {
+                if (!submittedFieldNames.Contains(checkboxKey))
+                {
+                    fieldsList.Add(new RequestField
+                    {
+                        RequestID = id,
+                        Key = checkboxKey,
+                        Value = "false"
+                    });
+                }
+            }
+
+            // QUAN TRỌNG: Khởi tạo history và đảm bảo RequestID được set
+            var history = wf.InitHistory();
+            foreach (var step in history)
+            {
+                step.RequestID = id;
+            }
+
+            // Tạo request mới - BẮT ĐẦU TỪ STEP 0
+            var request = new Request
+            {
+                RequestID = id,
+                CreatedAt = DateTime.Now,
+                CreatedByADID = (Session["CurrentUser"] as User)?.ADID,
+                Fields = fieldsList,
+                History = history,
+                CurrentStepIndex = 0, // BẮT ĐẦU TỪ STEP 0
+                CurrentPhase = TestRunPhase.TruocTestRun, // SỬA: Đặt phase ban đầu
+                IsCompleted = false,
+                IsRejected = false
+            };
+
+            // Đặt step 0 thành Processing 
+            if (request.History.Any())
+            {
+                var firstStep = request.History.OrderBy(h => h.Index).First();
+                firstStep.Status = "Processing";
+            }
+
+            var requestFolder = Server.MapPath($"~/App_Data/Requests/{id}");
+            Directory.CreateDirectory(requestFolder);
+            var templatePath = Server.MapPath("~/App_Data/Data.xlsx");
+            var excelPath = Path.Combine(requestFolder, "request.xlsx");
+
+            if (!System.IO.File.Exists(excelPath))
+            {
+                if (System.IO.File.Exists(templatePath))
+                {
+                    System.IO.File.Copy(templatePath, excelPath);
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Template Excel không tồn tại!";
+                    return View(model);
+                }
+            }
+
+            try
+            {
+                // Điền dữ liệu vào Excel
+                ex.FillFields(excelPath, request);
+
+                // SỬA: Lưu request HOÀN TOÀN TRƯỚC KHI upload documents
+                fs.SaveRequest(request);
+
+                // SỬA: ADVANCE SANG STEP 1 TRƯỚC KHI UPLOAD DOCUMENTS
+                var currentUser2 = Session["CurrentUser"] as User;
+                wf.AdvanceStep(request, currentUser2?.ADID, "Đơn đã được tạo và chuyển sang phê duyệt");
+
+                // Lưu lại request sau khi advance
+                fs.SaveRequest(request);
+
+                // Cập nhật Excel với workflow mới
+                ex.FillFields(excelPath, request);
+
+                // SỬA: Upload documents SAU KHI request đã được lưu hoàn toàn
+                List<string> uploadErrors = new List<string>();
+                if (documentFiles != null && documentFiles.Any(f => f != null && f.ContentLength > 0))
+                {
+                    DocumentService documentService = null;
+                    try
+                    {
+                        documentService = new DocumentService();
+                        var currentUser = Session["CurrentUser"] as User;
+
+                        System.Diagnostics.Debug.WriteLine($"[RequestController] Processing {documentFiles.Count()} document files for request {id}");
+
+                        foreach (var file in documentFiles)
+                        {
+                            if (file != null && file.ContentLength > 0)
+                            {
+                                try
+                                {
+                                    var uploadResult = documentService.UploadDocument(id, file, currentUser?.ADID, "");
+                                    if (uploadResult)
+                                    {
+                                        System.Diagnostics.Debug.WriteLine($"[RequestController] Successfully uploaded document: {file.FileName}");
+                                    }
+                                    else
+                                    {
+                                        System.Diagnostics.Debug.WriteLine($"[RequestController] Failed to upload document: {file.FileName}");
+                                        uploadErrors.Add($"Không thể upload file {file.FileName}");
+                                    }
+                                }
+                                catch (Exception fileEx)
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"[RequestController] Error uploading document {file.FileName}: {fileEx.Message}");
+                                    uploadErrors.Add($"Lỗi upload file {file.FileName}: {fileEx.Message}");
+                                }
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        documentService?.Dispose();
+                    }
+                }
+
+                // Gửi email cho step 1 (QLTC EE) - CHỈ THỰC HIỆN SAU KHI ĐÃ LƯU XONG
+                try
+                {
+                    var nextStep = wf.GetCurrentStep(request);
+                    if (nextStep != null)
+                    {
+                        var approvalUrl = Url.Action("ProcessRequest", "Approval",
+                            new { id = request.RequestID },
+                            protocol: Request.Url.Scheme);
+
+                        em.SendApprovalRequest(request, nextStep, approvalUrl, false);
+                    }
+                }
+                catch (Exception emailEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[RequestController] Email sending failed: {emailEx.Message}");
+                    // Continue execution even if email fails
+                }
+
+                string successMessage = $"Đã tạo thành công request {request.RequestID} và gửi email cho người phê duyệt!";
+                if (uploadErrors.Any())
+                {
+                    successMessage += $" Tuy nhiên có một số file không upload được: {string.Join(", ", uploadErrors)}";
+                }
+
+                TempData["SuccessMessage"] = successMessage;
+                return RedirectToAction("TruocTestRun");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[RequestController] Error in Create method: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[RequestController] Stack trace: {ex.StackTrace}");
+
+                // SỬA: Provide more detailed error information
+                string errorMessage = "Có lỗi xảy ra khi tạo request";
+                if (ex.InnerException != null)
+                {
+                    errorMessage += $": {ex.InnerException.Message}";
+                    System.Diagnostics.Debug.WriteLine($"[RequestController] Inner exception: {ex.InnerException.Message}");
+                }
+                else
+                {
+                    errorMessage += $": {ex.Message}";
+                }
+
+                TempData["ErrorMessage"] = errorMessage;
+                return View(model);
+            }
+        }
+
+        // THÊM: Method để tạo ID mới theo format EPE-EE-YY-XXX
+        private string GenerateNewRequestID()
+        {
+            try
+            {
+                // 1. Lấy năm hiện tại (2 chữ số cuối)
+                var currentYear = DateTime.Now.Year;
+                var yearSuffix = (currentYear % 100).ToString("D2"); // VD: 2025 -> "25"
+
+                // 2. Lấy tất cả request hiện có
+                var allRequests = fs.LoadAllRequests();
+
+                // 3. Lọc các request cùng năm và có format EPE-EE-YY-XXX
+                var currentYearRequests = allRequests
+                    .Where(r => !string.IsNullOrEmpty(r.RequestID) && r.RequestID.StartsWith($"EPE-EE-{yearSuffix}-"))
+                    .Select(r => r.RequestID)
+                    .ToList();
+
+                // 4. Tìm số sequence cao nhất
+                var maxSequence = 0;
+                foreach (var requestId in currentYearRequests)
+                {
+                    // Parse sequence từ RequestID (VD: EPE-EE-25-001 -> 001)
+                    var parts = requestId.Split('-');
+                    if (parts.Length == 4 && int.TryParse(parts[3], out int sequence))
+                    {
+                        maxSequence = Math.Max(maxSequence, sequence);
+                    }
+                }
+
+                // 5. Tạo sequence mới (+1)
+                var newSequence = maxSequence + 1;
+
+                // 6. Tạo ID mới
+                var newRequestID = $"EPE-EE-{yearSuffix}-{newSequence:D3}"; // VD: EPE-EE-25-001
+
+                System.Diagnostics.Debug.WriteLine($"[RequestController] Generated new Request ID: {newRequestID}");
+
+                return newRequestID;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[RequestController] Error generating Request ID: {ex.Message}");
+
+                // Fallback: Nếu có lỗi, tạo ID với timestamp
+                var currentYear = DateTime.Now.Year;
+                var yearSuffix = (currentYear % 100).ToString("D2");
+                var timestamp = DateTime.Now.ToString("HHmmss");
+
+                return $"EPE-EE-{yearSuffix}-{timestamp}";
+            }
+        }
+
+        public ActionResult Edit(string id)
+        {
+            var req = fs.LoadRequest(id);
+            var currentUser = Session["CurrentUser"] as User;
+            if (req == null) return HttpNotFound();
+
+            // SỬA: Kiểm tra quyền sửa đơn bị từ chối
+            if (currentUser == null || !IsStaff(currentUser))
+            {
+                TempData["ErrorMessage"] = "Bạn không có quyền sửa đơn này!";
+                return RedirectToAction("Index");
+            }
+
+            // SỬA: Logic xác định step edit
+            int editStepIndex = 0; // Default: step 0
+            string editReason = "";
+
+            if (req.IsRejected)
+            {
+                // Tìm step bị từ chối
+                var rejectedStep = req.History?.FirstOrDefault(h => h.Status == "Rejected");
+                if (rejectedStep != null)
+                {
+                    editReason = $"Đơn bị từ chối tại {rejectedStep.StepName}: {rejectedStep.Comment}";
+
+                    // Xác định step mà user hiện tại có thể edit
+                    var userCanEditStep = FindEditableStepForUser(req, currentUser, rejectedStep.Index);
+                    if (userCanEditStep != null)
+                    {
+                        editStepIndex = userCanEditStep.Index;
+                    }
+                    else
+                    {
+                        // Nếu không tìm thấy step phù hợp, chỉ cho phép owner edit step 0
+                        if (req.CreatedByADID != currentUser.ADID)
+                        {
+                            TempData["ErrorMessage"] = "Bạn không có quyền sửa đơn này!";
+                            return RedirectToAction("Index");
+                        }
+                        editStepIndex = 0;
+                    }
+                }
+            }
+            else
+            {
+                // Đơn chưa bị từ chối, chỉ owner mới được sửa step 0
+                if (req.CreatedByADID != currentUser.ADID)
+                {
+                    TempData["ErrorMessage"] = "Bạn không có quyền sửa đơn này!";
+                    return RedirectToAction("Index");
+                }
+                editStepIndex = 0;
+            }
+
+            // Convert ICollection<RequestField> to Dictionary for session
+            var fieldsDict = req.Fields.ToDictionary(f => f.Key, f => f.Value);
+            Session["LivePreviewFields"] = fieldsDict;
+
+            // Truyền thông tin về step cần edit
+            ViewBag.EditStepIndex = editStepIndex;
+            ViewBag.EditReason = editReason;
+            ViewBag.CurrentUser = currentUser;
+
+            return View(req);
+        }
+
+        // THÊM: Helper method để tìm step mà user có thể edit
+        private WorkflowStep FindEditableStepForUser(Request request, User user, int rejectedStepIndex)
+        {
+            if (request.History == null || user == null) return null;
+
+            // Tìm step DataEntry gần nhất trước step bị từ chối mà user có thể edit
+            var editableSteps = request.History
+                .Where(s => s.Index < rejectedStepIndex &&
+                           s.Actor == StepActor.DataEntry &&
+                           s.DeptCode == user.DeptCode)
+                .OrderByDescending(s => s.Index)
+                .ToList();
+
+            return editableSteps.FirstOrDefault();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit(Request model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var originalRequest = fs.LoadRequest(model.RequestID);
+            if (originalRequest == null) return HttpNotFound();
+
+            var currentUser = Session["CurrentUser"] as User;
+            if (currentUser == null || !IsStaff(currentUser))
+            {
+                TempData["ErrorMessage"] = "Bạn không có quyền sửa đơn này!";
+                return RedirectToAction("Index");
+            }
+
+            // Lấy step index từ form
+            int editStepIndex = 0;
+            if (int.TryParse(Request.Form["EditStepIndex"], out int stepIndex))
+            {
+                editStepIndex = stepIndex;
+            }
+
+            // Xử lý dữ liệu theo step
+            ProcessEditByStep(originalRequest, editStepIndex);
+
+            bool wasRejected = originalRequest.IsRejected;
+
+            // Reset trạng thái nếu bị từ chối
+            if (originalRequest.IsRejected)
+            {
+                originalRequest.IsRejected = false;
+                if (originalRequest.History != null && originalRequest.History.Count > originalRequest.CurrentStepIndex)
+                {
+                    var currentStep = originalRequest.History.ElementAt(originalRequest.CurrentStepIndex);
+                    currentStep.Status = "Processing";
+                    currentStep.ApproverADID = null;
+                    currentStep.Comment = null;
+                    currentStep.ApprovedAt = null;
+                }
+            }
+
+            // Cập nhật phase sau khi edit
+            wf.UpdateRequestPhase(originalRequest);
+
+            fs.SaveRequest(originalRequest);
+
+            // Cập nhật Excel
+            var excelPath = Server.MapPath($"~/App_Data/Requests/{model.RequestID}/request.xlsx");
+            ex.FillFields(excelPath, originalRequest);
+
+            if (wasRejected)
+            {
+                var nextStep = originalRequest.History.ElementAt(originalRequest.CurrentStepIndex);
+                var approvalUrl = Url.Action("ProcessRequest", "Approval", new { id = originalRequest.RequestID }, protocol: Request.Url.Scheme);
+                em.SendApprovalRequest(originalRequest, nextStep, approvalUrl, isResubmission: true);
+            }
+
+            TempData["SuccessMessage"] = $"Cập nhật thành công Step {editStepIndex} của Request!";
+            return GetRedirectToPhase(originalRequest);
+        }
+
+        // THÊM: Helper method xử lý edit theo step
+        private void ProcessEditByStep(Request request, int stepIndex)
+        {
+            switch (stepIndex)
+            {
+                case 0:
+                    ProcessEditStep0(request);
+                    break;
+                case 2:
+                    ProcessEditStep2(request);
+                    break;
+                case 4:
+                    ProcessEditStep4(request);
+                    break;
+                case 6:
+                    ProcessEditStep6(request);
+                    break;
+                case 8:
+                    ProcessEditStep8(request);
+                    break;
+                default:
+                    ProcessEditStep0(request);
+                    break;
+            }
+        }
+
+        private void ProcessEditStep0(Request request)
+        {
+            var allCheckboxKeys = new List<string> { "EPE-PCB", "EPE-PCB1", "EPE-PCB2", "EPE-PCB3", "EPE-EE", "EPE-EE1", "EPE-EE2", "EPE-EE3", "EPE-EE4", "DaXacNhanFASample", "DaXacNhanLapRapTruoc", "DaKiemTra" };
+
+            // Logic tương tự như code cũ cho step 0
+            var fieldsList = new List<RequestField>();
+
+            foreach (string key in Request.Form.AllKeys)
+            {
+                if (key.StartsWith("Fields[") && key.EndsWith("]"))
+                {
+                    var fieldName = key.Substring(7, key.Length - 8);
+                    var value = Request.Form[key];
+
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        fieldsList.Add(new RequestField
+                        {
+                            RequestID = request.RequestID,
+                            Key = fieldName,
+                            Value = value == "true" ? "true" : value
+                        });
+                    }
+                }
+            }
+
+            // Đảm bảo các checkbox không được check cũng có giá trị "false"
+            var submittedFieldNames = fieldsList.Select(f => f.Key).ToHashSet();
+            foreach (var checkboxKey in allCheckboxKeys)
+            {
+                if (!submittedFieldNames.Contains(checkboxKey))
+                {
+                    fieldsList.Add(new RequestField
+                    {
+                        RequestID = request.RequestID,
+                        Key = checkboxKey,
+                        Value = "false"
+                    });
+                }
+            }
+
+            // Cập nhật fields
+            request.Fields = fieldsList;
+        }
+
+        private void ProcessEditStep2(Request request)
+        {
+            var formData = new List<RequestField>();
+
+            // Giữ lại các field không liên quan đến step 2
+            var step2Keys = new[] { "DaNhanHangTestRun", "EPE-PCB1", "EPE-PCB2", "EPE-PCB3", "CommentStep2" };
+            var existingFields = request.Fields.Where(f => !step2Keys.Contains(f.Key)).ToList();
+
+            // Xử lý checkbox cho step 2
+            foreach (string key in Request.Form.AllKeys)
+            {
+                if (step2Keys.Contains(key))
+                {
+                    var value = Request.Form[key];
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        formData.Add(new RequestField
+                        {
+                            RequestID = request.RequestID,
+                            Key = key,
+                            Value = value == "true" ? "true" : value
+                        });
+                    }
+                }
+            }
+
+            // Đảm bảo checkbox không được check có giá trị false
+            var checkboxKeys = new[] { "DaNhanHangTestRun", "EPE-PCB1", "EPE-PCB2", "EPE-PCB3" };
+            var submittedKeys = formData.Select(f => f.Key).ToHashSet();
+
+            foreach (var cbKey in checkboxKeys)
+            {
+                if (!submittedKeys.Contains(cbKey))
+                {
+                    formData.Add(new RequestField
+                    {
+                        RequestID = request.RequestID,
+                        Key = cbKey,
+                        Value = "false"
+                    });
+                }
+            }
+
+            // Cập nhật fields
+            request.Fields.Clear();
+            foreach (var field in existingFields.Concat(formData))
+            {
+                request.Fields.Add(field);
+            }
+        }
+
+        private void ProcessEditStep4(Request request)
+        {
+            var formData = new List<RequestField>();
+
+            // Xử lý 7 ô thông tin
+            var infoKeys = new[] { "ThongTin1Step4", "ThongTin2Step4", "ThongTin3Step4", "ThongTin4Step4", "ThongTin5Step4", "ThongTin6Step4", "ThongTin7Step4" };
+            foreach (var key in infoKeys)
+            {
+                var value = Request.Form[key];
+                if (!string.IsNullOrEmpty(value))
+                {
+                    formData.Add(new RequestField
+                    {
+                        RequestID = request.RequestID,
+                        Key = key,
+                        Value = value
+                    });
+                }
+            }
+
+            // Xử lý 3 checkbox
+            var checkboxKeys = new[] { "LapRapStep4", "TinhNangStep4", "NgoaiQuanStep4" };
+            foreach (var key in checkboxKeys)
+            {
+                var value = Request.Form[key];
+                formData.Add(new RequestField
+                {
+                    RequestID = request.RequestID,
+                    Key = key,
+                    Value = value == "true" ? "true" : "false"
+                });
+            }
+
+            // SỬA: Xử lý comment - chỉ thêm nếu có nội dung
+            var comment = Request.Form["CommentStep4"];
+            if (!string.IsNullOrEmpty(comment))
+            {
+                formData.Add(new RequestField
+                {
+                    RequestID = request.RequestID,
+                    Key = "CommentStep4",
+                    Value = comment
+                });
+            }
+
+            // Cập nhật fields - remove existing Step 4 fields first
+            var allStep4Keys = infoKeys.Concat(checkboxKeys).Concat(new[] { "CommentStep4" }).ToHashSet();
+            var existingFields = request.Fields.Where(f => !allStep4Keys.Contains(f.Key)).ToList();
+            request.Fields.Clear();
+
+            foreach (var field in existingFields.Concat(formData))
+            {
+                request.Fields.Add(field);
+            }
+        }
+
+        private void ProcessEditStep6(Request request)
+        {
+            var formData = new List<RequestField>();
+
+            // Xử lý checkbox và date cho step 6
+            var checkboxKeys = new[] { "DaKiemTra", "DaXacNhanFASample", "DaXacNhanLapRapTruoc" };
+            foreach (var key in checkboxKeys)
+            {
+                var value = Request.Form[key];
+                formData.Add(new RequestField
+                {
+                    RequestID = request.RequestID,
+                    Key = key,
+                    Value = value == "true" ? "true" : "false"
+                });
+            }
+
+            // Xử lý DateTime cho các trường ngày
+            var dateTimeKeys = new[] { "NgayKiemTra", "GioBatDauKiemTra", "GioKetThucKiemTra" };
+            foreach (var key in dateTimeKeys)
+            {
+                var value = Request.Form[key];
+                if (DateTime.TryParse(value, out DateTime dateValue))
+                {
+                    formData.Add(new RequestField
+                    {
+                        RequestID = request.RequestID,
+                        Key = key,
+                        Value = dateValue.ToString("yyyy-MM-dd HH:mm:ss")
+                    });
+                }
+            }
+
+            // Xử lý comment
+            var comment = Request.Form["CommentStep6"];
+            if (!string.IsNullOrEmpty(comment))
+            {
+                formData.Add(new RequestField
+                {
+                    RequestID = request.RequestID,
+                    Key = "CommentStep6",
+                    Value = comment
+                });
+            }
+
+            // Cập nhật fields - remove existing Step 6 fields first
+            var allStep6Keys = checkboxKeys.Concat(dateTimeKeys).Concat(new[] { "CommentStep6" }).ToHashSet();
+            var existingFields = request.Fields.Where(f => !allStep6Keys.Contains(f.Key)).ToList();
+            request.Fields.Clear();
+
+            foreach (var field in existingFields.Concat(formData))
+            {
+                request.Fields.Add(field);
+            }
+        }
+
+        private void ProcessEditStep8(Request request)
+        {
+            var formData = new List<RequestField>();
+
+            // Chỉ xử lý trường hợp request chưa hoàn thành và chưa bị từ chối
+            if (!request.IsCompleted && !request.IsRejected)
+            {
+                // Xử lý checkbox cho Step 8
+                var checkboxKeys = new[] { "DaHoanThanh", "DaXacNhan" };
+                foreach (var key in checkboxKeys)
+                {
+                    var value = Request.Form[key];
+                    formData.Add(new RequestField
+                    {
+                        RequestID = request.RequestID,
+                        Key = key,
+                        Value = value == "true" ? "true" : "false"
+                    });
+                }
+
+                // Xử lý comment
+                var comment = Request.Form["CommentStep8"];
+                if (!string.IsNullOrEmpty(comment))
+                {
+                    formData.Add(new RequestField
+                    {
+                        RequestID = request.RequestID,
+                        Key = "CommentStep8",
+                        Value = comment
+                    });
+                }
+
+                // Cập nhật fields - remove existing Step 8 fields first
+                var allStep8Keys = checkboxKeys.Concat(new[] { "CommentStep8" }).ToHashSet();
+                var existingFields = request.Fields.Where(f => !allStep8Keys.Contains(f.Key)).ToList();
+                request.Fields.Clear();
+
+                foreach (var field in existingFields.Concat(formData))
+                {
+                    request.Fields.Add(field);
+                }
+            }
+        }
+
+        public ActionResult Preview(string id)
+        {
+            var req = fs.LoadRequest(id);
+            if (req == null) return HttpNotFound();
+            return View(req);
+        }
+
+        public ActionResult PreviewImage(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return HttpNotFound("Request ID không hợp lệ");
+            }
+
+            var req = fs.LoadRequest(id);
+            if (req == null)
+            {
+                return HttpNotFound("Không tìm thấy request");
+            }
+
+            // SỬA: Kiểm tra xem có dữ liệu preview trong session không (cho chế độ edit/live preview)
+            var sessionFields = Session["LivePreviewFields"] as Dictionary<string, string>;
+            if (sessionFields != null && sessionFields.Any())
+            {
+                // Sử dụng dữ liệu từ session để tạo preview (cho live editing)
+                var tempFieldsList = sessionFields.Select(kvp => new RequestField { Key = kvp.Key, Value = kvp.Value }).ToList();
+                var tempRequest = new Request
+                {
+                    RequestID = req.RequestID,
+                    Fields = tempFieldsList,
+                    History = req.History ?? new List<WorkflowStep>(),
+                    CreatedAt = req.CreatedAt,
+                    CurrentStepIndex = req.CurrentStepIndex,
+                    CurrentPhase = req.CurrentPhase,
+                    IsCompleted = req.IsCompleted,
+                    IsRejected = req.IsRejected
+                };
+                req = tempRequest;
+            }
+
+            var excelPath = Server.MapPath($"~/App_Data/Requests/{id}/request.xlsx");
+            if (!System.IO.File.Exists(excelPath))
+            {
+                // Nếu file Excel không tồn tại, tạo lại từ template
+                var requestFolder = Server.MapPath($"~/App_Data/Requests/{id}");
+                Directory.CreateDirectory(requestFolder);
+                var templatePath = Server.MapPath("~/App_Data/Data.xlsx");
+
+                if (System.IO.File.Exists(templatePath))
+                {
+                    System.IO.File.Copy(templatePath, excelPath, true);
+                    // Điền dữ liệu vào file Excel mới tạo
+                    ex.FillFields(excelPath, req);
+                }
+                else
+                {
+                    return HttpNotFound("Template Excel không tồn tại");
+                }
+            }
+
+            try
+            {
+                // Đảm bảo dữ liệu được cập nhật trong Excel
+                ex.FillFields(excelPath, req);
+
+                // Render ra PNG
+                var png = ex.RenderToPng(excelPath);
+
+                if (png == null || png.Length == 0)
+                {
+                    return HttpNotFound("Không thể tạo ảnh preview");
+                }
+
+                return File(png, "image/png");
+            }
+            catch (Exception)
+            {
+                return HttpNotFound("Lỗi tạo preview");
+            }
+        }
+
+        public ActionResult GeneratePreviewImage()
+        {
+            try
+            {
+                var fields = Session["LivePreviewFields"] as Dictionary<string, string> ?? new Dictionary<string, string>();
+                var templatePath = Server.MapPath("~/App_Data/Data.xlsx");
+
+                if (!System.IO.File.Exists(templatePath))
+                {
+                    return HttpNotFound("Template Excel không tồn tại");
+                }
+
+                // Convert Dictionary to ICollection<RequestField> for ExcelService
+                var fieldsList = fields.Select(kvp => new RequestField { Key = kvp.Key, Value = kvp.Value }).ToList();
+
+                var tempRequest = new Request
+                {
+                    Fields = fieldsList,
+                    History = new List<WorkflowStep>()
+                };
+
+                var tempFilePath = Path.Combine(Path.GetTempPath(), $"preview_{Guid.NewGuid()}.xlsx");
+
+                try
+                {
+                    System.IO.File.Copy(templatePath, tempFilePath, true);
+
+                    ex.FillFields(tempFilePath, tempRequest);
+
+                    var pngBytes = ex.RenderToPng(tempFilePath);
+
+                    if (pngBytes == null || pngBytes.Length == 0)
+                    {
+                        return HttpNotFound("Không thể tạo ảnh preview");
+                    }
+
+                    return File(pngBytes, "image/png");
+                }
+                finally
+                {
+                    if (System.IO.File.Exists(tempFilePath))
+                    {
+                        try { System.IO.File.Delete(tempFilePath); } catch { }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                return HttpNotFound("Lỗi tạo preview");
+            }
+        }
+
+        public ActionResult TruocTestRun()
+        {
+            var requests = GetRequestsByPhase(TestRunPhase.TruocTestRun);
+            ViewBag.Title = "Request – Trước Test Run";
+            ViewBag.CurrentPhase = TestRunPhase.TruocTestRun;
+            ViewBag.CurrentPhaseTitle = "Trước Test Run";
+            return View("PhaseList", requests);
+        }
+
+        public ActionResult GiuaTestRun()
+        {
+            var requests = GetRequestsByPhase(TestRunPhase.GiuaTestRun);
+            ViewBag.Title = "Request – Giữa Test Run";
+            ViewBag.CurrentPhase = TestRunPhase.GiuaTestRun;
+            ViewBag.CurrentPhaseTitle = "Giữa Test Run";
+            return View("PhaseList", requests);
+        }
+
+        public ActionResult SauTestRun()
+        {
+            var requests = GetRequestsByPhase(TestRunPhase.SauTestRun);
+            ViewBag.Title = "Request – Sau Test Run";
+            ViewBag.CurrentPhase = TestRunPhase.SauTestRun;
+            ViewBag.CurrentPhaseTitle = "Sau Test Run";
+            return View("PhaseList", requests);
+        }
+
+        public ActionResult Detail(string id)
+        {
+            var req = fs.LoadRequest(id);
+            if (req == null) return HttpNotFound();
+
+            var currentUser = Session["CurrentUser"] as User;
+            if (currentUser == null)
+                return RedirectToAction("Login", "Account");
+
+            // Tất cả người dùng đều có thể xem chi tiết, nhưng chỉ Staff được sửa đơn mình tạo
+            bool canEdit = IsStaff(currentUser) && req.CreatedByADID == currentUser.ADID && !req.IsCompleted && !req.IsRejected;
+            bool isAdmin = currentUser.Role == UserRole.Admin;
+
+            ViewBag.CanEdit = canEdit || isAdmin;
+            ViewBag.IsOwner = req.CreatedByADID == currentUser.ADID;
+            ViewBag.CurrentUser = currentUser;
+
+            return View(req);
+        }
+
+        private List<Request> GetRequestsByPhase(TestRunPhase phase)
+        {
+            var allRequests = fs.LoadAllRequests();
+            return allRequests
+                .Where(r => !r.IsCompleted && !r.IsRejected &&
+                    GetPhaseByCurrentStep(r.CurrentStepIndex) == phase)
+                .ToList();
+        }
+
+        private TestRunPhase GetPhaseByCurrentStep(int stepIndex)
+        {
+            // SỬA: Sử dụng WorkflowService để có logic nhất quán
+            return wf.GetPhaseByStepIndex(stepIndex);
+        }
+
+        // ====== Helper methods for role checks ======
+        private bool IsStaff(User user)
+        {
+            return user != null && user.Title != null && user.Title.Trim().Equals("Staff", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private bool IsManagerOrGM(User user)
+        {
+            if (user == null || string.IsNullOrEmpty(user.Title)) return false;
+            var title = user.Title.Trim();
+            return title.Equals("Quản lý sơ cấp", StringComparison.OrdinalIgnoreCase) ||
+                   title.Equals("Quản lý trung cấp", StringComparison.OrdinalIgnoreCase) ||
+                   title.Equals("G.M", StringComparison.OrdinalIgnoreCase);
+        }
+
+        [HttpPost]
+        public ActionResult LivePreviewData()
+        {
+            try
+            {
+                var allCheckboxKeys = new List<string> { "EPE-EE", "EPE-EE1", "EPE-EE2", "EPE-EE3", "EPE-EE4", "EPE-PCB", "EPE-PCB1", "EPE-PCB2", "EPE-PCB3", "EPE-G.M", "DaXacNhanFASample", "DaXacNhanLapRapTruoc", "DaKiemTra" };
+
+                // Get all form data from Request.Form
+                var fieldsDict = new Dictionary<string, string>();
+
+                // Process all Fields[...] form data (for Create form)
+                foreach (string key in Request.Form.AllKeys)
+                {
+                    if (key.StartsWith("Fields[") && key.EndsWith("]"))
+                    {
+                        var fieldName = key.Substring(7, key.Length - 8); // Remove "Fields[" and "]"
+                        var value = Request.Form[key];
+                        fieldsDict[fieldName] = value ?? "";
+                    }
+                }
+
+                // SỬA: Xử lý form data trực tiếp (for Edit form) - không có prefix Fields[]
+                if (!fieldsDict.Any())
+                {
+                    foreach (string key in Request.Form.AllKeys)
+                    {
+                        if (!key.StartsWith("__") && key != "RequestID" && key != "EditStepIndex") // Bỏ qua các field hệ thống
+                        {
+                            var value = Request.Form[key];
+                            if (!string.IsNullOrEmpty(value))
+                            {
+                                fieldsDict[key] = value;
+                            }
+                        }
+                    }
+                }
+
+                // Ensure all checkbox keys exist with default values
+                foreach (var chkKey in allCheckboxKeys)
+                {
+                    if (!fieldsDict.ContainsKey(chkKey))
+                    {
+                        fieldsDict[chkKey] = "false";
+                    }
+                }
+
+                // Store in session for PreviewImage/GeneratePreviewImage to use
+                Session["LivePreviewFields"] = fieldsDict;
+
+                // Return success response instead of JSON to avoid JSON dependency
+                Response.ContentType = "application/json";
+                return Content("{\"success\": true}");
+            }
+            catch (Exception ex)
+            {
+                Response.ContentType = "application/json";
+                return Content("{\"success\": false, \"error\": \"" + ex.Message.Replace("\"", "\\\"") + "\"}");
+            }
+        }
+        public ActionResult Rejected()
+        {
+            var currentUser = Session["CurrentUser"] as User;
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var allRequests = fs.LoadAllRequests();
+            var rejectedRequests = allRequests
+                .Where(r => r.IsRejected)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToList();
+
+            return View(rejectedRequests);
+        }
+
+        private ActionResult GetRedirectToPhase(Request request)
+        {
+            if (request == null)
+            {
+                return RedirectToAction("TruocTestRun");
+            }
+
+            var phase = GetPhaseByCurrentStep(request.CurrentStepIndex);
+            switch (phase)
+            {
+                case TestRunPhase.TruocTestRun:
+                    return RedirectToAction("TruocTestRun");
+                case TestRunPhase.GiuaTestRun:
+                    return RedirectToAction("GiuaTestRun");
+                case TestRunPhase.SauTestRun:
+                    return RedirectToAction("SauTestRun");
+                default:
+                    return RedirectToAction("TruocTestRun");
+            }
+        }
+    }
+}

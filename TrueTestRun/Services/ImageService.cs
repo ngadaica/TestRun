@@ -30,16 +30,33 @@ namespace TrueTestRun.Services
         // Hàm public: lấy seal từ file, nếu chưa có thì tạo mới
         public byte[] GetOrCreateSealImage(string department, string name, UserRole role)
         {
-            if (role == UserRole.DataEntry)
-                return null; // Không tạo seal cho DataEntry
+            try
+            {
+                var sealPath = GetSealPath(department, name);
 
-            var path = GetSealPath(department, name);
-            if (File.Exists(path))
-                return File.ReadAllBytes(path);
+                if (System.IO.File.Exists(sealPath))
+                {
+                    var existingBytes = System.IO.File.ReadAllBytes(sealPath);
+                    return existingBytes;
+                }
 
-            var bytes = GenerateSealImage(department, name);
-            File.WriteAllBytes(path, bytes);
-            return bytes;
+                var newSealBytes = GenerateSealImage(department, name);
+
+                if (newSealBytes != null && newSealBytes.Length > 0)
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(sealPath));
+                    System.IO.File.WriteAllBytes(sealPath, newSealBytes);
+                    return newSealBytes;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         // Hàm này giữ nguyên logic cũ (tạo seal động)

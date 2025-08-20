@@ -1,0 +1,6 @@
+- sau khi đơn chạy xong cả 3 bước. Sẽ tự động nhảy vào request hoàn thành // xong
+- Gmail cần phải gửi theo brother. // xong
+- Cần thêm tiếng nhật.
+- Cần sửa trang chủ chỉ hiện tổng số đơn theo tài khoản của người dùng.
+- Sẽ thêm trang tính tổng tất cả số đơn đã hoàn thành sau
+- Ở bước tạo đơn ban đầu, hãy thêm 3 ô tích checkbox và ghi chú luôn ở đấy (có thể tích hợp vào button hoặc để ở ngoài giao diện) 

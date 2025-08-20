@@ -1,0 +1,371 @@
+﻿@model TrueTestRun.Models.Request
+@{
+    ViewBag.Title = HttpContext.GetGlobalResourceObject("Resources", "PCBStaffDataEntry").ToString() + " - " + Model.RequestID;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var currentUser = Session["CurrentUser"] as TrueTestRun.Models.User;
+    var currentStep = ViewBag.CurrentStep as TrueTestRun.Models.WorkflowStep;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>
+            <span style="font-size:1.2em;">✏️</span>
+            @HttpContext.GetGlobalResourceObject("Resources", "PCBStaffDataEntry") - @Model.RequestID
+        </h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="@Url.Action("GiuaTestRun", "Request")">
+                        <span style="font-size:1em;">🏠</span> @HttpContext.GetGlobalResourceObject("Resources", "DuringTestRun")
+                    </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">@HttpContext.GetGlobalResourceObject("Resources", "DataEntry")</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <span style="font-size:1em;">✅</span> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span style="font-size:1em;">⚠️</span> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row">
+    <!-- CỘT FORM - THU NHỎ LẠI -->
+    <div class="col-lg-4 col-md-5">
+        <!-- FORM ĐIỀN THÔNG TIN STEP 2 -->
+        @using (Html.BeginForm("ProcessApproval", "Approval", FormMethod.Post, new { id = "step2Form" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.Hidden("RequestID", Model.RequestID)
+
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><span style="font-size:1.1em;">📋</span> @HttpContext.GetGlobalResourceObject("Resources", "PCBStaffDataEntry")</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Checkbox: Đã nhận hàng test run -->
+                    <div class="mb-4">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   name="DaNhanHangTestRun"
+                                   value="true"
+                                   id="chkNhanHangTestRun"
+                                   @(Model.Fields.FirstOrDefault(f => f.Key == "DaNhanHangTestRun")?.Value == "true" ? "checked" : "") />
+                            <label class="form-check-label fw-bold" for="chkNhanHangTestRun">
+                                @HttpContext.GetGlobalResourceObject("Resources", "ReceivedTestRunGoods")
+                            </label>
+                            <div class="small text-muted">テストラン品受け取り済</div>
+                        </div>
+
+                        <!-- Textarea comment cho Step 2 -->
+                        <div class="mt-3">
+                            <label class="form-label fw-bold">@HttpContext.GetGlobalResourceObject("Resources", "WorkCompletedNotes")</label>
+                            <textarea name="Comments" class="form-control" rows="4"
+                                      required
+                                      placeholder="@HttpContext.GetGlobalResourceObject("Resources", "DescribeWorkPlaceholder")">@(Model.Fields.FirstOrDefault(f => f.Key == "CommentStep2")?.Value ?? "")</textarea>
+                            <div class="form-text">
+                                <span style="font-size:0.9em;">ℹ️</span>
+                                @HttpContext.GetGlobalResourceObject("Resources", "DetailedDescription")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mb-3">
+                @Html.Partial("_DocumentViewButton", Model.RequestID)
+            </div>
+            <!-- NÚT SUBMIT -->
+            <div class="text-center mb-4">
+                <button type="submit" name="action" value="complete" class="btn btn-success btn-lg">
+                    <span style="font-size:1em;">✅</span>
+                    @HttpContext.GetGlobalResourceObject("Resources", "CompleteAndForward")
+                </button>
+                <a href="@Url.Action("GiuaTestRun", "Request")" class="btn btn-secondary btn-lg ms-2">
+                    <span style="font-size:1em;">⬅️</span>
+                    @HttpContext.GetGlobalResourceObject("Resources", "Back")
+                </a>
+            </div>
+
+        }
+    </div>
+
+    <!-- CỘT PREVIEW - MỞ RỘNG RA -->
+    <div class="col-lg-8 col-md-7">
+        <div class="card sticky-top">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><span style="font-size:1.1em;">📊</span> @HttpContext.GetGlobalResourceObject("Resources", "ExcelPreview")</h5>
+                <small class="text-light">@HttpContext.GetGlobalResourceObject("Resources", "PreviewWillUpdate")</small>
+            </div>
+            <div class="card-body text-center p-3">
+                <div class="excel-preview-container-large">
+                    <img src="@Url.Action("PreviewImage", "Request", new { id = Model.RequestID })"
+                         class="img-fluid excel-preview-enhanced"
+                         alt="Excel Preview"
+                         id="excelPreviewImage" />
+                </div>
+                <div class="mt-3">
+                    <small class="text-muted">
+                        <span style="font-size:0.9em;">🔄</span>
+                        @HttpContext.GetGlobalResourceObject("Resources", "PreviewAutoUpdate")
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Live update preview khi thay đổi checkbox hoặc comment
+            $('#chkNhanHangTestRun, textarea[name="Comments"]').on('change input', function() {
+                clearTimeout(window.previewTimeout);
+                window.previewTimeout = setTimeout(function() {
+                    updatePreview();
+                }, 500);
+            });
+
+            function updatePreview() {
+                var formData = {};
+
+                // Lấy checkbox value
+                formData['DaNhanHangTestRun'] = $('#chkNhanHangTestRun').is(':checked') ? 'true' : 'false';
+
+                // Lấy comment value
+                formData['Comments'] = $('textarea[name="Comments"]').val() || '';
+
+                // Thêm RequestID và antiforgery token
+                formData['RequestID'] = $('input[name="RequestID"]').val();
+                formData['__RequestVerificationToken'] = $('input[name="__RequestVerificationToken"]').val();
+
+                console.log('Sending Step 2 form data:', formData);
+
+                $.ajax({
+                    url: '@Url.Action("UpdateStep2Preview", "Approval")',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        console.log('Server response:', response);
+                        if (response.success) {
+                            var timestamp = new Date().getTime();
+                            $('#excelPreviewImage').attr('src', '@Url.Action("PreviewImage", "Request", new { id = Model.RequestID })' + '?t=' + timestamp);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('AJAX Error:', status, error);
+                        console.log('Response text:', xhr.responseText);
+                    }
+                });
+            }
+
+            // Form validation
+            $('#step2Form').on('submit', function (e) {
+                var comment = $('textarea[name="Comments"]').val().trim();
+                var isChecked = $('#chkNhanHangTestRun').is(':checked');
+
+                if (!comment) {
+                    alert('@HttpContext.GetGlobalResourceObject("Resources", "PleaseEnterWorkNotes")');
+                    $('textarea[name="Comments"]').focus();
+                    e.preventDefault();
+                    return false;
+                }
+
+                if (!isChecked) {
+                    if (!confirm('@HttpContext.GetGlobalResourceObject("Resources", "CheckboxNotChecked")')) {
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+
+                if (!confirm('@HttpContext.GetGlobalResourceObject("Resources", "ConfirmComplete")')) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+            // Auto dismiss alerts after 5 seconds
+            setTimeout(function () {
+                $('.alert').fadeOut('slow');
+            }, 5000);
+
+            // Character counter for textarea
+            $('textarea[name="Comments"]').on('input', function() {
+                var len = $(this).val().length;
+                var info = $(this).siblings('.form-text');
+                info.html(`<span style="font-size:0.9em;">ℹ️</span> @HttpContext.GetGlobalResourceObject("Resources", "CharactersEntered")`.replace('{0}', len) + ' @HttpContext.GetGlobalResourceObject("Resources", "DetailedDescription")');
+            });
+
+            // Load initial preview
+            updatePreview();
+        });
+    </script>
+}
+
+<style>
+    /* ===== ENHANCED PREVIEW STYLES ===== */
+    .excel-preview-container-large {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: 3px dashed #6c757d;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 0 auto;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+        .excel-preview-container-large:hover {
+            border-color: #495057;
+            box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+    .excel-preview-enhanced {
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        max-width: 100%;
+        height: auto;
+        min-height: 700px;
+        max-height: 900px;
+        border: 1px solid #dee2e6;
+    }
+
+        .excel-preview-enhanced:hover {
+            transform: scale(1.02);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+        }
+
+    /* ===== ENHANCED CARD STYLES ===== */
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        transition: box-shadow 0.3s ease;
+    }
+
+        .card:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+    .card-header {
+        border-radius: 12px 12px 0 0 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+        .card-header h5 {
+            font-weight: 600;
+            margin: 0;
+        }
+
+    /* ===== FORM IMPROVEMENTS ===== */
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+        .form-control:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+    .form-check-input:checked {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+
+    /* ===== BUTTON IMPROVEMENTS ===== */
+    .btn {
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 1.125rem;
+    }
+
+    /* ===== BREADCRUMB ===== */
+    .breadcrumb {
+        background-color: transparent;
+        padding: 0;
+        margin-bottom: 0;
+    }
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+        color: #6c757d;
+    }
+
+    /* ===== STICKY POSITIONING ===== */
+    .sticky-top {
+        top: 20px;
+    }
+
+    /* ===== RESPONSIVE ADJUSTMENTS ===== */
+    @@media (max-width: 991.98px) {
+        .col-lg-4 {
+            margin-bottom: 2rem;
+        }
+
+        .excel-preview-enhanced {
+            min-height: 500px;
+            max-height: 700px;
+        }
+
+        .sticky-top {
+            position: static !important;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .excel-preview-enhanced {
+            min-height: 400px;
+            max-height: 600px;
+        }
+
+        .excel-preview-container-large {
+            padding: 15px;
+        }
+    }
+
+    /* ===== LOADING ANIMATION ===== */
+    .excel-preview-enhanced[src*="base64"] {
+        opacity: 0.7;
+        animation: pulse 1.5s ease-in-out infinite alternate;
+    }
+
+    @@keyframes pulse {
+        from {
+            opacity: 0.7;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+</style>

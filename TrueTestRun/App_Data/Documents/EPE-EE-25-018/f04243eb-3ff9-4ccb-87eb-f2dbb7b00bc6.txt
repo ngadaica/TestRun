@@ -1,0 +1,2 @@
+Đã xong step 0, đến step 1 phê duyệt (chưa oke lắm)
+- Làm id tự tăng theo thứ tự

@@ -1,0 +1,241 @@
+﻿@model string
+
+<button type="button" class="btn btn-outline-info btn-sm" onclick="viewDocuments('@Model')">
+    <span style="font-size:0.9em;">📎</span> Xem tài liệu
+</button>
+
+<!-- Modal hiển thị danh sách tài liệu -->
+<div class="modal fade" id="documentsModal" tabindex="-1" aria-labelledby="documentsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="documentsModalLabel">
+                    <span style="font-size:1.1em;">📎</span> Tài liệu đính kèm - @Model
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="documentsContent">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Đang tải...</span>
+                        </div>
+                        <div class="mt-2">Đang tải danh sách tài liệu...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <span style="font-size:0.9em;">❌</span> Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewDocuments(requestId) {
+    if (!requestId || requestId === 'undefined' || requestId === 'null') {
+        alert('Lỗi: Request ID không hợp lệ');
+        return;
+    }
+
+    $('#documentsModal').modal('show');
+
+    $.ajax({
+        url: '@Url.Action("GetDocuments", "Document")',
+        type: 'GET',
+        data: { requestId: requestId },
+        dataType: 'json',
+        success: function(response) {
+            if (response && response.success === true) {
+                displayDocuments(response.documents);
+            } else {
+                $('#documentsContent').html(`
+                    <div class="alert alert-warning">
+                        <span style="font-size:1em;">⚠️</span> ${response.message || 'Không thể tải danh sách tài liệu'}
+                    </div>
+                `);
+            }
+        },
+        error: function(xhr, status, error) {
+            $('#documentsContent').html(`
+                <div class="alert alert-danger">
+                    <span style="font-size:1em;">❌</span> Có lỗi xảy ra khi tải tài liệu: ${error}
+                </div>
+            `);
+        }
+    });
+}
+
+function displayDocuments(documents) {
+    if (!documents || !Array.isArray(documents) || documents.length === 0) {
+        $('#documentsContent').html(`
+            <div class="text-center py-5">
+                <span style="font-size:4em; color: #6c757d;">📄</span>
+                <h5 class="mt-3 text-muted">Chưa có tài liệu nào</h5>
+                <p class="text-muted">Request này chưa có tài liệu đính kèm</p>
+            </div>
+        `);
+        return;
+    }
+
+    let html = `
+        <div class="documents-list">
+            <div class="mb-3 alert alert-info">
+                <span style="font-size:1em;">📊</span>
+                <strong>Tổng cộng: ${documents.length} tài liệu đính kèm</strong>
+            </div>
+    `;
+
+    documents.forEach((doc) => {
+        const fileIcon = getFileIcon(doc.fileName || 'unknown');
+
+        html += `
+            <div class="document-item">
+                <div class="document-info">
+                    <span class="document-icon">${fileIcon}</span>
+                    <div class="document-details">
+                        <div class="document-name">${doc.fileName || 'Tên file không xác định'}</div>
+                        <div class="document-meta">
+                            <span class="badge bg-light text-dark">${doc.fileSize || '0 B'}</span> •
+                            Tải lên bởi <strong>${doc.uploadedBy || 'N/A'}</strong> •
+                            <span class="text-muted">${doc.uploadedAt || ''}</span>
+                        </div>
+                        ${doc.description ? `<div class="document-description"><em>${doc.description}</em></div>` : ''}
+                    </div>
+                </div>
+                <div class="document-actions">
+                    <a href="@Url.Action("View", "Document")?id=${doc.documentId}"
+                       target="_blank"
+                       class="btn btn-primary btn-sm"
+                       title="Xem tài liệu - Sẽ hiển thị trực tiếp nếu có thể, hoặc tải về nếu không">
+                        <span style="font-size:0.8em;">👁️</span> Xem
+                    </a>
+                </div>
+            </div>
+        `;
+    });
+
+    html += '</div>';
+    $('#documentsContent').html(html);
+}
+
+function getFileIcon(fileName) {
+    const ext = fileName.split('.').pop().toLowerCase();
+    const icons = {
+        'pdf': '📄',
+        'doc': '📝', 'docx': '📝',
+        'xls': '📊', 'xlsx': '📊',
+        'png': '🖼️', 'jpg': '🖼️', 'jpeg': '🖼️', 'gif': '🖼️', 'webp': '🖼️',
+        'txt': '📃', 'html': '📃',
+        'zip': '📦', 'rar': '📦'
+    };
+    return icons[ext] || '📎';
+}
+</script>
+
+<style>
+.documents-list {
+    max-height: 450px;
+    overflow-y: auto;
+}
+
+.document-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.document-item:hover {
+    background: #e9ecef;
+    border-color: #007bff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+}
+
+.document-info {
+    display: flex;
+    align-items: flex-start;
+    flex: 1;
+    gap: 1rem;
+}
+
+.document-icon {
+    font-size: 2em;
+    flex-shrink: 0;
+}
+
+.document-details {
+    flex: 1;
+}
+
+.document-name {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.document-meta {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.document-description {
+    color: #495057;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(0, 123, 255, 0.1);
+    border-radius: 6px;
+}
+
+.document-actions {
+    margin-left: 1rem;
+    flex-shrink: 0;
+}
+
+.modal-lg {
+    max-width: 900px;
+}
+
+.btn-outline-info {
+    border-color: #17a2b8;
+    color: #17a2b8;
+}
+
+.btn-outline-info:hover {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+    color: white;
+}
+
+@@media (max-width: 768px) {
+    .document-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .document-info {
+        width: 100%;
+    }
+
+    .document-actions {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .document-actions .btn {
+        width: 100%;
+    }
+}
+</style>

@@ -1,0 +1,59 @@
+﻿@model TrueTestRun.Models.Request
+
+<!-- FORM KẾT QUẢ TEST RUN -->
+<div class="card mb-4">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0"><span style="font-size:1.1em;">📈</span> @HttpContext.GetGlobalResourceObject("Resources", "TestRunResults") (Step 6)</h5>
+    </div>
+    <div class="card-body">
+        <!-- Radio buttons cho kết quả -->
+        <div class="mb-4">
+            <label class="form-label fw-bold">@HttpContext.GetGlobalResourceObject("Resources", "Result"):</label>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="radio" name="KetQuaStep6" value="OK" id="ketQuaOK"
+                       @(Model.Fields.FirstOrDefault(f => f.Key == "KetQuaStep6")?.Value == "OK" ? "checked" : "") />
+                <label class="form-check-label fw-bold text-success" for="ketQuaOK">
+                    <span style="font-size:0.9em;">✅</span> OK
+                </label>
+            </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="radio" name="KetQuaStep6" value="NG" id="ketQuaNG"
+                       @(Model.Fields.FirstOrDefault(f => f.Key == "KetQuaStep6")?.Value == "NG" ? "checked" : "") />
+                <label class="form-check-label fw-bold text-danger" for="ketQuaNG">
+                    <span style="font-size:0.9em;">❌</span> NG
+                </label>
+            </div>
+        </div>
+
+        <!-- Thông tin NG -->
+        <div class="result-section mb-4">
+            <h6 class="fw-bold text-danger mb-3">
+                <span style="font-size:0.9em;">⚠️</span>
+                @HttpContext.GetGlobalResourceObject("Resources", "NGInfo"):
+            </h6>
+
+            <!-- NG số -->
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="form-label fw-bold small">@HttpContext.GetGlobalResourceObject("Resources", "NGNumber")</label>
+                    <input name="NGSo_R_Step6" class="form-control form-control-sm" type="number" min="0"
+                           value="@(Model.Fields.FirstOrDefault(f => f.Key == "NGSo_R_Step6")?.Value ?? "")"
+                           placeholder="r" />
+                </div>
+                <div class="col-6">
+                    <label class="form-label fw-bold small">@HttpContext.GetGlobalResourceObject("Resources", "OKNumber")</label>
+                    <input name="NGSo_N_Step6" class="form-control form-control-sm" type="number" min="0"
+                           value="@(Model.Fields.FirstOrDefault(f => f.Key == "NGSo_N_Step6")?.Value ?? "")"
+                           placeholder="n" />
+                </div>
+            </div>
+
+            <!-- Nội dung NG -->
+            <div class="mb-3">
+                <label class="form-label fw-bold small">@HttpContext.GetGlobalResourceObject("Resources", "NGContent"):</label>
+                <textarea name="NoiDungNG_Step6" class="form-control form-control-sm" rows="3"
+                          placeholder="@HttpContext.GetGlobalResourceObject("Resources", "DescribeNGDetails")">@(Model.Fields.FirstOrDefault(f => f.Key == "NoiDungNG_Step6")?.Value ?? "")</textarea>
+            </div>
+        </div>
+    </div>
+</div>

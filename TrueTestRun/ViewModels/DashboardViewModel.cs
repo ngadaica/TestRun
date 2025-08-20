@@ -9,5 +9,7 @@ namespace TrueTestRun.ViewModels
     {
         public int CompletedCount { get; set; }
         public int PendingCount { get; set; }
+        public int RejectedCount { get; set; } // Thêm đơn bị từ chối
+        public int TotalCount { get; set; } // Thêm tổng số đơn
     }
 }

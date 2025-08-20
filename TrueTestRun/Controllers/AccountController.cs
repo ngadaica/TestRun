@@ -10,13 +10,29 @@ namespace TrueTestRun.Controllers
 {
     public class AccountController : Controller
     {
+        private readonly TrueTestRunDbContext _context = new TrueTestRunDbContext();
         private readonly FileStorageService _fs = new FileStorageService();
         private readonly ImageService _imageService = new ImageService();
+
+        /// <summary>
+        /// Helper method để lấy resource string theo ngôn ngữ hiện tại
+        /// </summary>
+        private string GetResourceString(string key)
+        {
+            try
+            {
+                return HttpContext.GetGlobalResourceObject("Resources", key)?.ToString() ?? key;
+            }
+            catch
+            {
+                return key;
+            }
+        }
 
         // Helper đổ danh sách cho dropdown
         private void PopulateRegisterDrops()
         {
-            ViewBag.DeptCodes = new SelectList(new[] { "EPE-EE", "EPE-PCB","EPE-G.M", });
+            ViewBag.DeptCodes = new SelectList(new[] { "EPE-EE", "EPE-PCB", "EPE-G.M", });
             ViewBag.Titles = new SelectList(new[] { "Staff", "Quản lý trung cấp", "Quản lý sơ cấp", "G.M" });
             ViewBag.Factories = new SelectList(new[] { "F1", "F2", "F3", "F4", "F5" });
 
@@ -24,8 +40,8 @@ namespace TrueTestRun.Controllers
             var roleList = new[]
             {
                 new { Value = UserRole.Admin.ToString(), Text = "Admin" },
-                new { Value = UserRole.DataEntry.ToString(), Text = "Người ghi nhập" },
-                new { Value = UserRole.Approver.ToString(), Text = "Người phê duyệt" }  
+                new { Value = UserRole.DataEntry.ToString(), Text = GetResourceString("DataEntryPerson") },
+                new { Value = UserRole.Approver.ToString(), Text = GetResourceString("ApproverPerson") }
             };
             ViewBag.Roles = new SelectList(roleList, "Value", "Text");
         }
@@ -46,16 +62,18 @@ namespace TrueTestRun.Controllers
                 return View(model);
             }
 
-            var users = _fs.LoadUsers();
-            if (users.Any(u => u.ADID.Equals(model.ADID, StringComparison.OrdinalIgnoreCase)))
+            // Check if ADID already exists using Entity Framework
+            if (_context.Users.Any(u => u.ADID.Equals(model.ADID, StringComparison.OrdinalIgnoreCase)))
             {
-                ModelState.AddModelError("ADID", "ADID đã tồn tại");
+                ModelState.AddModelError("ADID", GetResourceString("ADIDAlreadyExists"));
                 PopulateRegisterDrops();
                 return View(model);
             }
 
-            users.Add(model);
-            _fs.SaveUsers(users);
+            // Add user to database using Entity Framework
+            _context.Users.Add(model);
+            _context.SaveChanges();
+
             return RedirectToAction("Login");
         }
 
@@ -68,13 +86,14 @@ namespace TrueTestRun.Controllers
         [HttpPost, AllowAnonymous]
         public ActionResult Login(string adid)
         {
-            var user = _fs.LoadUsers()
+            // Load user from database using Entity Framework
+            var user = _context.Users
                           .FirstOrDefault(u =>
                               u.ADID.Equals(adid,
                                   StringComparison.OrdinalIgnoreCase));
             if (user == null)
             {
-                ModelState.AddModelError("", "ADID không tồn tại");
+                ModelState.AddModelError("", GetResourceString("ADIDNotExist"));
                 return View();
             }
 
@@ -106,8 +125,8 @@ namespace TrueTestRun.Controllers
         [AllowAnonymous] // Cho phép truy cập mà không cần đăng nhập
         public ActionResult UserSeal(string department, string name)
         {
-            // Lấy user theo tên và phòng ban (nếu cần)
-            var user = _fs.LoadUsers().FirstOrDefault(u => u.Name == name && u.DeptCode == department);
+            // Lấy user theo tên và phòng ban từ database
+            var user = _context.Users.FirstOrDefault(u => u.Name == name && u.DeptCode == department);
             var role = user?.Role ?? UserRole.DataEntry;
 
             var imageData = _imageService.GetOrCreateSealImage(department, name, role);
@@ -117,6 +136,16 @@ namespace TrueTestRun.Controllers
                 return new HttpStatusCodeResult(System.Net.HttpStatusCode.NoContent);
             }
             return File(imageData, "image/png");
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _context?.Dispose();
+                _fs?.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 }

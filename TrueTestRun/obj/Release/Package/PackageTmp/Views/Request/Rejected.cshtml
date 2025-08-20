@@ -1,0 +1,174 @@
+﻿@model List<TrueTestRun.Models.Request>
+
+@{
+    ViewBag.Title = HttpContext.GetGlobalResourceObject("Resources", "RejectedRequestsTitle").ToString();
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="mb-4"><span style="font-size:1.2em;">❌</span> @ViewBag.Title</h2>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">@HttpContext.GetGlobalResourceObject("Resources", "CreatedDate")</th>
+                        <th scope="col">@HttpContext.GetGlobalResourceObject("Resources", "Creator")</th>
+                        <th scope="col">@HttpContext.GetGlobalResourceObject("Resources", "RejectedStep")</th>
+                        <th scope="col">@HttpContext.GetGlobalResourceObject("Resources", "RejectReason")</th>
+                        <th scope="col">@HttpContext.GetGlobalResourceObject("Resources", "Status")</th>
+                        <th scope="col">@HttpContext.GetGlobalResourceObject("Resources", "Actions")</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Count > 0)
+                    {
+                        foreach (var r in Model)
+                        {
+                            var rejectedStep = r.History?.FirstOrDefault(h => h.Status == "Rejected");
+                            <tr>
+                                <td class="fw-bold text-danger">@r.RequestID</td>
+                                <td>@r.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <span class="text-muted">@r.CreatedByADID</span>
+                                </td>
+                                <td>
+                                    @if (rejectedStep != null)
+                                    {
+                                        <span class="badge bg-danger">
+                                            @rejectedStep.StepName
+                                        </span>
+                                        <br />
+                                        <small class="text-muted">
+                                            @rejectedStep.DeptCode / @rejectedStep.Role
+                                        </small>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@HttpContext.GetGlobalResourceObject("Resources", "Undefined")</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (rejectedStep != null && !string.IsNullOrEmpty(rejectedStep.Comment))
+                                    {
+                                        <div class="text-danger fw-bold" style="max-width: 250px;">
+                                            @rejectedStep.Comment
+                                        </div>
+                                        if (rejectedStep.ApprovedAt.HasValue)
+                                        {
+                                            <small class="text-muted d-block mt-1">
+                                                @HttpContext.GetGlobalResourceObject("Resources", "RejectedAt").ToString().Replace("{0}", rejectedStep.ApprovedAt.Value.ToString("dd/MM/yyyy HH:mm"))
+                                            </small>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">@HttpContext.GetGlobalResourceObject("Resources", "NoReason")</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge bg-danger">
+                                        <span style="font-size:0.9em;">❌</span> @HttpContext.GetGlobalResourceObject("Resources", "Rejected")
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group-vertical gap-1" role="group">
+                                        <a class="btn btn-sm btn-primary"
+                                           href="@Url.Action("Detail","Request", new { id = r.RequestID })">
+                                            <span style="font-size:0.9em;">👁️</span> @HttpContext.GetGlobalResourceObject("Resources", "ViewDetails")
+                                        </a>
+                                        @{
+                                            var currentUser = Session["CurrentUser"] as TrueTestRun.Models.User;
+                                            bool canEdit = currentUser != null &&
+                                                          currentUser.Title != null &&
+                                                          currentUser.Title.Trim().Equals("Staff", StringComparison.OrdinalIgnoreCase) &&
+                                                          r.CreatedByADID == currentUser.ADID;
+                                        }
+                                        @if (canEdit)
+                                        {
+                                            <a class="btn btn-sm btn-warning"
+                                               href="@Url.Action("Edit","Request", new { id = r.RequestID })">
+                                                <span style="font-size:0.9em;">✏️</span> @HttpContext.GetGlobalResourceObject("Resources", "Edit")
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-5">
+                                <span style="font-size:3em;">📁</span><br />
+                                <h5 class="mt-3">@HttpContext.GetGlobalResourceObject("Resources", "NoRejectedRequests")</h5>
+                                <p class="text-muted">@HttpContext.GetGlobalResourceObject("Resources", "AllRequestsSuccessful")</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model != null && Model.Count > 0)
+        {
+            <div class="mt-3">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="alert alert-info">
+                            <span style="font-size:1em;">ℹ️</span>
+                            <strong>@HttpContext.GetGlobalResourceObject("Resources", "TotalRejected").ToString().Replace("{0}", Model.Count.ToString())</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-warning">
+                            <span style="font-size:1em;">💡</span>
+                            <strong>@HttpContext.GetGlobalResourceObject("Resources", "Note")</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Giữ nguyên CSS -->
+<style>
+    .table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .btn-group-vertical .btn {
+        margin-bottom: 0.25rem;
+    }
+
+        .btn-group-vertical .btn:last-child {
+            margin-bottom: 0;
+        }
+
+    .badge {
+        font-size: 0.8em;
+    }
+
+    .card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+
+    .alert {
+        border: none;
+        border-radius: 0.5rem;
+    }
+</style>

@@ -13,15 +13,18 @@ namespace TrueTestRun.Controllers
     [Authorize]
     public class UserController : Controller
     {
+        private readonly TrueTestRunDbContext _context = new TrueTestRunDbContext();
         private readonly FileStorageService _fs = new FileStorageService();
 
+        [HttpGet]
         public ActionResult Index()
         {
             var currentUser = Session["CurrentUser"] as User;
             if (currentUser == null)
                 return RedirectToAction("Login", "Account");
 
-            var users = _fs.LoadUsers();
+            // Load users from database using Entity Framework
+            var users = _context.Users.ToList();
 
             if (currentUser.Role == UserRole.Admin)
             {
@@ -43,20 +46,23 @@ namespace TrueTestRun.Controllers
         {
             if (!ModelState.IsValid) return View(model);
 
-            var users = _fs.LoadUsers();
-            if (users.Any(u => u.ADID == model.ADID))
+            // Check if ADID already exists using Entity Framework
+            if (_context.Users.Any(u => u.ADID == model.ADID))
                 ModelState.AddModelError("ADID", "ADID đã tồn tại");
 
             if (!ModelState.IsValid) return View(model);
 
-            users.Add(model);
-            _fs.SaveUsers(users);
+            // Add user to database using Entity Framework
+            _context.Users.Add(model);
+            _context.SaveChanges();
+            
             return RedirectToAction("Index");
         }
 
         public ActionResult Edit(string id)
         {
-            var user = _fs.LoadUsers().FirstOrDefault(u => u.ADID == id);
+            // Load user from database using Entity Framework
+            var user = _context.Users.FirstOrDefault(u => u.ADID == id);
             if (user == null) return HttpNotFound();
             return View(user);
         }
@@ -66,23 +72,38 @@ namespace TrueTestRun.Controllers
         {
             if (!ModelState.IsValid) return View(model);
 
-            var users = _fs.LoadUsers();
-            var idx = users.FindIndex(u => u.ADID == model.ADID);
-            if (idx < 0) return HttpNotFound();
+            // Find and update user in database using Entity Framework
+            var existingUser = _context.Users.FirstOrDefault(u => u.ADID == model.ADID);
+            if (existingUser == null) return HttpNotFound();
 
-            users[idx] = model;
-            _fs.SaveUsers(users);
+            // Update user properties
+            _context.Entry(existingUser).CurrentValues.SetValues(model);
+            _context.SaveChanges();
+            
             return RedirectToAction("Index");
         }
 
         public ActionResult Delete(string id)
         {
-            var users = _fs.LoadUsers()
-                           .Where(u => u.ADID != id)
-                           .ToList();
-            _fs.SaveUsers(users);
+            // Find and remove user from database using Entity Framework
+            var user = _context.Users.FirstOrDefault(u => u.ADID == id);
+            if (user != null)
+            {
+                _context.Users.Remove(user);
+                _context.SaveChanges();
+            }
+            
             return RedirectToAction("Index");
         }
-    }
 
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _context?.Dispose();
+                _fs?.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+    }
 }

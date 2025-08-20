@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\EntityFramework.6.5.1\build\EntityFramework.props" Condition="Exists('..\packages\EntityFramework.6.5.1\build\EntityFramework.props')" />
   <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -47,6 +48,12 @@
   <ItemGroup>
     <Reference Include="BouncyCastle.Cryptography, Version=2.0.0.0, Culture=neutral, PublicKeyToken=072edcf4a5328938, processorArchitecture=MSIL">
       <HintPath>..\packages\BouncyCastle.Cryptography.2.5.1\lib\net461\BouncyCastle.Cryptography.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.5.1\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.5.1\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="EPPlus, Version=4.5.3.3, Culture=neutral, PublicKeyToken=ea159fdaa78159a1, processorArchitecture=MSIL">
       <HintPath>..\packages\EPPlus.4.5.3.3\lib\net40\EPPlus.dll</HintPath>
@@ -206,34 +213,124 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="App_GlobalResources\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="App_GlobalResources\Resources.ja.designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.ja.resx</DependentUpon>
+    </Compile>
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\ApprovalController.cs" />
+    <Compile Include="Controllers\DocumentController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\LanguageController.cs" />
     <Compile Include="Controllers\RequestController.cs" />
     <Compile Include="Controllers\UserController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202507280309383_InitialCreate.cs" />
+    <Compile Include="Migrations\202507280309383_InitialCreate.Designer.cs">
+      <DependentUpon>202507280309383_InitialCreate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202507300159164_RemoveActionTypeFromWorkflowStep.cs" />
+    <Compile Include="Migrations\202507300159164_RemoveActionTypeFromWorkflowStep.Designer.cs">
+      <DependentUpon>202507300159164_RemoveActionTypeFromWorkflowStep.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202507300720393_AddCurrentPhaseToRequest.cs" />
+    <Compile Include="Migrations\202507300720393_AddCurrentPhaseToRequest.Designer.cs">
+      <DependentUpon>202507300720393_AddCurrentPhaseToRequest.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202508120154164_AddRequestDocumentTable.cs" />
+    <Compile Include="Migrations\202508120154164_AddRequestDocumentTable.Designer.cs">
+      <DependentUpon>202508120154164_AddRequestDocumentTable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\ApprovalStep.cs" />
     <Compile Include="Models\Request.cs" />
-    <Compile Include="Models\TestRunPhase.cs" />
+    <Compile Include="Models\RequestDocument.cs" />
+    <Compile Include="Models\TrueTestRunDbContext.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Models\WorkflowStep.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\DocumentService.cs" />
     <Compile Include="Services\EmailService.cs" />
     <Compile Include="Services\ExcelService.cs" />
     <Compile Include="Services\FIleStorageService.cs" />
     <Compile Include="Services\ImageService.cs" />
     <Compile Include="Services\WorkflowService.cs" />
-    <Compile Include="ViewModels\ContractDashboardViewModel.cs" />
-    <Compile Include="ViewModels\ContractViewModel.cs" />
     <Compile Include="ViewModels\DashboardViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_Data\Data.xlsx" />
+    <Content Include="Content\all.min.css" />
+    <Content Include="Content\bootstrap.bundle.js" />
+    <Content Include="Content\bootstrap.bundle.min.js" />
+    <Content Include="Content\css.css" />
+    <Content Include="Content\css1\all.css" />
+    <Content Include="Content\css1\all.min.css" />
+    <Content Include="Content\css1\brands.css" />
+    <Content Include="Content\css1\brands.min.css" />
+    <Content Include="Content\css1\fontawesome.css" />
+    <Content Include="Content\css1\fontawesome.min.css" />
+    <Content Include="Content\css1\regular.css" />
+    <Content Include="Content\css1\regular.min.css" />
+    <Content Include="Content\css1\solid.css" />
+    <Content Include="Content\css1\solid.min.css" />
+    <Content Include="Content\css1\svg-with-js.css" />
+    <Content Include="Content\css1\svg-with-js.min.css" />
+    <Content Include="Content\css1\svg.css" />
+    <Content Include="Content\css1\svg.min.css" />
+    <Content Include="Content\css1\v4-font-face.css" />
+    <Content Include="Content\css1\v4-font-face.min.css" />
+    <Content Include="Content\css1\v4-shims.css" />
+    <Content Include="Content\css1\v4-shims.min.css" />
+    <Content Include="Content\css1\v5-font-face.css" />
+    <Content Include="Content\css1\v5-font-face.min.css" />
+    <Content Include="Content\css\bootstrap-grid.css" />
+    <Content Include="Content\css\bootstrap-grid.min.css" />
+    <Content Include="Content\css\bootstrap-grid.rtl.css" />
+    <Content Include="Content\css\bootstrap-grid.rtl.min.css" />
+    <Content Include="Content\css\bootstrap-reboot.css" />
+    <Content Include="Content\css\bootstrap-reboot.min.css" />
+    <Content Include="Content\css\bootstrap-reboot.rtl.css" />
+    <Content Include="Content\css\bootstrap-reboot.rtl.min.css" />
+    <Content Include="Content\css\bootstrap-utilities.css" />
+    <Content Include="Content\css\bootstrap-utilities.min.css" />
+    <Content Include="Content\css\bootstrap-utilities.rtl.css" />
+    <Content Include="Content\css\bootstrap-utilities.rtl.min.css" />
+    <Content Include="Content\css\bootstrap.css" />
+    <Content Include="Content\css\bootstrap.min.css" />
+    <Content Include="Content\css\bootstrap.rtl.css" />
+    <Content Include="Content\css\bootstrap.rtl.min.css" />
+    <Content Include="Content\js1\all.js" />
+    <Content Include="Content\js1\all.min.js" />
+    <Content Include="Content\js1\brands.js" />
+    <Content Include="Content\js1\brands.min.js" />
+    <Content Include="Content\js1\conflict-detection.js" />
+    <Content Include="Content\js1\conflict-detection.min.js" />
+    <Content Include="Content\js1\fontawesome.js" />
+    <Content Include="Content\js1\fontawesome.min.js" />
+    <Content Include="Content\js1\regular.js" />
+    <Content Include="Content\js1\regular.min.js" />
+    <Content Include="Content\js1\solid.js" />
+    <Content Include="Content\js1\solid.min.js" />
+    <Content Include="Content\js1\v4-shims.js" />
+    <Content Include="Content\js1\v4-shims.min.js" />
+    <Content Include="Content\js\bootstrap.bundle.js" />
+    <Content Include="Content\js\bootstrap.bundle.min.js" />
+    <Content Include="Content\js\bootstrap.esm.js" />
+    <Content Include="Content\js\bootstrap.esm.min.js" />
+    <Content Include="Content\js\bootstrap.js" />
+    <Content Include="Content\js\bootstrap.min.js" />
+    <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="wwwroot\Data.htm" />
     <None Include="App_Data\users.json" />
     <Content Include="Content\bootstrap-theme.css" />
@@ -246,6 +343,39 @@
     <Content Include="Content\Site.css" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="Content\bootstrap.bundle.min.js.map" />
+    <Content Include="Content\css\bootstrap-grid.css.map" />
+    <Content Include="Content\css\bootstrap-grid.min.css.map" />
+    <Content Include="Content\css\bootstrap-grid.rtl.css.map" />
+    <Content Include="Content\css\bootstrap-grid.rtl.min.css.map" />
+    <Content Include="Content\css\bootstrap-reboot.css.map" />
+    <Content Include="Content\css\bootstrap-reboot.min.css.map" />
+    <Content Include="Content\css\bootstrap-reboot.rtl.css.map" />
+    <Content Include="Content\css\bootstrap-reboot.rtl.min.css.map" />
+    <Content Include="Content\css\bootstrap-utilities.css.map" />
+    <Content Include="Content\css\bootstrap-utilities.min.css.map" />
+    <Content Include="Content\css\bootstrap-utilities.rtl.css.map" />
+    <Content Include="Content\css\bootstrap-utilities.rtl.min.css.map" />
+    <Content Include="Content\css\bootstrap.css.map" />
+    <Content Include="Content\css\bootstrap.min.css.map" />
+    <Content Include="Content\css\bootstrap.rtl.css.map" />
+    <Content Include="Content\css\bootstrap.rtl.min.css.map" />
+    <Content Include="Content\js\bootstrap.bundle.js.map" />
+    <Content Include="Content\js\bootstrap.bundle.min.js.map" />
+    <Content Include="Content\js\bootstrap.esm.js.map" />
+    <Content Include="Content\js\bootstrap.esm.min.js.map" />
+    <Content Include="Content\js\bootstrap.js.map" />
+    <Content Include="Content\js\bootstrap.min.js.map" />
+    <Content Include="Content\webfonts\fa-brands-400.woff2" />
+    <Content Include="Content\webfonts\fa-regular-400.woff2" />
+    <Content Include="Content\webfonts\fa-solid-900.woff2" />
+    <Content Include="Content\webfonts\fa-v4compatibility.woff2" />
+    <Content Include="fonts\roboto-v48-latin_vietnamese-700.woff2" />
+    <Content Include="fonts\roboto-v48-latin_vietnamese-regular.woff2" />
+    <Content Include="fonts\fa-brands-400.woff2" />
+    <Content Include="fonts\fa-regular-400.woff2" />
+    <Content Include="fonts\fa-solid-900.woff2" />
+    <Content Include="fonts\fa-v4compatibility.woff2" />
     <None Include="Scripts\jquery-3.4.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.4.1.js" />
     <Content Include="Scripts\jquery-3.4.1.min.js" />
@@ -270,10 +400,7 @@
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Account\Login.cshtml" />
     <Content Include="Views\User\Create.cshtml" />
-    <Content Include="Views\Request\Index.cshtml" />
     <Content Include="Views\Request\Create.cshtml" />
-    <Content Include="Views\Request\Edit.cshtml" />
-    <Content Include="Views\Approval\Index.cshtml" />
     <Content Include="Views\User\Index.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Account\Register.cshtml" />
@@ -282,10 +409,24 @@
     <Content Include="Views\User\Edit.cshtml" />
     <Content Include="Views\Request\PhaseList.cshtml" />
     <Content Include="Views\Approval\ApprovalForm.cshtml" />
+    <Content Include="Views\Request\Detail.cshtml" />
+    <Content Include="Views\Request\Edit.cshtml" />
+    <Content Include="Views\Approval\DataEntryStep2.cshtml" />
+    <Content Include="Views\Approval\DataEntryStep4.cshtml" />
+    <Content Include="Views\Approval\DataEntryStep6.cshtml" />
+    <Content Include="Views\Approval\DataEntryStep8.cshtml" />
+    <Content Include="Views\Request\Rejected.cshtml" />
+    <Content Include="Views\Request\_EditStep0.cshtml" />
+    <Content Include="Views\Request\_EditStep2.cshtml" />
+    <Content Include="Views\Request\_EditStep4.cshtml" />
+    <Content Include="Views\Request\_EditStep6.cshtml" />
+    <Content Include="Views\Request\_EditStep8.cshtml" />
+    <Content Include="Views\Shared\_DocumentViewButton.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\Lots\" />
     <Folder Include="App_Data\Requests\" />
+    <Folder Include="Views\Document\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff2" />
@@ -299,6 +440,30 @@
     <None Include="packages.config" />
     <Content Include="Scripts\jquery-3.4.1.slim.min.map" />
     <Content Include="Scripts\jquery-3.4.1.min.map" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="App_GlobalResources\Resources.ja.resx">
+      <Generator>GlobalResourceProxyGenerator</Generator>
+      <LastGenOutput>Resources.ja.designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="App_GlobalResources\Resources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </Content>
+    <EmbeddedResource Include="Migrations\202507280309383_InitialCreate.resx">
+      <DependentUpon>202507280309383_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202507300159164_RemoveActionTypeFromWorkflowStep.resx">
+      <DependentUpon>202507300159164_RemoveActionTypeFromWorkflowStep.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202507300720393_AddCurrentPhaseToRequest.resx">
+      <DependentUpon>202507300720393_AddCurrentPhaseToRequest.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202508120154164_AddRequestDocumentTable.resx">
+      <DependentUpon>202508120154164_AddRequestDocumentTable.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -337,11 +502,14 @@
     <Error Condition="!Exists('..\packages\HarfBuzzSharp.NativeAssets.Win32.7.3.0.3\build\net462\HarfBuzzSharp.NativeAssets.Win32.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\HarfBuzzSharp.NativeAssets.Win32.7.3.0.3\build\net462\HarfBuzzSharp.NativeAssets.Win32.targets'))" />
     <Error Condition="!Exists('..\packages\SkiaSharp.NativeAssets.macOS.2.88.9\build\net462\SkiaSharp.NativeAssets.macOS.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SkiaSharp.NativeAssets.macOS.2.88.9\build\net462\SkiaSharp.NativeAssets.macOS.targets'))" />
     <Error Condition="!Exists('..\packages\SkiaSharp.NativeAssets.Win32.2.88.9\build\net462\SkiaSharp.NativeAssets.Win32.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SkiaSharp.NativeAssets.Win32.2.88.9\build\net462\SkiaSharp.NativeAssets.Win32.targets'))" />
+    <Error Condition="!Exists('..\packages\EntityFramework.6.5.1\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.5.1\build\EntityFramework.props'))" />
+    <Error Condition="!Exists('..\packages\EntityFramework.6.5.1\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.5.1\build\EntityFramework.targets'))" />
   </Target>
   <Import Project="..\packages\HarfBuzzSharp.NativeAssets.macOS.7.3.0.3\build\net462\HarfBuzzSharp.NativeAssets.macOS.targets" Condition="Exists('..\packages\HarfBuzzSharp.NativeAssets.macOS.7.3.0.3\build\net462\HarfBuzzSharp.NativeAssets.macOS.targets')" />
   <Import Project="..\packages\HarfBuzzSharp.NativeAssets.Win32.7.3.0.3\build\net462\HarfBuzzSharp.NativeAssets.Win32.targets" Condition="Exists('..\packages\HarfBuzzSharp.NativeAssets.Win32.7.3.0.3\build\net462\HarfBuzzSharp.NativeAssets.Win32.targets')" />
   <Import Project="..\packages\SkiaSharp.NativeAssets.macOS.2.88.9\build\net462\SkiaSharp.NativeAssets.macOS.targets" Condition="Exists('..\packages\SkiaSharp.NativeAssets.macOS.2.88.9\build\net462\SkiaSharp.NativeAssets.macOS.targets')" />
   <Import Project="..\packages\SkiaSharp.NativeAssets.Win32.2.88.9\build\net462\SkiaSharp.NativeAssets.Win32.targets" Condition="Exists('..\packages\SkiaSharp.NativeAssets.Win32.2.88.9\build\net462\SkiaSharp.NativeAssets.Win32.targets')" />
+  <Import Project="..\packages\EntityFramework.6.5.1\build\EntityFramework.targets" Condition="Exists('..\packages\EntityFramework.6.5.1\build\EntityFramework.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

@@ -1,0 +1,36 @@
+﻿@model TrueTestRun.Models.Request
+
+<!-- FORM ĐIỀN THÔNG TIN STEP 2 -->
+<div class="card mb-4">
+    <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0"><span style="font-size:1.1em;">📋</span> Staff PCB điền form (Step 2)</h5>
+    </div>
+    <div class="card-body">
+        <!-- Checkbox: Đã nhận hàng test run -->
+        <div class="mb-4">
+            <div class="form-check mb-2">
+                <input class="form-check-input"
+                       type="checkbox"
+                       name="DaNhanHangTestRun"
+                       value="true"
+                       id="chkNhanHangTestRun"
+                       @(Model.Fields.FirstOrDefault(f => f.Key == "DaNhanHangTestRun")?.Value == "true" ? "checked" : "") />
+                <label class="form-check-label fw-bold" for="chkNhanHangTestRun">
+                    Đã nhận hàng test run
+                </label>
+                <div class="small text-muted">テストラン品受け取り済</div>
+            </div>
+
+            <!-- Textarea comment cho Step 2 -->
+            <div class="mt-3">
+                <label class="form-label fw-bold">Ghi chú công việc đã thực hiện:</label>
+                <textarea name="CommentStep2" class="form-control" rows="4"
+                          placeholder="Vui lòng mô tả chi tiết công việc đã thực hiện...">@(Model.Fields.FirstOrDefault(f => f.Key == "CommentStep2")?.Value ?? "")</textarea>
+                <div class="form-text">
+                    <span style="font-size:0.9em;">ℹ️</span>
+                    Vui lòng mô tả chi tiết để người phê duyệt tiếp theo hiểu rõ tình hình.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

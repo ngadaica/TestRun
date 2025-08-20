@@ -1,0 +1,104 @@
+﻿@model TrueTestRun.Models.Request
+
+<!-- THÔNG TIN BỔ SUNG STEP 4 -->
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><span style="font-size:1.1em;">ℹ️</span> Thông tin ghi nhập (Step 4)</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-12">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Model SX 生産モデル</label>
+                    <input name="ThongTin1Step4" class="form-control form-control-sm" type="text"
+                           value="@(Model.Fields.FirstOrDefault(f => f.Key == "ThongTin1Step4")?.Value ?? "")"
+                           placeholder="Model SX 生産モデル" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Sale. Order NO.</label>
+                    <input name="ThongTin2Step4" class="form-control form-control-sm" type="text"
+                           value="@(Model.Fields.FirstOrDefault(f => f.Key == "ThongTin2Step4")?.Value ?? "")"
+                           placeholder="Sale. Order NO." />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Số lượng máy 台数</label>
+                    <input name="ThongTin3Step4" class="form-control form-control-sm" type="text"
+                           value="@(Model.Fields.FirstOrDefault(f => f.Key == "ThongTin3Step4")?.Value ?? "")"
+                           placeholder="Số lượng máy 台数" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Chủng loại máy 機種コード</label>
+                    <input name="ThongTin4Step4" class="form-control form-control-sm" type="text"
+                           value="@(Model.Fields.FirstOrDefault(f => f.Key == "ThongTin4Step4")?.Value ?? "")"
+                           placeholder="Chủng loại máy 機種コード" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Ngày thực hiện 投入日</label>
+                    <input name="ThongTin5Step4" class="form-control form-control-sm" type="text"
+                           value="@(Model.Fields.FirstOrDefault(f => f.Key == "ThongTin5Step4")?.Value ?? "")"
+                           placeholder="Ngày thực hiện 投入日" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Line thực hiện 投入ライン</label>
+                    <input name="ThongTin6Step4" class="form-control form-control-sm" type="text"
+                           value="@(Model.Fields.FirstOrDefault(f => f.Key == "ThongTin6Step4")?.Value ?? "")"
+                           placeholder="Line thực hiện 投入ライン" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Serial No.</label>
+                    <input name="ThongTin7Step4" class="form-control form-control-sm" type="text"
+                           value="@(Model.Fields.FirstOrDefault(f => f.Key == "ThongTin7Step4")?.Value ?? "")"
+                           placeholder="Serial No." />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BẢNG XÁC NHẬN STEP 4 -->
+<div class="card mb-4">
+    <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0"><span style="font-size:1.1em;">☑️</span> Bảng xác nhận Step 4</h5>
+    </div>
+    <div class="card-body">
+        <!-- Checkbox 1: Lắp ráp -->
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" name="LapRapStep4" value="true" id="chkLapRapStep4"
+                   @(Model.Fields.FirstOrDefault(f => f.Key == "LapRapStep4")?.Value == "true" ? "checked" : "") />
+            <label class="form-check-label fw-bold" for="chkLapRapStep4">
+                1. Lắp ráp
+            </label>
+            <div class="small text-muted">組立性</div>
+        </div>
+
+        <!-- Checkbox 2: Tính năng -->
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" name="TinhNangStep4" value="true" id="chkTinhNangStep4"
+                   @(Model.Fields.FirstOrDefault(f => f.Key == "TinhNangStep4")?.Value == "true" ? "checked" : "") />
+            <label class="form-check-label fw-bold" for="chkTinhNangStep4">
+                2. Tính năng
+            </label>
+            <div class="small text-muted">機能検査</div>
+        </div>
+
+        <!-- Checkbox 3: Ngoại quan -->
+        <div class="form-check mb-4">
+            <input class="form-check-input" type="checkbox" name="NgoaiQuanStep4" value="true" id="chkNgoaiQuanStep4"
+                   @(Model.Fields.FirstOrDefault(f => f.Key == "NgoaiQuanStep4")?.Value == "true" ? "checked" : "") />
+            <label class="form-check-label fw-bold" for="chkNgoaiQuanStep4">
+                3. Ngoại quan
+            </label>
+            <div class="small text-muted">外観検査</div>
+        </div>
+
+        <!-- Comment chung cho Step 4 -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">Ghi comment:</label>
+            <textarea name="CommentStep4" class="form-control" rows="4">@(Model.Fields.FirstOrDefault(f => f.Key == "CommentStep4")?.Value ?? "")</textarea>
+            <div class="form-text">
+                <span style="font-size:0.9em;">ℹ️</span>
+                Vui lòng mô tả chi tiết để người phê duyệt tiếp theo hiểu rõ tình hình.
+            </div>
+        </div>
+    </div>
+</div>

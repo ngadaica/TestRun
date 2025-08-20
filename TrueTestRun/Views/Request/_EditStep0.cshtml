@@ -1,0 +1,144 @@
+﻿@model TrueTestRun.Models.Request
+
+<!-- THÔNG TIN CƠ BẢN -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0"><i class="fas fa-info-circle me-2"></i> Thông tin chung</h4>
+    </div>
+    <div class="card-body">
+        <div class="mb-3">
+            <label class="form-label fw-bold">Request ID:</label>
+            <div class="form-control-plaintext bg-light p-2 rounded">@Model.RequestID</div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Ngày tạo:</label>
+            <div class="form-control-plaintext bg-light p-2 rounded">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+        </div>
+        <div class="mb-3">
+            @Html.Label("NgayPhatHanh", "Ngày Phát Hành", new { @class = "form-label fw-bold" })
+            <input name="NgayPhatHanh"
+                   class="form-control"
+                   type="date"
+                   value="@(Model.Fields.FirstOrDefault(f => f.Key == "NgayPhatHanh")?.Value ?? "")" />
+        </div>
+        <div class="mb-3">
+            @Html.Label("MaLinhKien", "Mã Linh Kiện", new { @class = "form-label fw-bold" })
+            <input name="MaLinhKien"
+                   class="form-control"
+                   type="text"
+                   value="@(Model.Fields.FirstOrDefault(f => f.Key == "MaLinhKien")?.Value ?? "")" />
+        </div>
+        <div class="mb-3">
+            @Html.Label("TenLinhKien", "Tên Linh Kiện", new { @class = "form-label fw-bold" })
+            <input name="TenLinhKien"
+                   class="form-control"
+                   type="text"
+                   value="@(Model.Fields.FirstOrDefault(f => f.Key == "TenLinhKien")?.Value ?? "")" />
+        </div>
+        <div class="mb-3">
+            @Html.Label("NhaCungCap", "Nhà Cung Cấp", new { @class = "form-label fw-bold" })
+            <input name="NhaCungCap"
+                   class="form-control"
+                   type="text"
+                   value="@(Model.Fields.FirstOrDefault(f => f.Key == "NhaCungCap")?.Value ?? "")" />
+        </div>
+        <div class="mb-3">
+            @Html.Label("SoLuong", "Số Lượng", new { @class = "form-label fw-bold" })
+            <input name="SoLuong"
+                   class="form-control"
+                   type="number"
+                   value="@(Model.Fields.FirstOrDefault(f => f.Key == "SoLuong")?.Value ?? "")" />
+        </div>
+        <div class="mb-3">
+            @Html.Label("GhiChuChinhSua", "Ghi chú/Chỉnh sửa", new { @class = "form-label" })
+            <textarea name="GhiChuChinhSua" class="form-control" rows="3"
+                      placeholder="Nhập ghi chú hoặc chỉnh sửa cần thiết...">@(Model.Fields.FirstOrDefault(f => f.Key == "GhiChuChinhSua")?.Value ?? "")</textarea>
+            <div class="form-text">
+                <i class="fas fa-info-circle me-1"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BẢNG XÁC NHẬN STEP 0 -->
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h4 class="mb-0"><i class="fas fa-check-square me-2"></i> Bảng xác nhận (Step 0)</h4>
+    </div>
+    <div class="card-body">
+        @{
+            bool faSampleChecked = Model.Fields.FirstOrDefault(f => f.Key == "DaXacNhanFASample")?.Value == "true";
+            bool lapRapTruocChecked = Model.Fields.FirstOrDefault(f => f.Key == "DaXacNhanLapRapTruoc")?.Value == "true";
+            bool daKiemTraChecked = Model.Fields.FirstOrDefault(f => f.Key == "DaKiemTra")?.Value == "true";
+        }
+
+        <!-- Checkbox 1: Đã xác nhận FA sample -->
+        <div class="mb-4">
+            <div class="form-check mb-2">
+                <input class="form-check-input"
+                       type="checkbox"
+                       name="DaXacNhanFASample"
+                       value="true"
+                       id="chkFASample"
+                       @(faSampleChecked ? "checked" : "") />
+                <label class="form-check-label fw-bold" for="chkFASample">
+                    1. Đã xác nhận FA sample
+                </label>
+                <div class="small text-muted">FAサンプル確認済</div>
+            </div>
+            <div class="mt-2">
+                <label class="form-label small">Ghi chú:</label>
+                <textarea name="CommentFASample"
+                          class="form-control form-control-sm"
+                          rows="2"
+                          placeholder="Nhập ghi chú cho FA sample...">@(Model.Fields.FirstOrDefault(f => f.Key == "CommentFASample")?.Value ?? "")</textarea>
+            </div>
+        </div>
+
+        <!-- Checkbox 2: Đã xác nhận lắp ráp trước -->
+        <div class="mb-4">
+            <div class="form-check mb-2">
+                <input class="form-check-input"
+                       type="checkbox"
+                       name="DaXacNhanLapRapTruoc"
+                       value="true"
+                       id="chkLapRapTruoc"
+                       @(lapRapTruocChecked ? "checked" : "") />
+                <label class="form-check-label fw-bold" for="chkLapRapTruoc">
+                    2. Đã xác nhận lắp ráp trước
+                </label>
+                <div class="small text-muted">事前組付確認実施済</div>
+            </div>
+            <div class="mt-2">
+                <label class="form-label small">Ghi chú:</label>
+                <textarea name="CommentLapRapTruoc"
+                          class="form-control form-control-sm"
+                          rows="2"
+                          placeholder="Nhập ghi chú cho lắp ráp trước...">@(Model.Fields.FirstOrDefault(f => f.Key == "CommentLapRapTruoc")?.Value ?? "")</textarea>
+            </div>
+        </div>
+
+        <!-- Checkbox 3: Đã kiểm tra -->
+        <div class="mb-4">
+            <div class="form-check mb-2">
+                <input class="form-check-input"
+                       type="checkbox"
+                       name="DaKiemTra"
+                       value="true"
+                       id="chkDaKiemTra"
+                       @(daKiemTraChecked ? "checked" : "") />
+                <label class="form-check-label fw-bold" for="chkDaKiemTra">
+                    3. EPE-EE kiểm tra
+                </label>
+                <div class="small text-muted">EPE-EEの検査</div>
+            </div>
+            <div class="mt-2">
+                <label class="form-label small">Ghi chú:</label>
+                <textarea name="CommentDaKiemTra"
+                          class="form-control form-control-sm"
+                          rows="2"
+                          placeholder="Nhập ghi chú cho kiểm tra...">@(Model.Fields.FirstOrDefault(f => f.Key == "CommentDaKiemTra")?.Value ?? "")</textarea>
+            </div>
+        </div>
+    </div>
+</div>

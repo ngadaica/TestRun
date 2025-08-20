@@ -1,210 +1,541 @@
-﻿using TrueTestRun.Models;
-using System.Collections.Generic;
+﻿using System;
 using System.Configuration;
 using System.Net.Mail;
-using System.Net;
-using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Web;
+using TrueTestRun.Models;
 
 namespace TrueTestRun.Services
 {
     public class EmailService
     {
-        /// <summary>
-        /// Lấy gmail theo DeptCode + Role từng bước (cứng, không lấy từ user đăng ký)
-        /// </summary>
-        private string GetApproverEmail(string deptCode, string role)
+        private readonly TrueTestRunDbContext _context;
+
+        public EmailService()
         {
-            // Thay đổi các địa chỉ email sau cho đúng với đơn vị/phòng ban của bạn
-            if (deptCode == "EPE-EE" && role == "Quản lý trung cấp")
-                return "Doan.PhamCong@brother-bivn.com.vn";
-            if (deptCode == "EPE-PCB" && role == "Quản lý trung cấp")
-                return "quanly.epe.pcb@gmail.com";
-            if (deptCode == "EPE-PCB" && role == "Staff")
-                return "Ly.NguyenThi@brother-bivn.com.vn";
-            if (deptCode == "EPE-EE" && role == "Staff")
-                return "Hoangthi.Minh@brother-bivn.com.vn";
-            if (deptCode == "EPE-G.M" && role == "G.M")
-                return "gm.epe@gmail.com";
-            if (deptCode == "EPE-PCB" && role == "Quản ")
-                return "gm.epe@gmail.com";
-            // Các bước đặc biệt, thêm cho đủ các bước nếu cần
-            // if (deptCode == ... && role == ...) return "...";
-            return "admin.backup@gmail.com"; // fallback
+            _context = new TrueTestRunDbContext();
         }
 
         /// <summary>
-        /// Gửi email phê duyệt cho người nhận theo workflow (gmail cứng)
+        /// Helper method để lấy resource string theo ngôn ngữ hiện tại
+        /// </summary>
+        private string GetResourceString(string key)
+        {
+            try
+            {
+                return HttpContext.GetGlobalResourceObject("Resources", key)?.ToString() ?? key;
+            }
+            catch
+            {
+                return key;
+            }
+        }
+
+        /// <summary>
+        /// Helper method để lấy resource string cho cả hai ngôn ngữ (Việt/Nhật)
+        /// </summary>
+        private string GetBilingualResourceString(string key)
+        {
+            try
+            {
+                // Lấy text tiếng Việt
+                var vietnameseText = System.Web.HttpContext.GetGlobalResourceObject("Resources", key, new System.Globalization.CultureInfo("vi-VN"))?.ToString() ?? key;
+
+                // Lấy text tiếng Nhật
+                var japaneseText = System.Web.HttpContext.GetGlobalResourceObject("Resources", key, new System.Globalization.CultureInfo("ja-JP"))?.ToString() ?? key;
+
+                // Kết hợp với dấu /
+                return $"{vietnameseText}/{japaneseText}";
+            }
+            catch
+            {
+                return key;
+            }
+        }
+
+        /// <summary>
+        /// Lấy email của người được chỉ định cho từng step - HARDCODE
+        /// </summary>
+        private string GetDesignatedApproverEmail(string deptCode, string role, int stepIndex)
+        {
+            // HARDCODE EMAIL CHO TỪNG STEP CỤ THỂ
+            switch (stepIndex)
+            {
+                case 1: return "Doan.PhamCong@brother-bivn.com.vn";
+                case 2: return "Ly.NguyenThi@brother-bivn.com.vn";
+                case 3: return "ChuVan.Long@brother-bivn.com.vn";
+                case 4: return "Ly.NguyenThi@brother-bivn.com.vn";
+                case 5: return "jun.sato@brother-bivn.com.vn";
+                case 6: return "Ly.NguyenThi@brother-bivn.com.vn";
+                case 7: return "jun.sato@brother-bivn.com.vn";
+                case 8: return "nguyenthi.duyen5@brother-bivn.com.vn";
+                case 9: return "Doan.PhamCong@brother-bivn.com.vn";
+                case 10: return "naoya.yada@brother-bivn.com.vn";
+                default: return "phamduc.anh@brother-bivn.com.vn";
+
+            }
+        }
+
+        /// <summary>
+        /// Lấy email của user cụ thể theo ADID
+        /// </summary>
+        private string GetUserEmail(string adid)
+        {
+            try
+            {
+                var user = _context.Users.FirstOrDefault(u => u.ADID == adid);
+                return user?.Email ?? "admin@brother-bivn.com.vn";
+            }
+            catch (Exception)
+            {
+                return "admin@brother-bivn.com.vn";
+            }
+        }
+
+        /// <summary>
+        /// Gửi email phê duyệt - SỬA: Hiển thị cả tiếng Việt và tiếng Nhật
         /// </summary>
         public void SendApprovalRequest(Request request, WorkflowStep step, string approvalUrl, bool isResubmission = false)
         {
-            var toEmail = GetApproverEmail(step.DeptCode, step.Role);
-
-            var host = ConfigurationManager.AppSettings["SmtpHost"];
-            var port = int.Parse(ConfigurationManager.AppSettings["SmtpPort"]);
-            var user = ConfigurationManager.AppSettings["SmtpUser"];
-            var pass = ConfigurationManager.AppSettings["SmtpPass"];
-
-            var fromAddress = new MailAddress(user, "Test Run System");
-            var toAddress = new MailAddress(toEmail);
-
-            string subject = isResubmission
-                ? $"[YÊU CẦU PHÊ DUYỆT LẠI] Đơn Test Run: {request.RequestID}"
-                : $"[YÊU CẦU PHÊ DUYỆT] Đơn Test Run: {request.RequestID}";
-
-            string body = isResubmission
-                ? $@"
-                <p>Chào bạn,</p>
-                <p>Đơn test run <b>{request.RequestID}</b> đã được sửa lại sau khi bị từ chối.</p>
-                <ul>
-                    <li><strong>Mã đơn:</strong> {request.RequestID}</li>
-                    <li><strong>Người tạo:</strong> {request.CreatedByADID}</li>
-                    <li><strong>Bước duyệt:</strong> {step.DeptCode} - {step.Role}</li>
-                </ul>
-                <p>Vui lòng nhấn vào link dưới đây để xác nhận và phê duyệt lại:</p>
-                <a href='{approvalUrl}'>Xem và phê duyệt lại đơn</a>
-                <p>Cảm ơn bạn.</p>"
-                : $@"
-                <p>Chào bạn,</p>
-                <p>Bạn có một đơn test run mới cần được phê duyệt.</p>
-                <ul>
-                    <li><strong>Mã đơn:</strong> {request.RequestID}</li>
-                    <li><strong>Người tạo:</strong> {request.CreatedByADID}</li>
-                    <li><strong>Bước duyệt:</strong> {step.DeptCode} - {step.Role}</li>
-                </ul>
-                <p>Vui lòng nhấn vào link dưới đây để xem chi tiết và phê duyệt:</p>
-                <a href='{approvalUrl}'>Xem và phê duyệt đơn</a>
-                <p>Cảm ơn bạn.</p>";
-
-            var smtp = new SmtpClient
+            try
             {
-                Host = host,
-                Port = port,
-                EnableSsl = true,
-                DeliveryMethod = SmtpDeliveryMethod.Network,
-                UseDefaultCredentials = false,
-                Credentials = new NetworkCredential(fromAddress.Address, pass)
-            };
+                string toEmail = "";
 
-            using (var message = new MailMessage(fromAddress, toAddress)
-            {
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = true
-            })
-            {
-                try
+                // Kiểm tra nếu có người được chỉ định cụ thể trong NextApproverADID
+                if (!string.IsNullOrEmpty(step.NextApproverADID))
+                {
+                    toEmail = GetUserEmail(step.NextApproverADID);
+                }
+                else
+                {
+                    toEmail = GetDesignatedApproverEmail(step.DeptCode, step.Role, step.Index);
+                }
+
+                // Validate email
+                if (string.IsNullOrEmpty(toEmail) || !IsValidEmail(toEmail))
+                {
+                    System.Diagnostics.Debug.WriteLine($"[EmailService] Invalid email for step {step.StepName}: {toEmail}");
+                    return;
+                }
+
+                var host = ConfigurationManager.AppSettings["SmtpHost"];
+                var port = int.Parse(ConfigurationManager.AppSettings["SmtpPort"]);
+                var fromAddress = new MailAddress("testrun.system@brother-bivn.com.vn", "Test Run System");
+                var toAddress = new MailAddress(toEmail);
+
+                // SỬA: Subject sử dụng bilingual
+                string subject = isResubmission
+                    ? $"[{GetBilingualResourceString("Resubmitted")}] {GetBilingualResourceString("TestRunRequestProcessing")}: {request.RequestID}"
+                    : $"[{GetBilingualResourceString("Processing")}] {GetBilingualResourceString("TestRunRequestProcessing")}: {request.RequestID}";
+
+                // Tùy chỉnh nội dung email theo step
+                string actionText = GetActionTextByStep(step);
+
+                // SỬA: Body sử dụng bilingual strings
+                string body = $@"
+                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                        <div style='background: #007bff; color: white; padding: 20px; text-align: center;'>
+                            <h2 style='margin: 0;'>🔔 Test Run System - {GetBilingualResourceString("ProcessingNotification")}</h2>
+                        </div>
+                        <div style='padding: 20px; background: #f8f9fa;'>
+                            <p style='font-size: 16px; margin-bottom: 20px;'>
+                                <strong>{GetBilingualResourceString("NewTestRunRequest")}:</strong>
+                            </p>
+                            <table style='width: 100%; border-collapse: collapse; margin-bottom: 20px;'>
+                                <tr style='background: white;'>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("RequestCode")}:</td>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6; color: #007bff; font-weight: bold;'>{request.RequestID}</td>
+                                </tr>
+                                <tr style='background: #f8f9fa;'>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("Creator")}:</td>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6;'>{request.CreatedByADID}</td>
+                                </tr>
+                                <tr style='background: white;'>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("CreatedDate")}:</td>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6;'>{request.CreatedAt:dd/MM/yyyy HH:mm}</td>
+                                </tr>
+                                <tr style='background: #f8f9fa;'>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("CurrentStep")}:</td>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6;'>{step.StepName}</td>
+                                </tr>
+                                <tr style='background: white;'>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("Department")}:</td>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6;'>{step.DeptCode}</td>
+                                </tr>
+                                <tr style='background: #f8f9fa;'>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("RequiredAction")}:</td>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6; color: #28a745; font-weight: bold;'>{GetBilingualActionText(step)}</td>
+                                </tr>
+                            </table>
+                            
+                            <div style='text-align: center; margin: 30px 0;'>
+                                <a href='{approvalUrl}' 
+                                   style='background-color: #007bff; color: white; padding: 15px 30px; 
+                                          text-decoration: none; border-radius: 8px; font-weight: bold; 
+                                          display: inline-block; box-shadow: 0 2px 4px rgba(0,123,255,0.3);'>
+                                    🔗 {GetBilingualResourceString("ViewAndProcess")}
+                                </a>
+                            </div>
+                            
+                            <div style='background: #e9ecef; padding: 15px; border-radius: 8px; margin-top: 20px;'>
+                                <p style='margin: 0; font-size: 14px; color: #6c757d;'>
+                                    ⚠️ <strong>{GetBilingualResourceString("Warning")}:</strong> {GetBilingualResourceString("ProcessingNote")}
+                                </p>
+                            </div>
+                        </div>
+                        <div style='background: #6c757d; color: white; padding: 10px; text-align: center; font-size: 12px;'>
+                            © Test Run System - Brother Industries Vietnam
+                        </div>
+                    </div>";
+
+                var smtp = new SmtpClient
+                {
+                    Host = host,
+                    Port = port,
+                    EnableSsl = false,
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                    UseDefaultCredentials = true
+                };
+
+                using (var message = new MailMessage(fromAddress, toAddress)
+                {
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = true
+                })
                 {
                     smtp.Send(message);
-                    System.Diagnostics.Debug.WriteLine($"Đã gửi email phê duyệt cho: {toEmail}");
+                    System.Diagnostics.Debug.WriteLine($"[EmailService] Sent approval email to {toEmail} for request {request.RequestID} step {step.Index}");
                 }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine("Lỗi gửi email: " + ex.Message);
-                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[EmailService] Error in SendApprovalRequest: {ex.Message}");
+            }
+        }
+
+        private string GetActionTextByStep(WorkflowStep step)
+        {
+            // Đơn giản hóa: chỉ dựa vào Actor với resource strings
+            switch (step.Actor)
+            {
+                case StepActor.Approver:
+                    return GetResourceString("ApprovalAndStamp");
+                case StepActor.DataEntry:
+                    return GetResourceString("DataEntryAndInput");
+                default:
+                    return GetResourceString("ProcessRequest");
             }
         }
 
         /// <summary>
-        /// Gửi thông báo từ chối đến người tạo đơn (lấy email theo ADID của creator, vẫn giữ như cũ)
+        /// Helper method để lấy action text theo cả hai ngôn ngữ
+        /// </summary>
+        private string GetBilingualActionText(WorkflowStep step)
+        {
+            switch (step.Actor)
+            {
+                case StepActor.Approver:
+                    return GetBilingualResourceString("ApprovalAndStamp");
+                case StepActor.DataEntry:
+                    return GetBilingualResourceString("DataEntryAndInput");
+                default:
+                    return GetBilingualResourceString("ProcessRequest");
+            }
+        }
+
+        /// <summary>
+        /// Gửi thông báo từ chối đến người tạo đơn - SỬA: Hiển thị cả tiếng Việt và tiếng Nhật
         /// </summary>
         public void SendRejectNotification(Request request, User rejector, string comment)
         {
-            // Lấy email của người tạo request từ database users
-            var fs = new TrueTestRun.Services.FileStorageService();
-            var users = fs.LoadUsers();
-            var creator = users.FirstOrDefault(u => u.ADID == request.CreatedByADID);
-
-            var toEmail = creator?.Email ?? "admin.backup@gmail.com";
-
-            var host = ConfigurationManager.AppSettings["SmtpHost"];
-            var port = int.Parse(ConfigurationManager.AppSettings["SmtpPort"]);
-            var user = ConfigurationManager.AppSettings["SmtpUser"];
-            var pass = ConfigurationManager.AppSettings["SmtpPass"];
-
-            var fromAddress = new MailAddress(user, "Test Run System");
-            var toAddress = new MailAddress(toEmail);
-
-            string subject = $"[TỪ CHỐI] Đơn Test Run: {request.RequestID}";
-            string body = $@"
-                <p>Đơn test run <b>{request.RequestID}</b> đã bị từ chối bởi {rejector.Name} ({rejector.DeptCode}).</p>
-                <p><b>Lý do/Ghi chú:</b> {comment}</p>
-                <p>Vui lòng kiểm tra lại thông tin và liên hệ nếu cần.</p>";
-
-            var smtp = new SmtpClient
+            try
             {
-                Host = host,
-                Port = port,
-                EnableSsl = true,
-                DeliveryMethod = SmtpDeliveryMethod.Network,
-                UseDefaultCredentials = false,
-                Credentials = new NetworkCredential(fromAddress.Address, pass)
-            };
+                string toEmail = GetUserEmail(request.CreatedByADID);
 
-            using (var message = new MailMessage(fromAddress, toAddress)
-            {
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = true
-            })
-            {
-                try
+                var host = ConfigurationManager.AppSettings["SmtpHost"];
+                var port = int.Parse(ConfigurationManager.AppSettings["SmtpPort"]);
+
+                var fromAddress = new MailAddress("testrun.system@brother-bivn.com.vn", "Test Run System");
+                var toAddress = new MailAddress(toEmail);
+
+                string subject = $"[{GetBilingualResourceString("Rejected")}] {GetBilingualResourceString("TestRunRequest")}: {request.RequestID}";
+                string body = $@"
+                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                        <div style='background: #dc3545; color: white; padding: 20px; text-align: center;'>
+                            <h2 style='margin: 0;'>❌ Test Run System - {GetBilingualResourceString("RejectNotification")}</h2>
+                        </div>
+                        <div style='padding: 20px; background: #f8f9fa;'>
+                            <div style='background: #f8d7da; border: 1px solid #f5c6cb; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>
+                                <p style='margin: 0; color: #721c24; font-weight: bold;'>
+                                    {GetBilingualResourceString("TestRunRequest")} <strong>{request.RequestID}</strong> {GetBilingualResourceString("WasRejectedBy")} {rejector.Name} ({rejector.DeptCode}).
+                                </p>
+                            </div>
+                            
+                            <table style='width: 100%; border-collapse: collapse; margin-bottom: 20px;'>
+                                <tr style='background: white;'>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("RequestCode")}:</td>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6; color: #dc3545; font-weight: bold;'>{request.RequestID}</td>
+                                </tr>
+                                <tr style='background: #f8f9fa;'>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("RejectedBy")}:</td>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6;'>{rejector.Name} ({rejector.DeptCode})</td>
+                                </tr>
+                                <tr style='background: white;'>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("RejectionTime")}:</td>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6;'>{DateTime.Now:dd/MM/yyyy HH:mm}</td>
+                                </tr>
+                            </table>
+                            
+                            <div style='background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>
+                                <p style='margin: 0; font-weight: bold; color: #856404;'>💬 {GetBilingualResourceString("ReasonNotes")}:</p>
+                                <p style='margin: 10px 0 0 0; color: #856404;'>{comment}</p>
+                            </div>
+                            
+                            <div style='background: #e9ecef; padding: 15px; border-radius: 8px;'>
+                                <p style='margin: 0; font-size: 14px; color: #6c757d;'>
+                                    {GetBilingualResourceString("PleaseReviewAndEdit")}
+                                </p>
+                            </div>
+                        </div>
+                        <div style='background: #6c757d; color: white; padding: 10px; text-align: center; font-size: 12px;'>
+                            © Test Run System - Brother Industries Vietnam
+                        </div>
+                    </div>";
+
+                var smtp = new SmtpClient
+                {
+                    Host = host,
+                    Port = port,
+                    EnableSsl = false,
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                    UseDefaultCredentials = true
+                };
+
+                using (var message = new MailMessage(fromAddress, toAddress)
+                {
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = true
+                })
                 {
                     smtp.Send(message);
+                    System.Diagnostics.Debug.WriteLine($"[EmailService] Sent reject notification to {toEmail} for request {request.RequestID}");
                 }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine("Lỗi gửi email từ chối: " + ex.Message);
-                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[EmailService] Error in SendRejectNotification: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// Gửi thông báo từ chối về cho người phê duyệt trước đó (nếu có)
+        /// Gửi thông báo từ chối về cho người có thể chỉnh sửa - SỬA: Hiển thị cả tiếng Việt và tiếng Nhật
         /// </summary>
         public void SendRejectNotificationToPrevApprover(Request request, User prevUser, User rejector, string comment, string editUrl)
         {
-            var host = ConfigurationManager.AppSettings["SmtpHost"];
-            var port = int.Parse(ConfigurationManager.AppSettings["SmtpPort"]);
-            var user = ConfigurationManager.AppSettings["SmtpUser"];
-            var pass = ConfigurationManager.AppSettings["SmtpPass"];
-
-            var fromAddress = new MailAddress(user, "Test Run System");
-            var toAddress = new MailAddress(prevUser.Email);
-
-            string subject = $"[BỊ TỪ CHỐI] Đơn Test Run: {request.RequestID}";
-            string body = $@"
-                <p>Đơn test run <b>{request.RequestID}</b> đã bị từ chối bởi {rejector.Name} ({rejector.DeptCode}).</p>
-                <p><b>Lý do/Ghi chú:</b> {comment}</p>
-                <p>Vui lòng kiểm tra lại và chỉnh sửa thông tin đơn.</p>
-                <p><a href='{editUrl}'>Xem và chỉnh sửa/phê duyệt lại đơn</a></p>";
-
-            var smtp = new SmtpClient
+            try
             {
-                Host = host,
-                Port = port,
-                EnableSsl = true,
-                DeliveryMethod = SmtpDeliveryMethod.Network,
-                UseDefaultCredentials = false,
-                Credentials = new NetworkCredential(fromAddress.Address, pass)
-            };
+                string toEmail = prevUser?.Email ?? GetUserEmail(request.CreatedByADID);
 
-            using (var message = new MailMessage(fromAddress, toAddress)
-            {
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = true
-            })
-            {
-                try
+                if (string.IsNullOrEmpty(toEmail))
+                {
+                    System.Diagnostics.Debug.WriteLine($"[EmailService] No email found for reject notification");
+                    return;
+                }
+
+                var host = ConfigurationManager.AppSettings["SmtpHost"];
+                var port = int.Parse(ConfigurationManager.AppSettings["SmtpPort"]);
+
+                var fromAddress = new MailAddress("testrun.system@brother-bivn.com.vn", "Test Run System");
+                var toAddress = new MailAddress(toEmail);
+
+                string subject = $"[{GetBilingualResourceString("NeedEdit")}] {GetBilingualResourceString("TestRunRequest")}: {request.RequestID}";
+                string body = $@"
+                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                        <div style='background: #ffc107; color: #212529; padding: 20px; text-align: center;'>
+                            <h2 style='margin: 0;'>⚠️ Test Run System - {GetBilingualResourceString("NeedEdit")}</h2>
+                        </div>
+                        <div style='padding: 20px; background: #f8f9fa;'>
+                            <div style='background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>
+                                <p style='margin: 0; color: #856404; font-weight: bold;'>
+                                    {GetBilingualResourceString("TestRunRequest")} <strong>{request.RequestID}</strong> {GetBilingualResourceString("NeedsEditAccordingToRejection")}.
+                                </p>
+                            </div>
+                            
+                            <table style='width: 100%; border-collapse: collapse; margin-bottom: 20px;'>
+                                <tr style='background: white;'>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("RequestCode")}:</td>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6; color: #ffc107; font-weight: bold;'>{request.RequestID}</td>
+                                </tr>
+                                <tr style='background: #f8f9fa;'>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("RejectedBy")}:</td>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6;'>{rejector.Name} ({rejector.DeptCode})</td>
+                                </tr>
+                                <tr style='background: white;'>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("Time")}:</td>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6;'>{DateTime.Now:dd/MM/yyyy HH:mm}</td>
+                                </tr>
+                            </table>
+                            
+                            <div style='background: #f8d7da; border: 1px solid #f5c6cb; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>
+                                <p style='margin: 0; font-weight: bold; color: #721c24;'>💬 {GetBilingualResourceString("RejectReason")}:</p>
+                                <p style='margin: 10px 0 0 0; color: #721c24;'>{comment}</p>
+                            </div>
+                            
+                            <div style='text-align: center; margin: 30px 0;'>
+                                <a href='{editUrl}' 
+                                   style='background-color: #ffc107; color: #212529; padding: 15px 30px; 
+                                          text-decoration: none; border-radius: 8px; font-weight: bold; 
+                                          display: inline-block; box-shadow: 0 2px 4px rgba(255,193,7,0.3);'>
+                                    ✏️ {GetBilingualResourceString("EditRequestNow")}
+                                </a>
+                            </div>
+                            
+                            <div style='background: #e9ecef; padding: 15px; border-radius: 8px;'>
+                                <p style='margin: 0; font-size: 14px; color: #6c757d;'>
+                                    {GetBilingualResourceString("PleaseReviewEditAndResubmit")}
+                                </p>
+                            </div>
+                        </div>
+                        <div style='background: #6c757d; color: white; padding: 10px; text-align: center; font-size: 12px;'>
+                            © Test Run System - Brother Industries Vietnam
+                        </div>
+                    </div>";
+
+                var smtp = new SmtpClient
+                {
+                    Host = host,
+                    Port = port,
+                    EnableSsl = false,
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                    UseDefaultCredentials = true
+                };
+
+                using (var message = new MailMessage(fromAddress, toAddress)
+                {
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = true
+                })
                 {
                     smtp.Send(message);
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine("Lỗi gửi email từ chối: " + ex.Message);
+                    System.Diagnostics.Debug.WriteLine($"[EmailService] Sent edit notification to {toEmail} for request {request.RequestID}");
                 }
             }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[EmailService] Error in SendRejectNotificationToPrevApprover: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Method gửi email cho người được chỉ định cụ thể - SỬA: Hiển thị cả tiếng Việt và tiếng Nhật
+        /// </summary>
+        public void SendApprovalRequestToSpecificUser(Request request, WorkflowStep step, string approvalUrl, User selectedApprover)
+        {
+            try
+            {
+                var fromAddress = new MailAddress("testrun.system@brother-bivn.com.vn", "Test Run System");
+                var toAddress = new MailAddress(selectedApprover.Email ?? "admin@brother-bivn.com.vn");
+
+                var host = ConfigurationManager.AppSettings["SmtpHost"];
+                var port = int.Parse(ConfigurationManager.AppSettings["SmtpPort"]);
+
+                string subject = $"[{GetBilingualResourceString("Approval")}] {GetBilingualResourceString("TestRunRequestApproval")}: {request.RequestID}";
+                string body = $@"
+                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                        <div style='background: #28a745; color: white; padding: 20px; text-align: center;'>
+                            <h2 style='margin: 0;'>✅ Test Run System - {GetBilingualResourceString("DesignatedApproval")}</h2>
+                        </div>
+                        <div style='padding: 20px; background: #f8f9fa;'>
+                            <p style='font-size: 16px; margin-bottom: 20px;'>
+                                {GetBilingualResourceString("Hello")} <strong>{selectedApprover.Name}</strong>,
+                            </p>
+                            <p style='margin-bottom: 20px;'>{GetBilingualResourceString("YouAreDesignatedToApprove")}:</p>
+                            
+                            <table style='width: 100%; border-collapse: collapse; margin-bottom: 20px;'>
+                                <tr style='background: white;'>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("RequestCode")}:</td>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6; color: #28a745; font-weight: bold;'>{request.RequestID}</td>
+                                </tr>
+                                <tr style='background: #f8f9fa;'>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("Creator")}:</td>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6;'>{request.CreatedByADID}</td>
+                                </tr>
+                                <tr style='background: white;'>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("CreatedDate")}:</td>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6;'>{request.CreatedAt:dd/MM/yyyy HH:mm}</td>
+                                </tr>
+                                <tr style='background: #f8f9fa;'>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("CurrentStep")}:</td>
+                                    <td style='padding: 10px; border: 1px solid #dee2e6;'>{step.StepName}</td>
+                                </tr>
+                            </table>
+                            
+                            <div style='text-align: center; margin: 30px 0;'>
+                                <a href='{approvalUrl}' 
+                                   style='background-color: #28a745; color: white; padding: 15px 30px; 
+                                          text-decoration: none; border-radius: 8px; font-weight: bold; 
+                                          display: inline-block; box-shadow: 0 2px 4px rgba(40,167,69,0.3);'>
+                                    ✅ {GetBilingualResourceString("ViewAndApproveRequest")}
+                                </a>
+                            </div>
+                        </div>
+                        <div style='background: #6c757d; color: white; padding: 10px; text-align: center; font-size: 12px;'>
+                            © Test Run System - Brother Industries Vietnam
+                        </div>
+                    </div>";
+
+                var smtp = new SmtpClient
+                {
+                    Host = host,
+                    Port = port,
+                    EnableSsl = false,
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                    UseDefaultCredentials = true
+                };
+
+                using (var message = new MailMessage(fromAddress, toAddress)
+                {
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = true
+                })
+                {
+                    smtp.Send(message);
+                    System.Diagnostics.Debug.WriteLine($"[EmailService] Sent specific approval email to {selectedApprover.Email} for request {request.RequestID}");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[EmailService] Error in SendApprovalRequestToSpecificUser: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Helper method để validate email
+        /// </summary>
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Dispose DbContext
+        /// </summary>
+        public void Dispose()
+        {
+            _context?.Dispose();
         }
     }
 }

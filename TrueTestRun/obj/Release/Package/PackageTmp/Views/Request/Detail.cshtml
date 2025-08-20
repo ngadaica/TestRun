@@ -1,0 +1,346 @@
+﻿@model TrueTestRun.Models.Request
+@{
+    ViewBag.Title = $"Chi tiết Request {Model.RequestID}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var currentUser = Session["CurrentUser"] as TrueTestRun.Models.User;
+    bool canEdit = ViewBag.CanEdit ?? false;
+    bool isOwner = ViewBag.IsOwner ?? false;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>
+            <span style="font-size:1.2em;">📄</span>
+            Chi tiết Request @Model.RequestID
+        </h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="@Url.Action("TruocTestRun", "Request")">
+                        <span style="font-size:1em;">🏠</span> Danh sách Request
+                    </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Chi tiết Request</li>
+            </ol>
+        </nav>
+    </div>
+    <div class="btn-group" role="group">
+        @if (canEdit)
+        {
+            <a href="@Url.Action("Edit", "Request", new { id = Model.RequestID })"
+               class="btn btn-warning">
+                <span style="font-size:1em;">✏️</span> Chỉnh sửa
+            </a>
+        }
+        <a href="@Url.Action("PreviewImage", "Request", new { id = Model.RequestID })"
+           class="btn btn-info" target="_blank">
+            <span style="font-size:1em;">🖼️</span> Xem Excel
+        </a>
+        <button type="button" class="btn btn-secondary" onclick="window.history.back()">
+            <span style="font-size:1em;">⬅️</span> Quay lại
+        </button>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <span style="font-size:1em;">✅</span> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span style="font-size:1em;">⚠️</span> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row">
+    <!-- Thông tin cơ bản -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <span style="font-size:1.1em;">ℹ️</span> Thông tin cơ bản
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- ... Phần còn lại giữ nguyên, chỉ thay các icon trong span badge ... -->
+                @if (Model.IsCompleted)
+                {
+                    <span class="badge bg-success fs-6">
+                        <span style="font-size:0.9em;">✅</span> Hoàn thành
+                    </span>
+                }
+                else if (Model.IsRejected)
+                {
+                    <span class="badge bg-danger fs-6">
+                        <span style="font-size:0.9em;">❌</span> Từ chối
+                    </span>
+                }
+                else
+                {
+                    <span class="badge bg-warning text-dark fs-6">
+                        <span style="font-size:0.9em;">⏰</span> Đang xử lý
+                    </span>
+                }
+                <!-- ... rest of content ... -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Thông tin Request -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <span style="font-size:1.1em;">📋</span> Thông tin Request
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (Model.Fields != null && Model.Fields.Any())
+                {
+                    <div class="row">
+                        @foreach (var field in Model.Fields.OrderBy(f => f.Key))
+                        {
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold text-muted">@field.Key:</label>
+                                <div class="form-control-plaintext">
+                                    @if (field.Key.Contains("EPE-") && (field.Value == "true" || field.Value == "false"))
+                                    {
+                                        if (field.Value == "true")
+                                        {
+                                            <span class="badge bg-success">
+                                                <span style="font-size:0.9em;">✓</span> Đã xác nhận
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                <span style="font-size:0.9em;">❌</span> Chưa xác nhận
+                                            </span>
+                                        }
+                                    }
+                                    else if (string.IsNullOrWhiteSpace(field.Value))
+                                    {
+                                        <em class="text-muted">Chưa điền</em>
+                                    }
+                                    else
+                                    {
+                                        <span>@field.Value</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <span style="font-size:1em;">ℹ️</span>
+                        Chưa có thông tin chi tiết nào được điền.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lịch sử phê duyệt -->
+<div class="card shadow-sm">
+    <div class="card-header bg-secondary text-white">
+        <h5 class="card-title mb-0">
+            <span style="font-size:1.1em;">📅</span> Lịch sử phê duyệt
+        </h5>
+    </div>
+    <div class="card-body">
+        @if (Model.History != null && Model.History.Any())
+        {
+            <div class="timeline">
+                @foreach (var step in Model.History.OrderBy(h => h.Index))
+                {
+                    var isCurrentStep = step.Index == Model.CurrentStepIndex;
+                    var isPastStep = step.Index < Model.CurrentStepIndex;
+                    var stepClass = isPastStep ? "timeline-item-completed" : (isCurrentStep ? "timeline-item-current" : "timeline-item-pending");
+
+                    <div class="timeline-item @stepClass">
+                        <div class="timeline-marker">
+                            @if (isPastStep)
+                            {
+                                <span style="font-size:0.8em; color:white;">✓</span>
+                            }
+                            else if (isCurrentStep)
+                            {
+                                <span style="font-size:0.8em; color:white;">⏰</span>
+                            }
+                            else
+                            {
+                                <span style="font-size:0.8em; color:white;">○</span>
+                            }
+                        </div>
+                        <div class="timeline-content">
+                            <!-- ... timeline content ... -->
+                            @if (!string.IsNullOrWhiteSpace(step.ApproverADID))
+                            {
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        <span style="font-size:0.9em;">👤</span>
+                                        Người xử lý: @step.ApproverADID
+                                    </small>
+                                </div>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(step.Comment))
+                            {
+                                <div class="mt-2">
+                                    <div class="alert alert-light mb-0">
+                                        <span style="font-size:0.9em;">💬</span>
+                                        <strong>Ghi chú:</strong> @step.Comment
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <span style="font-size:1em;">ℹ️</span>
+                Chưa có lịch sử phê duyệt nào.
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+    $(document).ready(function () {
+            // Auto dismiss alerts after 5 seconds
+            setTimeout(function () {
+                $('.alert').fadeOut('slow');
+            }, 5000);
+
+            // Tooltip for buttons
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        });</script>
+}
+
+<style>
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #dee2e6;
+        }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+    .timeline-marker {
+        position: absolute;
+        left: -23px;
+        top: 0;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+    }
+
+    .timeline-item-completed .timeline-marker {
+        background-color: #28a745;
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 3px #28a745;
+    }
+
+    .timeline-item-current .timeline-marker {
+        background-color: #ffc107;
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 3px #ffc107;
+        animation: pulse 2s infinite;
+    }
+
+    .timeline-item-pending .timeline-marker {
+        background-color: #6c757d;
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 3px #6c757d;
+    }
+
+    .timeline-content {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #dee2e6;
+        margin-left: 15px;
+    }
+
+    .timeline-item-completed .timeline-content {
+        border-left-color: #28a745;
+    }
+
+    .timeline-item-current .timeline-content {
+        border-left-color: #ffc107;
+        background: #fff8e1;
+    }
+
+    @@keyframes pulse {
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.1);
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+    }
+
+    .form-control-plaintext {
+        background-color: #f8f9fa;
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid #e9ecef;
+    }
+
+    .badge.fs-6 {
+        font-size: 0.875rem !important;
+    }
+
+    .breadcrumb {
+        background-color: transparent;
+        padding: 0;
+        margin-bottom: 0;
+    }
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+        color: #6c757d;
+    }
+</style>
