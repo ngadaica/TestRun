@@ -6,17 +6,17 @@
     var currentStep = ViewBag.CurrentStep as TrueTestRun.Models.WorkflowStep;
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2>
-            <span style="font-size:1.2em;">📊</span>
+<div class="page-header">
+    <div class="page-title-section">
+        <h2 class="page-title">
+            <span class="title-icon">◔</span>
             Staff PCB điền kết quả Step 6 - @Model.RequestID
         </h2>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item">
                     <a href="@Url.Action("GiuaTestRun", "Request")">
-                        <span style="font-size:1em;">🏠</span> Giữa Test Run
+                        <span class="breadcrumb-icon">◉</span> Giữa Test Run
                     </a>
                 </li>
                 <li class="breadcrumb-item active" aria-current="page">Điền kết quả test run</li>
@@ -27,17 +27,23 @@
 
 @if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <span style="font-size:1em;">✅</span> @TempData["SuccessMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="notification success">
+        <div class="notification-icon">◈</div>
+        <div class="notification-content">
+            <div class="notification-text">@TempData["SuccessMessage"]</div>
+        </div>
+        <button type="button" class="notification-close" onclick="this.parentElement.style.display='none'">×</button>
     </div>
 }
 
 @if (TempData["ErrorMessage"] != null)
 {
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <span style="font-size:1em;">⚠️</span> @TempData["ErrorMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="notification error">
+        <div class="notification-icon">◇</div>
+        <div class="notification-content">
+            <div class="notification-text">@TempData["ErrorMessage"]</div>
+        </div>
+        <button type="button" class="notification-close" onclick="this.parentElement.style.display='none'">×</button>
     </div>
 }
 
@@ -50,47 +56,49 @@
             @Html.Hidden("RequestID", Model.RequestID)
 
             <!-- FORM KẾT QUẢ TEST RUN -->
-            <div class="card mb-4">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><span style="font-size:1.1em;">📈</span> Kết quả Test Run</h5>
+            <div class="form-card results-card">
+                <div class="card-header">
+                    <h5><span class="header-icon">◕</span> Kết quả Test Run</h5>
                 </div>
                 <div class="card-body">
                     <!-- Radio buttons cho kết quả -->
-                    <div class="mb-4">
-                        <label class="form-label fw-bold">Kết quả:</label>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="KetQuaStep6" value="OK" id="ketQuaOK"
-                                   @(Model.Fields.FirstOrDefault(f => f.Key == "KetQuaStep6")?.Value == "OK" ? "checked" : "") />
-                            <label class="form-check-label fw-bold text-success" for="ketQuaOK">
-                                <span style="font-size:0.9em;">✅</span> OK
-                            </label>
-                        </div>
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="radio" name="KetQuaStep6" value="NG" id="ketQuaNG"
-                                   @(Model.Fields.FirstOrDefault(f => f.Key == "KetQuaStep6")?.Value == "NG" ? "checked" : "") />
-                            <label class="form-check-label fw-bold text-danger" for="ketQuaNG">
-                                <span style="font-size:0.9em;">❌</span> NG
-                            </label>
+                    <div class="result-selection">
+                        <label class="selection-label">Kết quả:</label>
+                        <div class="radio-group">
+                            <div class="radio-item success">
+                                <input class="radio-input" type="radio" name="KetQuaStep6" value="OK" id="ketQuaOK"
+                                       @(Model.Fields.FirstOrDefault(f => f.Key == "KetQuaStep6")?.Value == "OK" ? "checked" : "") />
+                                <label class="radio-label" for="ketQuaOK">
+                                    <span class="radio-icon">◈</span> OK
+                                </label>
+                            </div>
+                            <div class="radio-item danger">
+                                <input class="radio-input" type="radio" name="KetQuaStep6" value="NG" id="ketQuaNG"
+                                       @(Model.Fields.FirstOrDefault(f => f.Key == "KetQuaStep6")?.Value == "NG" ? "checked" : "") />
+                                <label class="radio-label" for="ketQuaNG">
+                                    <span class="radio-icon">◇</span> NG
+                                </label>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Thông tin NG -->
-                    <div class="result-section mb-4">
-                        <h6 class="fw-bold text-danger mb-3">
-                            <span style="font-size:0.9em;">⚠️</span>
+                    <div class="ng-info-section">
+                        <h6 class="ng-info-title">
+                            <span class="ng-icon">◪</span>
                             Thông tin NG (nếu có):
                         </h6>
 
                         <!-- NG số -->
-                        <div class="row mb-3">
-                            <div class="col-6">
-                                <label class="form-label fw-bold small">NG số: r =</label>
+                        <div class="ng-numbers">
+                            <div class="number-group">
+                                <label class="number-label danger">NG số: r =</label>
                                 <input name="NGSo_R_Step6" class="form-control form-control-sm" type="number" min="0"
                                        value="@(Model.Fields.FirstOrDefault(f => f.Key == "NGSo_R_Step6")?.Value ?? "")"
                                        placeholder="r" />
                             </div>
-                            <div class="col-6">
-                                <label class="form-label fw-bold small">OK số: n =</label>
+                            <div class="number-group">
+                                <label class="number-label success">OK số: n =</label>
                                 <input name="NGSo_N_Step6" class="form-control form-control-sm" type="number" min="0"
                                        value="@(Model.Fields.FirstOrDefault(f => f.Key == "NGSo_N_Step6")?.Value ?? "")"
                                        placeholder="n" />
@@ -98,51 +106,50 @@
                         </div>
 
                         <!-- Nội dung NG -->
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small">Nội dung NG:</label>
+                        <div class="ng-content">
+                            <label class="content-label">Nội dung NG:</label>
                             <textarea name="NoiDungNG_Step6" class="form-control form-control-sm" rows="3"
                                       placeholder="Mô tả chi tiết vấn đề NG...">@(Model.Fields.FirstOrDefault(f => f.Key == "NoiDungNG_Step6")?.Value ?? "")</textarea>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="text-center mb-3">
+
+            <div class="document-section">
                 @Html.Partial("_DocumentViewButton", Model.RequestID)
             </div>
+
             <!-- NÚT SUBMIT -->
-            <div class="text-center mb-4">
-                <button type="submit" name="action" value="complete" class="btn btn-success btn-lg">
-                    <span style="font-size:1em;">✅</span>
+            <div class="action-section">
+                <button type="submit" name="action" value="complete" class="action-btn primary large">
+                    <span class="btn-icon">◈</span>
                     Hoàn thành và chuyển tiếp
                 </button>
-                <a href="@Url.Action("GiuaTestRun", "Request")" class="btn btn-secondary btn-lg ms-2">
-                    <span style="font-size:1em;">⬅️</span>
+                <a href="@Url.Action("GiuaTestRun", "Request")" class="action-btn secondary large">
+                    <span class="btn-icon">◄</span>
                     Quay lại
                 </a>
             </div>
-
         }
     </div>
 
     <!-- CỘT PREVIEW - MỞ RỘNG RA -->
     <div class="col-lg-8 col-md-7">
-        <div class="card sticky-top">
-            <div class="card-header bg-secondary text-white">
-                <h5 class="mb-0"><span style="font-size:1.1em;">📊</span> Preview Excel</h5>
-                <small class="text-light">Xem trước form sẽ được cập nhật</small>
+        <div class="preview-card">
+            <div class="card-header">
+                <h5><span class="header-icon">◑</span> Preview Excel</h5>
+                <small class="header-subtitle">Xem trước form sẽ được cập nhật</small>
             </div>
-            <div class="card-body text-center p-3">
-                <div class="excel-preview-container-large">
+            <div class="card-body">
+                <div class="preview-container">
                     <img src="@Url.Action("PreviewImage", "Request", new { id = Model.RequestID })"
-                         class="img-fluid excel-preview-enhanced"
+                         class="preview-image"
                          alt="Excel Preview"
                          id="excelPreviewImage" />
                 </div>
-                <div class="mt-3">
-                    <small class="text-muted">
-                        <span style="font-size:0.9em;">🔄</span>
-                        Ảnh preview sẽ được cập nhật khi bạn thay đổi thông tin
-                    </small>
+                <div class="preview-info">
+                    <span class="info-icon">◎</span>
+                    Ảnh preview sẽ được cập nhật khi bạn thay đổi thông tin
                 </div>
             </div>
         </div>
@@ -151,6 +158,9 @@
 
 @section Scripts {
     <script>
+        // Declare localized messages as JavaScript variables
+        var confirmComplete = '@Html.Raw(HttpUtility.JavaScriptStringEncode(HttpContext.GetGlobalResourceObject("Resources", "ConfirmComplete").ToString()))';
+
         $(document).ready(function () {
             // Live update preview khi thay đổi input, radio hoặc textarea
             $('#step6Form input, #step6Form textarea').on('change input', function() {
@@ -212,7 +222,7 @@
                     return false;
                 }
 
-                if (!confirm('Bạn có chắc chắn muốn hoàn thành và chuyển tiếp đơn này?')) {
+                if (!confirm(confirmComplete)) {
                     e.preventDefault();
                     return false;
                 }
@@ -220,14 +230,14 @@
 
             // Auto dismiss alerts after 5 seconds
             setTimeout(function () {
-                $('.alert').fadeOut('slow');
+                $('.notification').fadeOut('slow');
             }, 5000);
 
             // Character counter for textarea
             $('textarea[name="NoiDungNG_Step6"]').on('input', function() {
                 var len = $(this).val().length;
                 var info = $(this).siblings('.form-text');
-                info.html(`<span style="font-size:0.9em;">ℹ️</span> Đã nhập ${len} ký tự. Vui lòng mô tả chi tiết vấn đề nếu có NG.`);
+                info.html('<span class="helper-icon">◎</span> Đã nhập ' + len + ' ký tự. Vui lòng mô tả chi tiết vấn đề nếu có NG.');
             });
 
             // Load initial preview
@@ -236,100 +246,31 @@
     </script>
 }
 
-<!-- SỬ DỤNG CHUNG CSS ENHANCED -->
 <style>
-    /* ===== ENHANCED PREVIEW STYLES ===== */
-    .excel-preview-container-large {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border: 3px dashed #6c757d;
-        border-radius: 12px;
-        padding: 20px;
-        margin: 0 auto;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
+    /* ===== SYNCHRONIZED COLOR SYSTEM ===== */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border-light);
     }
 
-        .excel-preview-container-large:hover {
-            border-color: #495057;
-            box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.15);
-        }
-
-    .excel-preview-enhanced {
-        border-radius: 8px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        max-width: 100%;
-        height: auto;
-        min-height: 700px;
-        max-height: 900px;
-        border: 1px solid #dee2e6;
-    }
-
-        .excel-preview-enhanced:hover {
-            transform: scale(1.02);
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
-        }
-
-    /* ===== ENHANCED CARD STYLES ===== */
-    .card {
-        border: none;
-        border-radius: 12px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-        transition: box-shadow 0.3s ease;
-    }
-
-        .card:hover {
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-        }
-
-    .card-header {
-        border-radius: 12px 12px 0 0 !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-        .card-header h5 {
-            font-weight: 600;
-            margin: 0;
-        }
-
-    /* ===== FORM IMPROVEMENTS ===== */
-    .form-label {
+    .page-title-section .page-title {
+        font-size: 1.5rem;
         font-weight: 600;
-        color: #495057;
-        margin-bottom: 8px;
+        color: var(--text-primary);
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
-    .form-control {
-        border-radius: 8px;
-        border: 1px solid #ced4da;
-        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-    }
-
-        .form-control:focus {
-            border-color: #80bdff;
-            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-        }
-
-    .form-check-input:checked {
-        background-color: #28a745;
-        border-color: #28a745;
-    }
-
-    /* ===== BUTTON IMPROVEMENTS ===== */
-    .btn {
-        border-radius: 8px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-    .btn-lg {
-        padding: 0.75rem 1.5rem;
-        font-size: 1.125rem;
+    .title-icon {
+        font-size: 1.2rem;
+        color: var(--corporate-blue);
+        opacity: 0.8;
     }
 
     /* ===== BREADCRUMB ===== */
@@ -337,67 +278,490 @@
         background-color: transparent;
         padding: 0;
         margin-bottom: 0;
+        font-size: 0.875rem;
     }
 
     .breadcrumb-item + .breadcrumb-item::before {
         content: "›";
-        color: #6c757d;
+        color: var(--text-muted);
     }
 
-    /* ===== STICKY POSITIONING ===== */
-    .sticky-top {
+    .breadcrumb-item a {
+        color: var(--corporate-blue);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+        .breadcrumb-item a:hover {
+            text-decoration: underline;
+        }
+
+    .breadcrumb-icon {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+
+    /* ===== NOTIFICATIONS ===== */
+    .notification {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1.25rem;
+        margin-bottom: 1rem;
+        border-radius: 8px;
+        border: 1px solid;
+        font-size: 0.875rem;
+        box-shadow: var(--shadow-soft);
+    }
+
+        .notification.success {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-color: var(--success-green);
+            color: #166534;
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border-color: var(--error-red);
+            color: #991b1b;
+        }
+
+    .notification-icon {
+        font-size: 1.1rem;
+        flex-shrink: 0;
+        opacity: 0.9;
+    }
+
+    .notification-close {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.2s ease;
+        margin-left: auto;
+    }
+
+        .notification-close:hover {
+            opacity: 1;
+        }
+
+    /* ===== FORM CARD ===== */
+    .form-card {
+        background: var(--background-white);
+        border: 1px solid var(--border-light);
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-medium);
+        transition: box-shadow 0.2s ease;
+    }
+
+        .form-card:hover {
+            box-shadow: var(--shadow-large);
+        }
+
+    .results-card {
+        border-left: 3px solid var(--success-green);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--background-secondary) 0%, #e2e8f0 100%);
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border-light);
+        border-radius: 10px 10px 0 0;
+    }
+
+        .card-header h5 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+    .header-icon {
+        font-size: 1.1rem;
+        color: var(--corporate-blue);
+        opacity: 0.8;
+    }
+
+    .card-body {
+        padding: 1.25rem;
+    }
+
+    /* ===== RESULT SELECTION ===== */
+    .result-selection {
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: linear-gradient(135deg, var(--background-secondary) 0%, #f0f4f8 100%);
+        border-radius: 8px;
+        border: 1px solid var(--border-light);
+    }
+
+    .selection-label {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+
+    .radio-group {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .radio-item {
+        flex: 1;
+        position: relative;
+    }
+
+    .radio-input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .radio-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--border-light);
+        border-radius: 8px;
+        background: var(--background-white);
+        color: var(--text-secondary);
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+    }
+
+    .radio-item.success .radio-label {
+        border-color: var(--success-green);
+        color: var(--success-green);
+    }
+
+    .radio-item.danger .radio-label {
+        border-color: var(--error-red);
+        color: var(--error-red);
+    }
+
+    .radio-input:checked + .radio-label {
+        background: var(--corporate-blue);
+        color: var(--background-white);
+        border-color: var(--corporate-blue);
+        transform: scale(1.05);
+        box-shadow: var(--shadow-medium);
+    }
+
+    .radio-item.success .radio-input:checked + .radio-label {
+        background: var(--success-green);
+        border-color: var(--success-green);
+    }
+
+    .radio-item.danger .radio-input:checked + .radio-label {
+        background: var(--error-red);
+        border-color: var(--error-red);
+    }
+
+    .radio-icon {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+
+    /* ===== NG INFO SECTION ===== */
+    .ng-info-section {
+        padding: 1rem;
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        border: 1px solid var(--error-red);
+        border-radius: 8px;
+    }
+
+    .ng-info-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--error-red);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .ng-icon {
+        font-size: 1rem;
+        opacity: 0.8;
+    }
+
+    .ng-numbers {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .number-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .number-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 0.375rem;
+    }
+
+        .number-label.danger {
+            color: var(--error-red);
+        }
+
+        .number-label.success {
+            color: var(--success-green);
+        }
+
+    .ng-content {
+        margin-top: 1rem;
+    }
+
+    .content-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    /* ===== FORM ELEMENTS ===== */
+    .form-control {
+        border-radius: 6px;
+        border: 1px solid var(--border-medium);
+        padding: 0.625rem;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        background: var(--background-white);
+    }
+
+        .form-control:focus {
+            border-color: var(--corporate-blue);
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+            outline: none;
+        }
+
+    .form-control-sm {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    /* ===== DOCUMENT SECTION ===== */
+    .document-section {
+        text-align: center;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: var(--background-secondary);
+        border-radius: 8px;
+        border: 1px solid var(--border-light);
+    }
+
+    /* ===== ACTION BUTTONS ===== */
+    .action-section {
+        text-align: center;
+        padding: 1rem 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.75rem;
+        border: 1px solid var(--border-medium);
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+        .action-btn.primary {
+            background: var(--corporate-blue);
+            color: var(--background-white);
+            border-color: var(--corporate-blue);
+        }
+
+            .action-btn.primary:hover {
+                background: #1e40af;
+                text-decoration: none;
+                color: var(--background-white);
+                transform: translateY(-1px);
+                box-shadow: var(--shadow-medium);
+            }
+
+        .action-btn.secondary {
+            background: var(--background-white);
+            color: var(--text-secondary);
+            border-color: var(--border-medium);
+        }
+
+            .action-btn.secondary:hover {
+                background: var(--background-secondary);
+                color: var(--text-primary);
+                text-decoration: none;
+                transform: translateY(-1px);
+                box-shadow: var(--shadow-soft);
+            }
+
+        .action-btn.large {
+            padding: 1rem 2rem;
+            font-size: 1rem;
+        }
+
+    .btn-icon {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+
+    /* ===== PREVIEW SECTION ===== */
+    .preview-card {
+        background: var(--background-white);
+        border: 1px solid var(--border-light);
+        border-radius: 10px;
+        box-shadow: var(--shadow-medium);
+        position: sticky;
         top: 20px;
+        border-left: 3px solid var(--corporate-blue);
     }
 
-    /* ===== RESPONSIVE ADJUSTMENTS ===== */
+        .preview-card .card-header {
+            background: linear-gradient(135deg, var(--corporate-blue) 0%, #1e40af 100%);
+            color: var(--background-white);
+        }
+
+        .preview-card .header-icon {
+            color: var(--background-white);
+        }
+
+    .header-subtitle {
+        font-size: 0.75rem;
+        opacity: 0.9;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .preview-container {
+        background: var(--background-white);
+        border: 2px solid var(--border-light);
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .preview-image {
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        max-width: 100%;
+        height: auto;
+        min-height: 600px;
+        max-height: 800px;
+        border: 1px solid var(--border-light);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background: var(--background-white);
+    }
+
+        .preview-image:hover {
+            transform: scale(1.01);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+    .preview-info {
+        margin-top: 1rem;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.375rem;
+    }
+
+    .info-icon {
+        opacity: 0.7;
+    }
+
+    /* ===== RESPONSIVE DESIGN ===== */
     @@media (max-width: 991.98px) {
         .col-lg-4 {
             margin-bottom: 2rem;
         }
 
-        .excel-preview-enhanced {
-            min-height: 500px;
-            max-height: 700px;
+        .preview-card {
+            position: static;
         }
 
-        .sticky-top {
-            position: static !important;
-        }
-    }
-
-    @@media (max-width: 767.98px) {
-        .excel-preview-enhanced {
+        .preview-image {
             min-height: 400px;
             max-height: 600px;
         }
 
-        .excel-preview-container-large {
-            padding: 15px;
+        .radio-group {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .page-title-section .page-title {
+            font-size: 1.25rem;
+        }
+
+        .card-body {
+            padding: 1rem;
+        }
+
+        .ng-numbers {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+
+        .action-section {
+            padding: 0.75rem 0;
+        }
+
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .preview-image {
+            min-height: 300px;
+            max-height: 500px;
         }
     }
 
     /* ===== LOADING ANIMATION ===== */
-    .excel-preview-enhanced[src*="base64"] {
-        opacity: 0.7;
+    .preview-image[src*="base64"] {
+        opacity: 0.8;
         animation: pulse 1.5s ease-in-out infinite alternate;
     }
 
     @@keyframes pulse {
         from {
-            opacity: 0.7;
+            opacity: 0.8;
         }
 
         to {
             opacity: 1;
         }
-    }
-
-    /* ===== COLOR CODING FOR INPUT LABELS ===== */
-    .text-danger {
-        color: #dc3545 !important;
-    }
-
-    .text-success {
-        color: #28a745 !important;
     }
 </style>

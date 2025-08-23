@@ -1,65 +1,581 @@
 ﻿@model TrueTestRun.Models.User
 @{
     ViewBag.Title = HttpContext.GetGlobalResourceObject("Resources", "RegisterAccount").ToString();
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = null; // Không sử dụng layout chung
 }
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title – Test Run System</title>
+    <link href="~/Content/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        /* ========== JAPANESE CORPORATE REGISTER DESIGN ========== */
 
-<h2>@ViewBag.Title</h2>
+        /* Professional Color Palette */
+        :root {
+            --corporate-blue: #1e3a8a;
+            --secondary-blue: #3b82f6;
+            --background-primary: #f8fafc;
+            --background-secondary: #f1f5f9;
+            --background-white: #ffffff;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --border-light: #e5e7eb;
+            --border-medium: #d1d5db;
+            --shadow-subtle: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-soft: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            --shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-large: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --success-green: #059669;
+            --error-red: #dc2626;
+            --warning-amber: #d97706;
+        }
 
-@using (Html.BeginForm("Register", "Account", FormMethod.Post))
-{
-    @Html.AntiForgeryToken()
+        body {
+            background: linear-gradient(135deg, var(--background-primary) 0%, var(--background-secondary) 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo', sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
 
-    <div class="mb-3">
-        @Html.LabelFor(m => m.ADID, new { @class = "form-label" })
-        @Html.TextBoxFor(m => m.ADID, new { @class = "form-control" })
-        @Html.ValidationMessageFor(m => m.ADID, "", new { @class = "text-danger" })
+        /* Register Container */
+        .register-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .register-card {
+            background: var(--background-white);
+            border-radius: 16px;
+            box-shadow: var(--shadow-large);
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        /* Header Section */
+        .register-header {
+            background: linear-gradient(135deg, var(--corporate-blue) 0%, #1e40af 100%);
+            color: white;
+            padding: 2rem 2rem 1.5rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .register-header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        }
+
+        .system-logo {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .logo-icon {
+            font-size: 1.5rem;
+        }
+
+        .system-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            letter-spacing: -0.025em;
+        }
+
+        .system-subtitle {
+            font-size: 0.8rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        /* Form Section */
+        .register-form {
+            padding: 2rem;
+        }
+
+        .form-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            letter-spacing: -0.025em;
+        }
+
+        /* Form Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+        }
+
+        @@media (min-width: 576px) {
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .form-group.full-width {
+                grid-column: 1 / -1;
+            }
+        }
+
+        /* Professional Form Controls */
+        .form-group {
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .required {
+            color: var(--error-red);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 0.875rem;
+            border: 2px solid var(--border-light);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            background: var(--background-white);
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--corporate-blue);
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+            background: var(--background-white);
+        }
+
+        .form-control:hover {
+            border-color: var(--border-medium);
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.75rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+
+        /* Input Icons */
+        .input-group {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 0.875rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1rem;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .form-control.with-icon {
+            padding-left: 2.75rem;
+        }
+
+        /* Professional Button */
+        .btn-register {
+            width: 100%;
+            background: linear-gradient(135deg, var(--corporate-blue) 0%, #1e40af 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.875rem 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .btn-register:active {
+            transform: translateY(0);
+        }
+
+        .btn-register::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-register:hover::before {
+            left: 100%;
+        }
+
+        /* Back Link */
+        .register-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .back-link {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .back-link a {
+            color: var(--corporate-blue);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .back-link a:hover {
+            color: #1e40af;
+            text-decoration: underline;
+        }
+
+        /* Error Messages */
+        .text-danger {
+            color: var(--error-red);
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
+            display: block;
+        }
+
+        /* Validation Summary */
+        .validation-summary-errors {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: var(--error-red);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+        }
+
+        .validation-summary-errors ul {
+            margin: 0;
+            padding-left: 1.25rem;
+        }
+
+        /* Professional Form Sections */
+        .form-section {
+            background: var(--background-secondary);
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid var(--corporate-blue);
+            padding-bottom: 0.5rem;
+        }
+
+        /* Animation for form elements */
+        .form-group {
+            animation: slideInUp 0.6s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .form-group:nth-child(1) { animation-delay: 0.1s; }
+        .form-group:nth-child(2) { animation-delay: 0.15s; }
+        .form-group:nth-child(3) { animation-delay: 0.2s; }
+        .form-group:nth-child(4) { animation-delay: 0.25s; }
+        .form-group:nth-child(5) { animation-delay: 0.3s; }
+        .form-group:nth-child(6) { animation-delay: 0.35s; }
+        .form-group:nth-child(7) { animation-delay: 0.4s; }
+
+        @@keyframes slideInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Company Branding */
+        .company-info {
+            position: absolute;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 576px) {
+            .register-container {
+                padding: 1rem;
+            }
+
+            .register-header {
+                padding: 1.5rem 1.25rem;
+            }
+
+            .register-form {
+                padding: 1.5rem 1.25rem;
+            }
+
+            .system-title {
+                font-size: 1.125rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @@media (max-width: 400px) {
+            .register-header {
+                padding: 1.25rem 1rem;
+            }
+
+            .register-form {
+                padding: 1.25rem 1rem;
+            }
+
+            .form-control {
+                padding: 0.625rem 0.75rem;
+            }
+
+            .btn-register {
+                padding: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-card">
+            <!-- Professional Header -->
+            <div class="register-header">
+                <div class="system-logo">
+                    <div class="logo-icon">📝</div>
+                </div>
+                <div class="system-title">Test Run System</div>
+                <div class="system-subtitle">Brother Industries Vietnam</div>
+            </div>
+
+            <!-- Register Form -->
+            <div class="register-form">
+                <h2 class="form-title">@ViewBag.Title</h2>
+
+                @Html.ValidationSummary(true, "", new { @class = "validation-summary-errors" })
+
+                @using (Html.BeginForm("Register", "Account", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+
+                    <!-- Personal Information Section -->
+                    <div class="form-section">
+                        <div class="section-title">Thông tin cá nhân</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                @Html.LabelFor(m => m.ADID, new { @class = "form-label" })
+                                <span class="required">*</span>
+                                <div class="input-group">
+                                    <div class="input-icon">🆔</div>
+                                    @Html.TextBoxFor(m => m.ADID, new
+                                    {
+                                        @class = "form-control with-icon",
+                                        @placeholder = "VD: Mã nhân viên",
+                                        @required = "required"
+                                    })
+                                </div>
+                                @Html.ValidationMessageFor(m => m.ADID, "", new { @class = "text-danger" })
+                            </div>
+
+                            <div class="form-group">
+                                @Html.LabelFor(m => m.Name, new { @class = "form-label" })
+                                <span class="required">*</span>
+                                <div class="input-group">
+                                    <div class="input-icon">👤</div>
+                                    @Html.TextBoxFor(m => m.Name, new
+                                    {
+                                        @class = "form-control with-icon",
+                                        @placeholder = "Chỉ nhập tên",
+                                        @required = "required"
+                                    })
+                                </div>
+                                @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger" })
+                            </div>
+
+                            <div class="form-group full-width">
+                                @Html.LabelFor(m => m.Email, new { @class = "form-label" })
+                                <span class="required">*</span>
+                                <div class="input-group">
+                                    <div class="input-icon">✉️</div>
+                                    @Html.TextBoxFor(m => m.Email, new
+                                    {
+                                        @class = "form-control with-icon",
+                                        @type = "email",
+                                        @placeholder = "email@brother-bivn.com.vn",
+                                        @required = "required"
+                                    })
+                                </div>
+                                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Organization Information Section -->
+                    <div class="form-section">
+                        <div class="section-title">Thông tin tổ chức</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                @Html.LabelFor(m => m.DeptCode, new { @class = "form-label" })
+                                <span class="required">*</span>
+                                @Html.DropDownListFor(
+                                         m => m.DeptCode,
+                                         (SelectList)ViewBag.DeptCodes,
+                                         HttpContext.GetGlobalResourceObject("Resources", "SelectDepartment").ToString(),
+                                         new { @class = "form-control form-select", @required = "required" })
+                                @Html.ValidationMessageFor(m => m.DeptCode, "", new { @class = "text-danger" })
+                            </div>
+
+                            <div class="form-group">
+                                @Html.LabelFor(m => m.Title, new { @class = "form-label" })
+                                <span class="required">*</span>
+                                @Html.DropDownListFor(
+                                         m => m.Title,
+                                         (SelectList)ViewBag.Titles,
+                                         HttpContext.GetGlobalResourceObject("Resources", "SelectPosition").ToString(),
+                                         new { @class = "form-control form-select", @required = "required" })
+                                @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger" })
+                            </div>
+
+
+                            <div class="form-group">
+                                @Html.LabelFor(m => m.Factory, new { @class = "form-label" })
+                                @Html.DropDownListFor(
+                                         m => m.Factory,
+                                         (SelectList)ViewBag.Factories,
+                                         "-- Chọn nhà máy --",
+                                         new { @class = "form-control form-select" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-register">
+                        @HttpContext.GetGlobalResourceObject("Resources", "Register")
+                    </button>
+                }
+
+                <div class="register-footer">
+                    <div class="back-link">
+                        Đã có tài khoản?
+                        <a href="@Url.Action("Login", "Account")">@HttpContext.GetGlobalResourceObject("Resources", "Login")</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="company-info">
+            © Brother Industries Vietnam - Internal System
+        </div>
     </div>
 
-    <div class="mb-3">
-        @Html.LabelFor(m => m.Name, new { @class = "form-label" })
-        @Html.TextBoxFor(m => m.Name, new { @class = "form-control" })
-        @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger" })
-    </div>
+    <script src="~/Content/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Professional form enhancements
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const adidInput = document.querySelector('#ADID');
 
-    <div class="mb-3">
-        @Html.LabelFor(m => m.DeptCode, new { @class = "form-label" })
-        @Html.DropDownListFor(
-                 m => m.DeptCode,
-                 (SelectList)ViewBag.DeptCodes,
-                 HttpContext.GetGlobalResourceObject("Resources", "SelectDepartment").ToString(),
-                 new { @class = "form-select" })
-        @Html.ValidationMessageFor(m => m.DeptCode, "", new { @class = "text-danger" })
-    </div>
+            // Auto focus on first input
+            if (adidInput) {
+                adidInput.focus();
+            }
 
-    <div class="mb-3">
-        @Html.LabelFor(m => m.Group, new { @class = "form-label" })
-        @Html.TextBoxFor(m => m.Group, new { @class = "form-control" })
-    </div>
+            // Professional ADID formatting
+            adidInput?.addEventListener('input', function(e) {
+                // Convert to lowercase and remove spaces
+                this.value = this.value.toLowerCase().replace(/\s/g, '');
+            });
 
-    <div class="mb-3">
-        @Html.LabelFor(m => m.Title, new { @class = "form-label" })
-        @Html.DropDownListFor(
-                 m => m.Title,
-                 (SelectList)ViewBag.Titles,
-                 HttpContext.GetGlobalResourceObject("Resources", "SelectPosition").ToString(),
-                 new { @class = "form-select" })
-    </div>
+            
 
-    <div class="mb-3">
-        @Html.LabelFor(m => m.Email, new { @class = "form-label" })
-        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", type = "email" })
-        @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
-    </div>
+            // Professional form validation
+            form?.addEventListener('submit', function(e) {
+                const requiredFields = form.querySelectorAll('[required]');
+                let hasErrors = false;
 
-    <div class="mb-3">
-        @Html.LabelFor(m => m.Factory, new { @class = "form-label" })
-        @Html.DropDownListFor(
-                 m => m.Factory,
-                 (SelectList)ViewBag.Factories,
-                 "-- Chọn nhà máy --",
-                 new { @class = "form-select" })
-    </div>
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        field.style.borderColor = 'var(--error-red)';
+                        hasErrors = true;
+                    } else {
+                        field.style.borderColor = 'var(--border-light)';
+                    }
+                });
 
-    <button type="submit" class="btn btn-primary">@HttpContext.GetGlobalResourceObject("Resources", "Register")</button>
-}
+                if (hasErrors) {
+                    e.preventDefault();
+                    // Scroll to first error
+                    const firstError = form.querySelector('[style*="error-red"]');
+                    if (firstError) {
+                        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        firstError.focus();
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

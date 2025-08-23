@@ -259,6 +259,80 @@ namespace TrueTestRun.Services
         }
 
         /// <summary>
+        /// Đọc giá trị từ Excel dựa trên field key
+        /// </summary>
+        public string ReadFieldFromExcel(string excelPath, string fieldKey)
+        {
+            try
+            {
+                if (!System.IO.File.Exists(excelPath))
+                    return null;
+
+                if (!cellMapping.TryGetValue(fieldKey, out var cellAddress))
+                    return null;
+
+                using (var pkg = new ExcelPackage(new FileInfo(excelPath)))
+                {
+                    var ws = pkg.Workbook.Worksheets["D001"];
+                    if (ws == null)
+                        return null;
+
+                    var cell = ws.Cells[cellAddress];
+                    return cell.Text?.Trim();
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Đọc nhiều field cùng lúc từ Excel
+        /// </summary>
+        public Dictionary<string, string> ReadFieldsFromExcel(string excelPath, string[] fieldKeys)
+        {
+            var result = new Dictionary<string, string>();
+            
+            try
+            {
+                if (!System.IO.File.Exists(excelPath))
+                    return result;
+
+                using (var pkg = new ExcelPackage(new FileInfo(excelPath)))
+                {
+                    var ws = pkg.Workbook.Worksheets["D001"];
+                    if (ws == null)
+                        return result;
+
+                    foreach (var fieldKey in fieldKeys)
+                    {
+                        if (cellMapping.TryGetValue(fieldKey, out var cellAddress))
+                        {
+                            var cell = ws.Cells[cellAddress];
+                            var value = cell.Text?.Trim();
+                            result[fieldKey] = string.IsNullOrEmpty(value) ? "N/A" : value;
+                        }
+                        else
+                        {
+                            result[fieldKey] = "N/A";
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Fill with N/A in case of error
+                foreach (var fieldKey in fieldKeys)
+                {
+                    result[fieldKey] = "N/A";
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Thêm hình tròn quanh OK hoặc NG dựa trên kết quả, xóa highlight cũ
         /// </summary>
         private void AddCircleToResult(OfficeOpenXml.ExcelWorksheet ws, string baseCell, string result)

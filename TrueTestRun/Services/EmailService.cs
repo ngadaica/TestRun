@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using TrueTestRun.Models;
+using System.IO;
+using System.Web.Hosting;
 
 namespace TrueTestRun.Services
 {
@@ -54,6 +56,66 @@ namespace TrueTestRun.Services
             }
         }
 
+
+        /// <summary>
+        /// Helper method để lấy thông tin Part từ Excel file - CHỈNH SỬA: Đọc từ Excel thay vì RequestFields
+        /// </summary>
+        private (string PartNumber, string PartName) GetPartInfo(Request request)
+        {
+            try
+            {
+                // Đường dẫn đến file Excel của request
+                var requestFolderPath = HostingEnvironment.MapPath($"~/App_Data/Requests/{request.RequestID}");
+                var excelFilePath = Path.Combine(requestFolderPath, "request.xlsx");
+
+                if (!File.Exists(excelFilePath))
+                {
+                    return ("未定義/Chưa định", "");
+                }
+
+                // Sử dụng ExcelService để đọc dữ liệu
+                var excelService = new ExcelService();
+                var excelData = excelService.ReadFieldsFromExcel(excelFilePath, new string[] { "MaLinhKien", "TenLinhKien" });
+
+                // SỬA: Sử dụng TryGetValue thay vì GetValueOrDefault cho .NET Framework 4.7.2
+                var partNumber = "";
+                var partName = "";
+                
+                if (!excelData.TryGetValue("MaLinhKien", out partNumber))
+                {
+                    partNumber = "";
+                }
+                
+                if (!excelData.TryGetValue("TenLinhKien", out partName))
+                {
+                    partName = "";
+                }
+
+                // Xử lý trường hợp không có dữ liệu
+                if (string.IsNullOrEmpty(partNumber) && string.IsNullOrEmpty(partName))
+                {
+                    return ("未定義/Chưa định", "");
+                }
+
+                if (string.IsNullOrEmpty(partNumber))
+                {
+                    partNumber = "未定義/Chưa định";
+                }
+
+                if (string.IsNullOrEmpty(partName))
+                {
+                    partName = "";
+                }
+
+                return (partNumber, partName);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[EmailService] Error reading Excel part info: {ex.Message}");
+                return ("未定義/Chưa định", "");
+            }
+        }
+
         /// <summary>
         /// Lấy email của người được chỉ định cho từng step - HARDCODE
         /// </summary>
@@ -62,16 +124,26 @@ namespace TrueTestRun.Services
             // HARDCODE EMAIL CHO TỪNG STEP CỤ THỂ
             switch (stepIndex)
             {
-                case 1: return "Doan.PhamCong@brother-bivn.com.vn";
-                case 2: return "Ly.NguyenThi@brother-bivn.com.vn";
-                case 3: return "ChuVan.Long@brother-bivn.com.vn";
-                case 4: return "Ly.NguyenThi@brother-bivn.com.vn";
-                case 5: return "jun.sato@brother-bivn.com.vn";
-                case 6: return "Ly.NguyenThi@brother-bivn.com.vn";
-                case 7: return "jun.sato@brother-bivn.com.vn";
-                case 8: return "nguyenthi.duyen5@brother-bivn.com.vn";
-                case 9: return "Doan.PhamCong@brother-bivn.com.vn";
-                case 10: return "naoya.yada@brother-bivn.com.vn";
+                case 1: return "phamduc.anh@brother-bivn.com.vn";
+                //case 1: return "Doan.PhamCong@brother-bivn.com.vn";
+                //case 2: return "Ly.NguyenThi@brother-bivn.com.vn";
+                //case 3: return "ChuVan.Long@brother-bivn.com.vn";
+                //case 4: return "Ly.NguyenThi@brother-bivn.com.vn";
+                //case 5: return "jun.sato@brother-bivn.com.vn";
+                //case 6: return "Ly.NguyenThi@brother-bivn.com.vn";
+                //case 7: return "jun.sato@brother-bivn.com.vn";
+                //case 8: return "nguyenthi.duyen5@brother-bivn.com.vn";
+                //case 9: return "Doan.PhamCong@brother-bivn.com.vn";
+                //case 10: return "naoya.yada@brother-bivn.com.vn";
+                case 2: return "phamduc.anh@brother-bivn.com.vn";
+                case 3: return "phamduc.anh@brother-bivn.com.vn";
+                case 4: return "phamduc.anh@brother-bivn.com.vn";
+                case 5: return "phamduc.anh@brother-bivn.com.vn";
+                case 6: return "phamduc.anh@brother-bivn.com.vn";
+                case 7: return "phamduc.anh@brother-bivn.com.vn";
+                case 8: return "phamduc.anh@brother-bivn.com.vn";
+                case 9: return "phamduc.anh@brother-bivn.com.vn";
+                case 10: return "phamduc.anh@brother-bivn.com.vn";
                 default: return "phamduc.anh@brother-bivn.com.vn";
 
             }
@@ -94,7 +166,7 @@ namespace TrueTestRun.Services
         }
 
         /// <summary>
-        /// Gửi email phê duyệt - SỬA: Hiển thị cả tiếng Việt và tiếng Nhật
+        /// Gửi email phê duyệt/ghi nhập - CHỈNH SỬA: Loại bỏ ステップ/Bước và lấy thông tin từ Excel
         /// </summary>
         public void SendApprovalRequest(Request request, WorkflowStep step, string approvalUrl, bool isResubmission = false)
         {
@@ -124,68 +196,53 @@ namespace TrueTestRun.Services
                 var fromAddress = new MailAddress("testrun.system@brother-bivn.com.vn", "Test Run System");
                 var toAddress = new MailAddress(toEmail);
 
-                // SỬA: Subject sử dụng bilingual
-                string subject = isResubmission
-                    ? $"[{GetBilingualResourceString("Resubmitted")}] {GetBilingualResourceString("TestRunRequestProcessing")}: {request.RequestID}"
-                    : $"[{GetBilingualResourceString("Processing")}] {GetBilingualResourceString("TestRunRequestProcessing")}: {request.RequestID}";
+                // Lấy thông tin Part từ Excel
+                var (partNumber, partName) = GetPartInfo(request);
+                var partInfo = !string.IsNullOrEmpty(partName) ? $"{partNumber} - {partName}" : partNumber;
 
-                // Tùy chỉnh nội dung email theo step
-                string actionText = GetActionTextByStep(step);
+                // SỬA: Subject đơn giản hóa với thông tin Part từ Excel
+                string actionType = step.Actor == StepActor.Approver ? "承認依頼/Yêu cầu phê duyệt" : "データ入力依頼/Yêu cầu ghi nhập";
+                string subject = $"{actionType} [{request.RequestID}] {partInfo}";
 
-                // SỬA: Body sử dụng bilingual strings
+                // SỬA: Body đơn giản hóa theo phong cách Nhật - LOẠI BỎ ステップ/Bước
                 string body = $@"
-                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
-                        <div style='background: #007bff; color: white; padding: 20px; text-align: center;'>
-                            <h2 style='margin: 0;'>🔔 Test Run System - {GetBilingualResourceString("ProcessingNotification")}</h2>
+                    <div style='font-family: ""Yu Gothic"", ""Hiragino Kaku Gothic ProN"", ""Meiryo"", sans-serif; max-width: 500px; margin: 0 auto; border: 1px solid #ddd;'>
+                        <div style='background: #f0f0f0; padding: 10px 15px; border-bottom: 1px solid #ddd;'>
+                            <div style='font-weight: bold; font-size: 14px;'>{actionType}</div>
+                            <div style='font-size: 12px; color: #666; margin-top: 3px;'>テストラン承認システム / Test Run Approval System</div>
                         </div>
-                        <div style='padding: 20px; background: #f8f9fa;'>
-                            <p style='font-size: 16px; margin-bottom: 20px;'>
-                                <strong>{GetBilingualResourceString("NewTestRunRequest")}:</strong>
-                            </p>
-                            <table style='width: 100%; border-collapse: collapse; margin-bottom: 20px;'>
-                                <tr style='background: white;'>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("RequestCode")}:</td>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6; color: #007bff; font-weight: bold;'>{request.RequestID}</td>
+                        
+                        <div style='padding: 15px;'>
+                            <table style='width: 100%; font-size: 13px; border-collapse: collapse;'>
+                                <tr>
+                                    <td style='padding: 5px 0; font-weight: bold; width: 100px;'>申請番号/Mã đơn:</td>
+                                    <td style='padding: 5px 0; color: #0066cc; font-weight: bold;'>{request.RequestID}</td>
                                 </tr>
-                                <tr style='background: #f8f9fa;'>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("Creator")}:</td>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6;'>{request.CreatedByADID}</td>
+                                <tr>
+                                    <td style='padding: 5px 0; font-weight: bold;'>部品情報/Linh kiện:</td>
+                                    <td style='padding: 5px 0;'>{partInfo}</td>
                                 </tr>
-                                <tr style='background: white;'>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("CreatedDate")}:</td>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6;'>{request.CreatedAt:dd/MM/yyyy HH:mm}</td>
+                                <tr>
+                                    <td style='padding: 5px 0; font-weight: bold;'>申請者/Người tạo:</td>
+                                    <td style='padding: 5px 0;'>{request.CreatedByADID}</td>
                                 </tr>
-                                <tr style='background: #f8f9fa;'>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("CurrentStep")}:</td>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6;'>{step.StepName}</td>
-                                </tr>
-                                <tr style='background: white;'>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("Department")}:</td>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6;'>{step.DeptCode}</td>
-                                </tr>
-                                <tr style='background: #f8f9fa;'>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("RequiredAction")}:</td>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6; color: #28a745; font-weight: bold;'>{GetBilingualActionText(step)}</td>
+                                <tr>
+                                    <td style='padding: 5px 0; font-weight: bold;'>状態/Trạng thái:</td>
+                                    <td style='padding: 5px 0; color: #ff6600;'>処理待ち/Chờ xử lý</td>
                                 </tr>
                             </table>
                             
-                            <div style='text-align: center; margin: 30px 0;'>
+                            <div style='text-align: center; margin: 20px 0;'>
                                 <a href='{approvalUrl}' 
-                                   style='background-color: #007bff; color: white; padding: 15px 30px; 
-                                          text-decoration: none; border-radius: 8px; font-weight: bold; 
-                                          display: inline-block; box-shadow: 0 2px 4px rgba(0,123,255,0.3);'>
-                                    🔗 {GetBilingualResourceString("ViewAndProcess")}
+                                   style='display: inline-block; padding: 8px 16px; background: #0066cc; color: white; 
+                                          text-decoration: none; border-radius: 3px; font-size: 13px; font-weight: bold;'>
+                                    システムを開く / Mở hệ thống ≫
                                 </a>
                             </div>
-                            
-                            <div style='background: #e9ecef; padding: 15px; border-radius: 8px; margin-top: 20px;'>
-                                <p style='margin: 0; font-size: 14px; color: #6c757d;'>
-                                    ⚠️ <strong>{GetBilingualResourceString("Warning")}:</strong> {GetBilingualResourceString("ProcessingNote")}
-                                </p>
+                        
+                            <div style='font-size: 11px; color: #999; text-align: center; border-top: 1px solid #eee; padding-top: 10px; margin-top: 15px;'>
+                                Brother Industries Vietnam - Test Run System
                             </div>
-                        </div>
-                        <div style='background: #6c757d; color: white; padding: 10px; text-align: center; font-size: 12px;'>
-                            © Test Run System - Brother Industries Vietnam
                         </div>
                     </div>";
 
@@ -212,6 +269,96 @@ namespace TrueTestRun.Services
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[EmailService] Error in SendApprovalRequest: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// THÊM MỚI: Gửi email thông báo đã phê duyệt cho Hoangthi.Minh@brother-bivn.com.vn
+        /// </summary>
+        public void SendApprovalCompletedNotification(Request request, WorkflowStep completedStep, User approver)
+        {
+            try
+            {
+                const string notificationEmail = "Hoangthi.Minh@brother-bivn.com.vn"; //Hoangthi.Minh@brother-bivn.com.vn
+
+                var host = ConfigurationManager.AppSettings["SmtpHost"];
+                var port = int.Parse(ConfigurationManager.AppSettings["SmtpPort"]);
+                var fromAddress = new MailAddress("testrun.system@brother-bivn.com.vn", "Test Run System");
+                var toAddress = new MailAddress(notificationEmail);
+
+                // Lấy thông tin Part từ Excel
+                var (partNumber, partName) = GetPartInfo(request);
+                var partInfo = !string.IsNullOrEmpty(partName) ? $"{partNumber} - {partName}" : partNumber;
+
+                string subject = $"承認完了通知/Thông báo đã phê duyệt [{request.RequestID}] {partInfo}";
+
+                string body = $@"
+                    <div style='font-family: ""Yu Gothic"", ""Hiragino Kaku Gothic ProN"", ""Meiryo"", sans-serif; max-width: 500px; margin: 0 auto; border: 1px solid #ddd;'>
+                        <div style='background: #e8f5e8; padding: 10px 15px; border-bottom: 1px solid #ddd;'>
+                            <div style='font-weight: bold; font-size: 14px; color: #2d5a2d;'>✓ 承認完了通知/Thông báo đã phê duyệt</div>
+                            <div style='font-size: 12px; color: #666; margin-top: 3px;'>テストラン承認システム / Test Run Approval System</div>
+                        </div>
+                        
+                        <div style='padding: 15px;'>
+                            <table style='width: 100%; font-size: 13px; border-collapse: collapse;'>
+                                <tr>
+                                    <td style='padding: 5px 0; font-weight: bold; width: 100px;'>申請番号/Mã đơn:</td>
+                                    <td style='padding: 5px 0; color: #0066cc; font-weight: bold;'>{request.RequestID}</td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 5px 0; font-weight: bold;'>部品情報/Linh kiện:</td>
+                                    <td style='padding: 5px 0;'>{partInfo}</td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 5px 0; font-weight: bold;'>承認者/Người duyệt:</td>
+                                    <td style='padding: 5px 0;'>{approver?.Name ?? completedStep.ApproverADID} ({completedStep.DeptCode})</td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 5px 0; font-weight: bold;'>承認日時/Thời gian:</td>
+                                    <td style='padding: 5px 0;'>{completedStep.ApprovedAt?.ToString("yyyy/MM/dd HH:mm") ?? DateTime.Now.ToString("yyyy/MM/dd HH:mm")}</td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 5px 0; font-weight: bold;'>状態/Trạng thái:</td>
+                                    <td style='padding: 5px 0; color: #009900; font-weight: bold;'>承認済み/Đã phê duyệt</td>
+                                </tr>
+                            </table>
+                            
+                            {(string.IsNullOrEmpty(completedStep.Comment) ? "" : $@"
+                            <div style='margin: 15px 0; padding: 10px; background: #f9f9f9; border-left: 3px solid #0066cc;'>
+                                <div style='font-weight: bold; font-size: 12px; margin-bottom: 5px;'>コメント/Ghi chú:</div>
+                                <div style='font-size: 12px;'>{completedStep.Comment}</div>
+                            </div>")}
+                            
+                            <div style='font-size: 11px; color: #999; text-align: center; border-top: 1px solid #eee; padding-top: 10px; margin-top: 15px;'>
+                                Brother Industries Vietnam - Test Run System<br/>
+                                この通知は自動送信されています / This notification is sent automatically
+                            </div>
+                        </div>
+                    </div>";
+
+                var smtp = new SmtpClient
+                {
+                    Host = host,
+                    Port = port,
+                    EnableSsl = false,
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                    UseDefaultCredentials = true
+                };
+
+                using (var message = new MailMessage(fromAddress, toAddress)
+                {
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = true
+                })
+                {
+                    smtp.Send(message);
+                    System.Diagnostics.Debug.WriteLine($"[EmailService] Sent approval completion notification to {notificationEmail} for request {request.RequestID}");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[EmailService] Error in SendApprovalCompletedNotification: {ex.Message}");
             }
         }
 
@@ -246,7 +393,7 @@ namespace TrueTestRun.Services
         }
 
         /// <summary>
-        /// Gửi thông báo từ chối đến người tạo đơn - SỬA: Hiển thị cả tiếng Việt và tiếng Nhật
+        /// Gửi thông báo từ chối đến người tạo đơn - SỬA: Đơn giản hóa
         /// </summary>
         public void SendRejectNotification(Request request, User rejector, string comment)
         {
@@ -260,47 +407,48 @@ namespace TrueTestRun.Services
                 var fromAddress = new MailAddress("testrun.system@brother-bivn.com.vn", "Test Run System");
                 var toAddress = new MailAddress(toEmail);
 
-                string subject = $"[{GetBilingualResourceString("Rejected")}] {GetBilingualResourceString("TestRunRequest")}: {request.RequestID}";
+                // Lấy thông tin Part từ Excel
+                var (partNumber, partName) = GetPartInfo(request);
+                var partInfo = !string.IsNullOrEmpty(partName) ? $"{partNumber} - {partName}" : partNumber;
+
+                string subject = $"申請却下通知/Thông báo từ chối [{request.RequestID}] {partInfo}";
+
                 string body = $@"
-                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
-                        <div style='background: #dc3545; color: white; padding: 20px; text-align: center;'>
-                            <h2 style='margin: 0;'>❌ Test Run System - {GetBilingualResourceString("RejectNotification")}</h2>
+                    <div style='font-family: ""Yu Gothic"", ""Hiragino Kaku Gothic ProN"", ""Meiryo"", sans-serif; max-width: 500px; margin: 0 auto; border: 1px solid #ddd;'>
+                        <div style='background: #ffe8e8; padding: 10px 15px; border-bottom: 1px solid #ddd;'>
+                            <div style='font-weight: bold; font-size: 14px; color: #cc0000;'>✕ 申請却下通知/Thông báo từ chối</div>
+                            <div style='font-size: 12px; color: #666; margin-top: 3px;'>テストラン承認システム / Test Run Approval System</div>
                         </div>
-                        <div style='padding: 20px; background: #f8f9fa;'>
-                            <div style='background: #f8d7da; border: 1px solid #f5c6cb; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>
-                                <p style='margin: 0; color: #721c24; font-weight: bold;'>
-                                    {GetBilingualResourceString("TestRunRequest")} <strong>{request.RequestID}</strong> {GetBilingualResourceString("WasRejectedBy")} {rejector.Name} ({rejector.DeptCode}).
-                                </p>
-                            </div>
-                            
-                            <table style='width: 100%; border-collapse: collapse; margin-bottom: 20px;'>
-                                <tr style='background: white;'>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("RequestCode")}:</td>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6; color: #dc3545; font-weight: bold;'>{request.RequestID}</td>
+                        
+                        <div style='padding: 15px;'>
+                            <table style='width: 100%; font-size: 13px; border-collapse: collapse;'>
+                                <tr>
+                                    <td style='padding: 5px 0; font-weight: bold; width: 100px;'>申請番号/Mã đơn:</td>
+                                    <td style='padding: 5px 0; color: #cc0000; font-weight: bold;'>{request.RequestID}</td>
                                 </tr>
-                                <tr style='background: #f8f9fa;'>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("RejectedBy")}:</td>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6;'>{rejector.Name} ({rejector.DeptCode})</td>
+                                <tr>
+                                    <td style='padding: 5px 0; font-weight: bold;'>部品情報/Linh kiện:</td>
+                                    <td style='padding: 5px 0;'>{partInfo}</td>
                                 </tr>
-                                <tr style='background: white;'>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("RejectionTime")}:</td>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6;'>{DateTime.Now:dd/MM/yyyy HH:mm}</td>
+                                <tr>
+                                    <td style='padding: 5px 0; font-weight: bold;'>却下者/Người từ chối:</td>
+                                    <td style='padding: 5px 0;'>{rejector.Name} ({rejector.DeptCode})</td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 5px 0; font-weight: bold;'>状態/Trạng thái:</td>
+                                    <td style='padding: 5px 0; color: #cc0000; font-weight: bold;'>却下済み/Đã từ chối</td>
                                 </tr>
                             </table>
                             
-                            <div style='background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>
-                                <p style='margin: 0; font-weight: bold; color: #856404;'>💬 {GetBilingualResourceString("ReasonNotes")}:</p>
-                                <p style='margin: 10px 0 0 0; color: #856404;'>{comment}</p>
-                            </div>
+                            {(string.IsNullOrEmpty(comment) ? "" : $@"
+                            <div style='margin: 15px 0; padding: 10px; background: #fff3cd; border-left: 3px solid #ff6600;'>
+                                <div style='font-weight: bold; font-size: 12px; margin-bottom: 5px;'>却下理由/Lý do từ chối:</div>
+                                <div style='font-size: 12px;'>{comment}</div>
+                            </div>")}
                             
-                            <div style='background: #e9ecef; padding: 15px; border-radius: 8px;'>
-                                <p style='margin: 0; font-size: 14px; color: #6c757d;'>
-                                    {GetBilingualResourceString("PleaseReviewAndEdit")}
-                                </p>
+                            <div style='font-size: 11px; color: #999; text-align: center; border-top: 1px solid #eee; padding-top: 10px; margin-top: 15px;'>
+                                Brother Industries Vietnam - Test Run System
                             </div>
-                        </div>
-                        <div style='background: #6c757d; color: white; padding: 10px; text-align: center; font-size: 12px;'>
-                            © Test Run System - Brother Industries Vietnam
                         </div>
                     </div>";
 
@@ -331,7 +479,7 @@ namespace TrueTestRun.Services
         }
 
         /// <summary>
-        /// Gửi thông báo từ chối về cho người có thể chỉnh sửa - SỬA: Hiển thị cả tiếng Việt và tiếng Nhật
+        /// Gửi thông báo từ chối về cho người có thể chỉnh sửa - SỬA: Đơn giản hóa
         /// </summary>
         public void SendRejectNotificationToPrevApprover(Request request, User prevUser, User rejector, string comment, string editUrl)
         {
@@ -351,56 +499,56 @@ namespace TrueTestRun.Services
                 var fromAddress = new MailAddress("testrun.system@brother-bivn.com.vn", "Test Run System");
                 var toAddress = new MailAddress(toEmail);
 
-                string subject = $"[{GetBilingualResourceString("NeedEdit")}] {GetBilingualResourceString("TestRunRequest")}: {request.RequestID}";
+                // Lấy thông tin Part từ Excel
+                var (partNumber, partName) = GetPartInfo(request);
+                var partInfo = !string.IsNullOrEmpty(partName) ? $"{partNumber} - {partName}" : partNumber;
+
+                string subject = $"修正依頼/Yêu cầu sửa đổi [{request.RequestID}] {partInfo}";
+
                 string body = $@"
-                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
-                        <div style='background: #ffc107; color: #212529; padding: 20px; text-align: center;'>
-                            <h2 style='margin: 0;'>⚠️ Test Run System - {GetBilingualResourceString("NeedEdit")}</h2>
+                    <div style='font-family: ""Yu Gothic"", ""Hiragino Kaku Gothic ProN"", ""Meiryo"", sans-serif; max-width: 500px; margin: 0 auto; border: 1px solid #ddd;'>
+                        <div style='background: #fff3cd; padding: 10px 15px; border-bottom: 1px solid #ddd;'>
+                            <div style='font-weight: bold; font-size: 14px; color: #856404;'>⚠ 修正依頼/Yêu cầu sửa đổi</div>
+                            <div style='font-size: 12px; color: #666; margin-top: 3px;'>テストラン承認システム / Test Run Approval System</div>
                         </div>
-                        <div style='padding: 20px; background: #f8f9fa;'>
-                            <div style='background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>
-                                <p style='margin: 0; color: #856404; font-weight: bold;'>
-                                    {GetBilingualResourceString("TestRunRequest")} <strong>{request.RequestID}</strong> {GetBilingualResourceString("NeedsEditAccordingToRejection")}.
-                                </p>
-                            </div>
-                            
-                            <table style='width: 100%; border-collapse: collapse; margin-bottom: 20px;'>
-                                <tr style='background: white;'>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("RequestCode")}:</td>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6; color: #ffc107; font-weight: bold;'>{request.RequestID}</td>
+                        
+                        <div style='padding: 15px;'>
+                            <table style='width: 100%; font-size: 13px; border-collapse: collapse;'>
+                                <tr>
+                                    <td style='padding: 5px 0; font-weight: bold; width: 100px;'>申請番号/Mã đơn:</td>
+                                    <td style='padding: 5px 0; color: #856404; font-weight: bold;'>{request.RequestID}</td>
                                 </tr>
-                                <tr style='background: #f8f9fa;'>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("RejectedBy")}:</td>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6;'>{rejector.Name} ({rejector.DeptCode})</td>
+                                <tr>
+                                    <td style='padding: 5px 0; font-weight: bold;'>部品情報/Linh kiện:</td>
+                                    <td style='padding: 5px 0;'>{partInfo}</td>
                                 </tr>
-                                <tr style='background: white;'>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("Time")}:</td>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6;'>{DateTime.Now:dd/MM/yyyy HH:mm}</td>
+                                <tr>
+                                    <td style='padding: 5px 0; font-weight: bold;'>却下者/Người từ chối:</td>
+                                    <td style='padding: 5px 0;'>{rejector.Name} ({rejector.DeptCode})</td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 5px 0; font-weight: bold;'>状態/Trạng thái:</td>
+                                    <td style='padding: 5px 0; color: #856404; font-weight: bold;'>修正必要/Cần sửa đổi</td>
                                 </tr>
                             </table>
                             
-                            <div style='background: #f8d7da; border: 1px solid #f5c6cb; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>
-                                <p style='margin: 0; font-weight: bold; color: #721c24;'>💬 {GetBilingualResourceString("RejectReason")}:</p>
-                                <p style='margin: 10px 0 0 0; color: #721c24;'>{comment}</p>
-                            </div>
+                            {(string.IsNullOrEmpty(comment) ? "" : $@"
+                            <div style='margin: 15px 0; padding: 10px; background: #f8d7da; border-left: 3px solid #dc3545;'>
+                                <div style='font-weight: bold; font-size: 12px; margin-bottom: 5px;'>修正理由/Lý do sửa đổi:</div>
+                                <div style='font-size: 12px;'>{comment}</div>
+                            </div>")}
                             
-                            <div style='text-align: center; margin: 30px 0;'>
+                            <div style='text-align: center; margin: 20px 0;'>
                                 <a href='{editUrl}' 
-                                   style='background-color: #ffc107; color: #212529; padding: 15px 30px; 
-                                          text-decoration: none; border-radius: 8px; font-weight: bold; 
-                                          display: inline-block; box-shadow: 0 2px 4px rgba(255,193,7,0.3);'>
-                                    ✏️ {GetBilingualResourceString("EditRequestNow")}
+                                   style='display: inline-block; padding: 8px 16px; background: #856404; color: white; 
+                                          text-decoration: none; border-radius: 3px; font-size: 13px; font-weight: bold;'>
+                                    修正画面を開く / Mở màn hình sửa đổi ≫
                                 </a>
                             </div>
                             
-                            <div style='background: #e9ecef; padding: 15px; border-radius: 8px;'>
-                                <p style='margin: 0; font-size: 14px; color: #6c757d;'>
-                                    {GetBilingualResourceString("PleaseReviewEditAndResubmit")}
-                                </p>
+                            <div style='font-size: 11px; color: #999; text-align: center; border-top: 1px solid #eee; padding-top: 10px; margin-top: 15px;'>
+                                Brother Industries Vietnam - Test Run System
                             </div>
-                        </div>
-                        <div style='background: #6c757d; color: white; padding: 10px; text-align: center; font-size: 12px;'>
-                            © Test Run System - Brother Industries Vietnam
                         </div>
                     </div>";
 
@@ -431,7 +579,7 @@ namespace TrueTestRun.Services
         }
 
         /// <summary>
-        /// Method gửi email cho người được chỉ định cụ thể - SỬA: Hiển thị cả tiếng Việt và tiếng Nhật
+        /// Method gửi email cho người được chỉ định cụ thể - SỬA: Đơn giản hóa
         /// </summary>
         public void SendApprovalRequestToSpecificUser(Request request, WorkflowStep step, string approvalUrl, User selectedApprover)
         {
@@ -443,48 +591,51 @@ namespace TrueTestRun.Services
                 var host = ConfigurationManager.AppSettings["SmtpHost"];
                 var port = int.Parse(ConfigurationManager.AppSettings["SmtpPort"]);
 
-                string subject = $"[{GetBilingualResourceString("Approval")}] {GetBilingualResourceString("TestRunRequestApproval")}: {request.RequestID}";
+                // Lấy thông tin Part từ Excel
+                var (partNumber, partName) = GetPartInfo(request);
+                var partInfo = !string.IsNullOrEmpty(partName) ? $"{partNumber} - {partName}" : partNumber;
+
+                string subject = $"指名承認依頼/Yêu cầu phê duyệt [{request.RequestID}] {partInfo}";
+
                 string body = $@"
-                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
-                        <div style='background: #28a745; color: white; padding: 20px; text-align: center;'>
-                            <h2 style='margin: 0;'>✅ Test Run System - {GetBilingualResourceString("DesignatedApproval")}</h2>
+                    <div style='font-family: ""Yu Gothic"", ""Hiragino Kaku Gothic ProN"", ""Meiryo"", sans-serif; max-width: 500px; margin: 0 auto; border: 1px solid #ddd;'>
+                        <div style='background: #e8f5e8; padding: 10px 15px; border-bottom: 1px solid #ddd;'>
+                            <div style='font-weight: bold; font-size: 14px; color: #2d5a2d;'>✓ 指名承認依頼/Yêu cầu phê duyệt</div>
+                            <div style='font-size: 12px; color: #666; margin-top: 3px;'>テストラン承認システム / Test Run Approval System</div>
                         </div>
-                        <div style='padding: 20px; background: #f8f9fa;'>
-                            <p style='font-size: 16px; margin-bottom: 20px;'>
-                                {GetBilingualResourceString("Hello")} <strong>{selectedApprover.Name}</strong>,
-                            </p>
-                            <p style='margin-bottom: 20px;'>{GetBilingualResourceString("YouAreDesignatedToApprove")}:</p>
+                        
+                        <div style='padding: 15px;'>
+                            <div style='margin-bottom: 15px; font-size: 13px;'>
+                                {selectedApprover.Name}様へ / Gửi {selectedApprover.Name}:<br/>
+                                下記申請の承認をお願いいたします / Vui lòng phê duyệt đơn dưới đây:
+                            </div>
                             
-                            <table style='width: 100%; border-collapse: collapse; margin-bottom: 20px;'>
-                                <tr style='background: white;'>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("RequestCode")}:</td>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6; color: #28a745; font-weight: bold;'>{request.RequestID}</td>
+                            <table style='width: 100%; font-size: 13px; border-collapse: collapse;'>
+                                <tr>
+                                    <td style='padding: 5px 0; font-weight: bold; width: 100px;'>申請番号/Mã đơn:</td>
+                                    <td style='padding: 5px 0; color: #009900; font-weight: bold;'>{request.RequestID}</td>
                                 </tr>
-                                <tr style='background: #f8f9fa;'>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("Creator")}:</td>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6;'>{request.CreatedByADID}</td>
+                                <tr>
+                                    <td style='padding: 5px 0; font-weight: bold;'>部品情報/Linh kiện:</td>
+                                    <td style='padding: 5px 0;'>{partInfo}</td>
                                 </tr>
-                                <tr style='background: white;'>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("CreatedDate")}:</td>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6;'>{request.CreatedAt:dd/MM/yyyy HH:mm}</td>
-                                </tr>
-                                <tr style='background: #f8f9fa;'>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6; font-weight: bold;'>{GetBilingualResourceString("CurrentStep")}:</td>
-                                    <td style='padding: 10px; border: 1px solid #dee2e6;'>{step.StepName}</td>
+                                <tr>
+                                    <td style='padding: 5px 0; font-weight: bold;'>申請者/Người tạo:</td>
+                                    <td style='padding: 5px 0;'>{request.CreatedByADID}</td>
                                 </tr>
                             </table>
                             
-                            <div style='text-align: center; margin: 30px 0;'>
+                            <div style='text-align: center; margin: 20px 0;'>
                                 <a href='{approvalUrl}' 
-                                   style='background-color: #28a745; color: white; padding: 15px 30px; 
-                                          text-decoration: none; border-radius: 8px; font-weight: bold; 
-                                          display: inline-block; box-shadow: 0 2px 4px rgba(40,167,69,0.3);'>
-                                    ✅ {GetBilingualResourceString("ViewAndApproveRequest")}
+                                   style='display: inline-block; padding: 8px 16px; background: #009900; color: white; 
+                                          text-decoration: none; border-radius: 3px; font-size: 13px; font-weight: bold;'>
+                                    承認画面を開く / Mở màn hình phê duyệt ≫
                                 </a>
                             </div>
-                        </div>
-                        <div style='background: #6c757d; color: white; padding: 10px; text-align: center; font-size: 12px;'>
-                            © Test Run System - Brother Industries Vietnam
+                        
+                            <div style='font-size: 11px; color: #999; text-align: center; border-top: 1px solid #eee; padding-top: 10px; margin-top: 15px;'>
+                                Brother Industries Vietnam - Test Run System
+                            </div>
                         </div>
                     </div>";
 
@@ -537,5 +688,7 @@ namespace TrueTestRun.Services
         {
             _context?.Dispose();
         }
+
+        
     }
 }

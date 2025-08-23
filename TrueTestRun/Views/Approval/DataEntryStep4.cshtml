@@ -6,17 +6,17 @@
     var currentStep = ViewBag.CurrentStep as TrueTestRun.Models.WorkflowStep;
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2>
-            <span style="font-size:1.2em;">✏️</span>
+<div class="page-header">
+    <div class="page-title-section">
+        <h2 class="page-title">
+            <span class="title-icon">◑</span>
             Staff PCB điền form Step 4 - @Model.RequestID
         </h2>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item">
                     <a href="@Url.Action("GiuaTestRun", "Request")">
-                        <span style="font-size:1em;">🏠</span> Giữa Test Run
+                        <span class="breadcrumb-icon">◉</span> Giữa Test Run
                     </a>
                 </li>
                 <li class="breadcrumb-item active" aria-current="page">Điền thông tin và điền form</li>
@@ -27,17 +27,23 @@
 
 @if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <span style="font-size:1em;">✅</span> @TempData["SuccessMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="notification success">
+        <div class="notification-icon">◈</div>
+        <div class="notification-content">
+            <div class="notification-text">@TempData["SuccessMessage"]</div>
+        </div>
+        <button type="button" class="notification-close" onclick="this.parentElement.style.display='none'">×</button>
     </div>
 }
 
 @if (TempData["ErrorMessage"] != null)
 {
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <span style="font-size:1em;">⚠️</span> @TempData["ErrorMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="notification error">
+        <div class="notification-icon">◇</div>
+        <div class="notification-content">
+            <div class="notification-text">@TempData["ErrorMessage"]</div>
+        </div>
+        <button type="button" class="notification-close" onclick="this.parentElement.style.display='none'">×</button>
     </div>
 }
 
@@ -50,145 +56,146 @@
             @Html.Hidden("RequestID", Model.RequestID)
 
             <!-- THÔNG TIN BỔ SUNG STEP 4 -->
-            <div class="card mb-4">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0"><span style="font-size:1.1em;">ℹ️</span> Thông tin ghi nhập</h5>
+            <div class="form-card info-card">
+                <div class="card-header">
+                    <h5><span class="header-icon">◒</span> Thông tin ghi nhập</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Model SX 生産モデル</label>
-                                <input name="ThongTin1Step4" class="form-control form-control-sm" type="text"
-                                       value="@(Model.Fields.FirstOrDefault(f => f.Key == "ThongTin1Step4")?.Value ?? "")"
-                                       placeholder="Model SX 生産モデル" />
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Sale. Order NO.</label>
-                                <input name="ThongTin2Step4" class="form-control form-control-sm" type="text"
-                                       value="@(Model.Fields.FirstOrDefault(f => f.Key == "ThongTin2Step4")?.Value ?? "")"
-                                       placeholder="Sale. Order NO." />
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Số lượng máy 台数</label>
-                                <input name="ThongTin3Step4" class="form-control form-control-sm" type="text"
-                                       value="@(Model.Fields.FirstOrDefault(f => f.Key == "ThongTin3Step4")?.Value ?? "")"
-                                       placeholder="Số lượng máy 台数" />
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Chủng loại máy 機種コード</label>
-                                <input name="ThongTin4Step4" class="form-control form-control-sm" type="text"
-                                       value="@(Model.Fields.FirstOrDefault(f => f.Key == "ThongTin4Step4")?.Value ?? "")"
-                                       placeholder="Chủng loại máy 機種コード" />
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Ngày thực hiện 投入日</label>
-                                <input name="ThongTin5Step4" class="form-control form-control-sm" type="text"
-                                       value="@(Model.Fields.FirstOrDefault(f => f.Key == "ThongTin5Step4")?.Value ?? "")"
-                                       placeholder="Ngày thực hiện 投入日" />
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Line thực hiện 投入ライン</label>
-                                <input name="ThongTin6Step4" class="form-control form-control-sm" type="text"
-                                       value="@(Model.Fields.FirstOrDefault(f => f.Key == "ThongTin6Step4")?.Value ?? "")"
-                                       placeholder="Line thực hiện 投入ライン" />
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Serial No.</label>
-                                <input name="ThongTin7Step4" class="form-control form-control-sm" type="text"
-                                       value="@(Model.Fields.FirstOrDefault(f => f.Key == "ThongTin7Step4")?.Value ?? "")"
-                                       placeholder="Serial No." />
-                            </div>
+                    <div class="info-grid">
+                        <div class="info-group">
+                            <label class="info-label">Model SX 生産モデル</label>
+                            <input name="ThongTin1Step4" class="form-control form-control-sm" type="text"
+                                   value="@(Model.Fields.FirstOrDefault(f => f.Key == "ThongTin1Step4")?.Value ?? "")"
+                                   placeholder="Model SX 生産モデル" />
+                        </div>
+                        <div class="info-group">
+                            <label class="info-label">Sale. Order NO.</label>
+                            <input name="ThongTin2Step4" class="form-control form-control-sm" type="text"
+                                   value="@(Model.Fields.FirstOrDefault(f => f.Key == "ThongTin2Step4")?.Value ?? "")"
+                                   placeholder="Sale. Order NO." />
+                        </div>
+                        <div class="info-group">
+                            <label class="info-label">Số lượng máy 台数</label>
+                            <input name="ThongTin3Step4" class="form-control form-control-sm" type="text"
+                                   value="@(Model.Fields.FirstOrDefault(f => f.Key == "ThongTin3Step4")?.Value ?? "")"
+                                   placeholder="Số lượng máy 台数" />
+                        </div>
+                        <div class="info-group">
+                            <label class="info-label">Chủng loại máy 機種コード</label>
+                            <input name="ThongTin4Step4" class="form-control form-control-sm" type="text"
+                                   value="@(Model.Fields.FirstOrDefault(f => f.Key == "ThongTin4Step4")?.Value ?? "")"
+                                   placeholder="Chủng loại máy 機種コード" />
+                        </div>
+                        <div class="info-group">
+                            <label class="info-label">Ngày thực hiện 投入日</label>
+                            <input name="ThongTin5Step4" class="form-control form-control-sm" type="text"
+                                   value="@(Model.Fields.FirstOrDefault(f => f.Key == "ThongTin5Step4")?.Value ?? "")"
+                                   placeholder="Ngày thực hiện 投入日" />
+                        </div>
+                        <div class="info-group">
+                            <label class="info-label">Line thực hiện 投入ライン</label>
+                            <input name="ThongTin6Step4" class="form-control form-control-sm" type="text"
+                                   value="@(Model.Fields.FirstOrDefault(f => f.Key == "ThongTin6Step4")?.Value ?? "")"
+                                   placeholder="Line thực hiện 投入ライン" />
+                        </div>
+                        <div class="info-group">
+                            <label class="info-label">Serial No.</label>
+                            <input name="ThongTin7Step4" class="form-control form-control-sm" type="text"
+                                   value="@(Model.Fields.FirstOrDefault(f => f.Key == "ThongTin7Step4")?.Value ?? "")"
+                                   placeholder="Serial No." />
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- BẢNG XÁC NHẬN STEP 4 -->
-            <div class="card mb-4">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0"><span style="font-size:1.1em;">☑️</span> Bảng xác nhận Step 4</h5>
+            <div class="form-card">
+                <div class="card-header">
+                    <h5><span class="header-icon">◓</span> Bảng xác nhận Step 4</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Checkbox 1: Lắp ráp -->
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" name="LapRapStep4" value="true" id="chkLapRapStep4"
-                               @(Model.Fields.FirstOrDefault(f => f.Key == "LapRapStep4")?.Value == "true" ? "checked" : "") />
-                        <label class="form-check-label fw-bold" for="chkLapRapStep4">
-                            1. Lắp ráp
-                        </label>
-                        <div class="small text-muted">組立性</div>
+                    <!-- 3 Checkbox -->
+                    <div class="check-group">
+                        <div class="check-item">
+                            <input class="check-input" type="checkbox" name="LapRapStep4" value="true" id="chkLapRapStep4"
+                                   @(Model.Fields.FirstOrDefault(f => f.Key == "LapRapStep4")?.Value == "true" ? "checked" : "") />
+                            <label class="check-label" for="chkLapRapStep4">
+                                1. Lắp ráp
+                            </label>
+                            <div class="check-subtitle">組立性</div>
+                        </div>
                     </div>
 
-                    <!-- Checkbox 2: Tính năng -->
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" name="TinhNangStep4" value="true" id="chkTinhNangStep4"
-                               @(Model.Fields.FirstOrDefault(f => f.Key == "TinhNangStep4")?.Value == "true" ? "checked" : "") />
-                        <label class="form-check-label fw-bold" for="chkTinhNangStep4">
-                            2. Tính năng
-                        </label>
-                        <div class="small text-muted">機能検査</div>
+                    <div class="check-group">
+                        <div class="check-item">
+                            <input class="check-input" type="checkbox" name="TinhNangStep4" value="true" id="chkTinhNangStep4"
+                                   @(Model.Fields.FirstOrDefault(f => f.Key == "TinhNangStep4")?.Value == "true" ? "checked" : "") />
+                            <label class="check-label" for="chkTinhNangStep4">
+                                2. Tính năng
+                            </label>
+                            <div class="check-subtitle">機能検査</div>
+                        </div>
                     </div>
 
-                    <!-- Checkbox 3: Ngoại quan -->
-                    <div class="form-check mb-4">
-                        <input class="form-check-input" type="checkbox" name="NgoaiQuanStep4" value="true" id="chkNgoaiQuanStep4"
-                               @(Model.Fields.FirstOrDefault(f => f.Key == "NgoaiQuanStep4")?.Value == "true" ? "checked" : "") />
-                        <label class="form-check-label fw-bold" for="chkNgoaiQuanStep4">
-                            3. Ngoại quan
-                        </label>
-                        <div class="small text-muted">外観検査</div>
+                    <div class="check-group">
+                        <div class="check-item">
+                            <input class="check-input" type="checkbox" name="NgoaiQuanStep4" value="true" id="chkNgoaiQuanStep4"
+                                   @(Model.Fields.FirstOrDefault(f => f.Key == "NgoaiQuanStep4")?.Value == "true" ? "checked" : "") />
+                            <label class="check-label" for="chkNgoaiQuanStep4">
+                                3. Ngoại quan
+                            </label>
+                            <div class="check-subtitle">外観検査</div>
+                        </div>
                     </div>
 
                     <!-- Comment chung cho Step 4 -->
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Ghi comment:</label>
+                    <div class="comment-section">
+                        <label class="notes-label">Ghi comment:</label>
                         <textarea name="CommentStep4" class="form-control" rows="4"
                                   required>@(Model.Fields.FirstOrDefault(f => f.Key == "CommentStep4")?.Value ?? "")</textarea>
-                        <div class="form-text">
-                            <span style="font-size:0.9em;">ℹ️</span>
+                        <div class="form-helper">
+                            <span class="helper-icon">◎</span>
                             Vui lòng mô tả chi tiết để người phê duyệt tiếp theo hiểu rõ tình hình.
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="text-center mb-3">
+
+            <div class="document-section">
                 @Html.Partial("_DocumentViewButton", Model.RequestID)
             </div>
+
             <!-- NÚT SUBMIT -->
-            <div class="text-center mb-4">
-                <button type="submit" name="action" value="complete" class="btn btn-success btn-lg">
-                    <span style="font-size:1em;">✅</span>
+            <div class="action-section">
+                <button type="submit" name="action" value="complete" class="action-btn primary large">
+                    <span class="btn-icon">◈</span>
                     Hoàn thành và chuyển tiếp
                 </button>
-                <a href="@Url.Action("GiuaTestRun", "Request")" class="btn btn-secondary btn-lg ms-2">
-                    <span style="font-size:1em;">⬅️</span>
+                <a href="@Url.Action("GiuaTestRun", "Request")" class="action-btn secondary large">
+                    <span class="btn-icon">◄</span>
                     Quay lại
                 </a>
             </div>
-
         }
     </div>
 
     <!-- CỘT PREVIEW - MỞ RỘNG RA -->
     <div class="col-lg-8 col-md-7">
-        <div class="card sticky-top">
-            <div class="card-header bg-secondary text-white">
-                <h5 class="mb-0"><span style="font-size:1.1em;">📊</span> Preview Excel</h5>
-                <small class="text-light">Xem trước form sẽ được cập nhật</small>
+        <div class="preview-card">
+            <div class="card-header">
+                <h5><span class="header-icon">◑</span> Preview Excel</h5>
+                <small class="header-subtitle">Xem trước form sẽ được cập nhật</small>
             </div>
-            <div class="card-body text-center p-3">
-                <div class="excel-preview-container-large">
+            <div class="card-body">
+                <div class="preview-container">
                     <img src="@Url.Action("PreviewImage", "Request", new { id = Model.RequestID })"
-                         class="img-fluid excel-preview-enhanced"
+                         class="preview-image"
                          alt="Excel Preview"
                          id="excelPreviewImage" />
                 </div>
-                <div class="mt-3">
-                    <small class="text-muted">
-                        <span style="font-size:0.9em;">🔄</span>
-                        Ảnh preview sẽ được cập nhật khi bạn thay đổi thông tin
-                    </small>
+                <div class="preview-info">
+                    <span class="info-icon">◎</span>
+                    Ảnh preview sẽ được cập nhật khi bạn thay đổi thông tin
                 </div>
             </div>
         </div>
@@ -197,6 +204,9 @@
 
 @section Scripts {
     <script>
+        // Declare localized messages as JavaScript variables
+        var confirmComplete = '@Html.Raw(HttpUtility.JavaScriptStringEncode(HttpContext.GetGlobalResourceObject("Resources", "ConfirmComplete").ToString()))';
+
         $(document).ready(function () {
             // Live update preview khi thay đổi input, checkbox hoặc comment
             $('#step4Form input, #step4Form textarea').on('change input', function() {
@@ -259,7 +269,7 @@
                     return false;
                 }
 
-                if (!confirm('Bạn có chắc chắn muốn hoàn thành và chuyển tiếp đơn này?')) {
+                if (!confirm(confirmComplete)) {
                     e.preventDefault();
                     return false;
                 }
@@ -267,14 +277,14 @@
 
             // Auto dismiss alerts after 5 seconds
             setTimeout(function () {
-                $('.alert').fadeOut('slow');
+                $('.notification').fadeOut('slow');
             }, 5000);
 
             // Character counter for textarea
             $('textarea[name="CommentStep4"]').on('input', function() {
                 var len = $(this).val().length;
-                var info = $(this).siblings('.form-text');
-                info.html(`<span style="font-size:0.9em;">ℹ️</span> Đã nhập ${len} ký tự. Vui lòng mô tả chi tiết để người phê duyệt tiếp theo hiểu rõ tình hình.`);
+                var info = $(this).siblings('.form-helper');
+                info.html('<span class="helper-icon">◎</span> Đã nhập ' + len + ' ký tự. Vui lòng mô tả chi tiết để người phê duyệt tiếp theo hiểu rõ tình hình.');
             });
 
             // Load initial preview
@@ -283,100 +293,31 @@
     </script>
 }
 
-<!-- SỬ DỤNG CHUNG CSS ENHANCED TỪHM CREATE.CSHTML -->
 <style>
-    /* ===== ENHANCED PREVIEW STYLES ===== */
-    .excel-preview-container-large {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border: 3px dashed #6c757d;
-        border-radius: 12px;
-        padding: 20px;
-        margin: 0 auto;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
+    /* ===== SYNCHRONIZED COLOR SYSTEM ===== */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border-light);
     }
 
-        .excel-preview-container-large:hover {
-            border-color: #495057;
-            box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.15);
-        }
-
-    .excel-preview-enhanced {
-        border-radius: 8px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        max-width: 100%;
-        height: auto;
-        min-height: 700px;
-        max-height: 900px;
-        border: 1px solid #dee2e6;
-    }
-
-        .excel-preview-enhanced:hover {
-            transform: scale(1.02);
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
-        }
-
-    /* ===== ENHANCED CARD STYLES ===== */
-    .card {
-        border: none;
-        border-radius: 12px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-        transition: box-shadow 0.3s ease;
-    }
-
-        .card:hover {
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-        }
-
-    .card-header {
-        border-radius: 12px 12px 0 0 !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-        .card-header h5 {
-            font-weight: 600;
-            margin: 0;
-        }
-
-    /* ===== FORM IMPROVEMENTS ===== */
-    .form-label {
+    .page-title-section .page-title {
+        font-size: 1.5rem;
         font-weight: 600;
-        color: #495057;
-        margin-bottom: 8px;
+        color: var(--text-primary);
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
-    .form-control {
-        border-radius: 8px;
-        border: 1px solid #ced4da;
-        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-    }
-
-        .form-control:focus {
-            border-color: #80bdff;
-            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-        }
-
-    .form-check-input:checked {
-        background-color: #28a745;
-        border-color: #28a745;
-    }
-
-    /* ===== BUTTON IMPROVEMENTS ===== */
-    .btn {
-        border-radius: 8px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-    .btn-lg {
-        padding: 0.75rem 1.5rem;
-        font-size: 1.125rem;
+    .title-icon {
+        font-size: 1.2rem;
+        color: var(--corporate-blue);
+        opacity: 0.8;
     }
 
     /* ===== BREADCRUMB ===== */
@@ -384,54 +325,431 @@
         background-color: transparent;
         padding: 0;
         margin-bottom: 0;
+        font-size: 0.875rem;
     }
 
     .breadcrumb-item + .breadcrumb-item::before {
         content: "›";
-        color: #6c757d;
+        color: var(--text-muted);
     }
 
-    /* ===== STICKY POSITIONING ===== */
-    .sticky-top {
+    .breadcrumb-item a {
+        color: var(--corporate-blue);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+        .breadcrumb-item a:hover {
+            text-decoration: underline;
+        }
+
+    .breadcrumb-icon {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+
+    /* ===== NOTIFICATIONS ===== */
+    .notification {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1.25rem;
+        margin-bottom: 1rem;
+        border-radius: 8px;
+        border: 1px solid;
+        font-size: 0.875rem;
+        box-shadow: var(--shadow-soft);
+    }
+
+        .notification.success {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-color: var(--success-green);
+            color: #166534;
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border-color: var(--error-red);
+            color: #991b1b;
+        }
+
+    .notification-icon {
+        font-size: 1.1rem;
+        flex-shrink: 0;
+        opacity: 0.9;
+    }
+
+    .notification-close {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.2s ease;
+        margin-left: auto;
+    }
+
+        .notification-close:hover {
+            opacity: 1;
+        }
+
+    /* ===== FORM CARDS ===== */
+    .form-card {
+        background: var(--background-white);
+        border: 1px solid var(--border-light);
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-medium);
+        transition: box-shadow 0.2s ease;
+    }
+
+        .form-card:hover {
+            box-shadow: var(--shadow-large);
+        }
+
+    .info-card {
+        border-left: 3px solid var(--corporate-blue);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--background-secondary) 0%, #e2e8f0 100%);
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border-light);
+        border-radius: 10px 10px 0 0;
+    }
+
+        .card-header h5 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+    .header-icon {
+        font-size: 1.1rem;
+        color: var(--corporate-blue);
+        opacity: 0.8;
+    }
+
+    .card-body {
+        padding: 1.25rem;
+    }
+
+    /* ===== INFO GRID ===== */
+    .info-grid {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .info-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.375rem;
+    }
+
+    /* ===== FORM ELEMENTS ===== */
+    .form-control {
+        border-radius: 6px;
+        border: 1px solid var(--border-medium);
+        padding: 0.625rem;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        background: var(--background-white);
+    }
+
+        .form-control:focus {
+            border-color: var(--corporate-blue);
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+            outline: none;
+        }
+
+    .form-control-sm {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    /* ===== CHECK GROUPS ===== */
+    .check-group {
+        margin-bottom: 1rem;
+        padding: 0.875rem;
+        background: linear-gradient(135deg, var(--background-secondary) 0%, #f0f4f8 100%);
+        border-radius: 8px;
+        border: 1px solid var(--border-light);
+    }
+
+    .check-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .check-input {
+        margin-top: 0.125rem;
+        transform: scale(1.2);
+        flex-shrink: 0;
+    }
+
+        .check-input:checked {
+            accent-color: var(--success-green);
+        }
+
+    .check-content {
+        flex: 1;
+    }
+
+    .check-label {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        cursor: pointer;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+
+    .check-subtitle {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        font-style: italic;
+    }
+
+    /* ===== COMMENT SECTION ===== */
+    .comment-section {
+        margin-top: 1.25rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid var(--border-light);
+    }
+
+    .notes-label {
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-helper {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .helper-icon {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+
+    /* ===== DOCUMENT SECTION ===== */
+    .document-section {
+        text-align: center;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: var(--background-secondary);
+        border-radius: 8px;
+        border: 1px solid var(--border-light);
+    }
+
+    /* ===== ACTION BUTTONS ===== */
+    .action-section {
+        text-align: center;
+        padding: 1rem 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.75rem;
+        border: 1px solid var(--border-medium);
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+        .action-btn.primary {
+            background: var(--corporate-blue);
+            color: var(--background-white);
+            border-color: var(--corporate-blue);
+        }
+
+            .action-btn.primary:hover {
+                background: #1e40af;
+                text-decoration: none;
+                color: var(--background-white);
+                transform: translateY(-1px);
+                box-shadow: var(--shadow-medium);
+            }
+
+        .action-btn.secondary {
+            background: var(--background-white);
+            color: var(--text-secondary);
+            border-color: var(--border-medium);
+        }
+
+            .action-btn.secondary:hover {
+                background: var(--background-secondary);
+                color: var(--text-primary);
+                text-decoration: none;
+                transform: translateY(-1px);
+                box-shadow: var(--shadow-soft);
+            }
+
+        .action-btn.large {
+            padding: 1rem 2rem;
+            font-size: 1rem;
+        }
+
+    .btn-icon {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+
+    /* ===== PREVIEW SECTION ===== */
+    .preview-card {
+        background: var(--background-white);
+        border: 1px solid var(--border-light);
+        border-radius: 10px;
+        box-shadow: var(--shadow-medium);
+        position: sticky;
         top: 20px;
+        border-left: 3px solid var(--corporate-blue);
     }
 
-    /* ===== RESPONSIVE ADJUSTMENTS ===== */
+        .preview-card .card-header {
+            background: linear-gradient(135deg, var(--corporate-blue) 0%, #1e40af 100%);
+            color: var(--background-white);
+        }
+
+        .preview-card .header-icon {
+            color: var(--background-white);
+        }
+
+    .header-subtitle {
+        font-size: 0.75rem;
+        opacity: 0.9;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .preview-container {
+        background: var(--background-white);
+        border: 2px solid var(--border-light);
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .preview-image {
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        max-width: 100%;
+        height: auto;
+        min-height: 600px;
+        max-height: 800px;
+        border: 1px solid var(--border-light);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background: var(--background-white);
+    }
+
+        .preview-image:hover {
+            transform: scale(1.01);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+    .preview-info {
+        margin-top: 1rem;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.375rem;
+    }
+
+    .info-icon {
+        opacity: 0.7;
+    }
+
+    /* ===== RESPONSIVE DESIGN ===== */
     @@media (max-width: 991.98px) {
         .col-lg-4 {
             margin-bottom: 2rem;
         }
 
-        .excel-preview-enhanced {
-            min-height: 500px;
-            max-height: 700px;
+        .preview-card {
+            position: static;
         }
 
-        .sticky-top {
-            position: static !important;
+        .preview-image {
+            min-height: 400px;
+            max-height: 600px;
         }
     }
 
     @@media (max-width: 767.98px) {
-        .excel-preview-enhanced {
-            min-height: 400px;
-            max-height: 600px;
+        .page-title-section .page-title {
+            font-size: 1.25rem;
         }
 
-        .excel-preview-container-large {
-            padding: 15px;
+        .card-body {
+            padding: 1rem;
+        }
+
+        .info-grid {
+            gap: 0.75rem;
+        }
+
+        .check-group {
+            padding: 0.75rem;
+        }
+
+        .action-section {
+            padding: 0.75rem 0;
+        }
+
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .preview-image {
+            min-height: 300px;
+            max-height: 500px;
         }
     }
 
     /* ===== LOADING ANIMATION ===== */
-    .excel-preview-enhanced[src*="base64"] {
-        opacity: 0.7;
+    .preview-image[src*="base64"] {
+        opacity: 0.8;
         animation: pulse 1.5s ease-in-out infinite alternate;
     }
 
     @@keyframes pulse {
         from {
-            opacity: 0.7;
+            opacity: 0.8;
         }
 
         to {

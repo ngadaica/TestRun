@@ -193,6 +193,12 @@ namespace TrueTestRun.Controllers
                         return View("ApprovalForm", request);
                 }
 
+                // Trong Controller sau khi approve thành công
+                if (currentStep.Actor == StepActor.Approver) 
+                {
+                    _email.SendApprovalCompletedNotification(request, currentStep, currentUser);
+                }
+
                 return GetRedirectToPhase(request);
             }
             catch (Exception ex)

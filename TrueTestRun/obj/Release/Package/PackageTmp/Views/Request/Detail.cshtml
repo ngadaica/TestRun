@@ -3,344 +3,729 @@
     ViewBag.Title = $"Chi tiết Request {Model.RequestID}";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var currentUser = Session["CurrentUser"] as TrueTestRun.Models.User;
-    bool canEdit = ViewBag.CanEdit ?? false;
-    bool isOwner = ViewBag.IsOwner ?? false;
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2>
-            <span style="font-size:1.2em;">📄</span>
-            Chi tiết Request @Model.RequestID
-        </h2>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item">
-                    <a href="@Url.Action("TruocTestRun", "Request")">
-                        <span style="font-size:1em;">🏠</span> Danh sách Request
-                    </a>
-                </li>
-                <li class="breadcrumb-item active" aria-current="page">Chi tiết Request</li>
-            </ol>
-        </nav>
-    </div>
-    <div class="btn-group" role="group">
-        @if (canEdit)
-        {
-            <a href="@Url.Action("Edit", "Request", new { id = Model.RequestID })"
-               class="btn btn-warning">
-                <span style="font-size:1em;">✏️</span> Chỉnh sửa
-            </a>
-        }
-        <a href="@Url.Action("PreviewImage", "Request", new { id = Model.RequestID })"
-           class="btn btn-info" target="_blank">
-            <span style="font-size:1em;">🖼️</span> Xem Excel
-        </a>
-        <button type="button" class="btn btn-secondary" onclick="window.history.back()">
-            <span style="font-size:1em;">⬅️</span> Quay lại
-        </button>
-    </div>
-</div>
-
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <span style="font-size:1em;">✅</span> @TempData["SuccessMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <span style="font-size:1em;">⚠️</span> @TempData["ErrorMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
-<div class="row">
-    <!-- Thông tin cơ bản -->
-    <div class="col-lg-4">
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-primary text-white">
-                <h5 class="card-title mb-0">
-                    <span style="font-size:1.1em;">ℹ️</span> Thông tin cơ bản
-                </h5>
+<div class="detail-container">
+    <!-- Header Section -->
+    <div class="detail-header">
+        <div class="header-content">
+            <div class="request-info">
+                <h1 class="request-title">
+                    <span class="request-icon">📄</span>
+                    Chi tiết Request @Model.RequestID
+                </h1>
+                <nav aria-label="breadcrumb" class="custom-breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="@Url.Action("TruocTestRun", "Request")">
+                                <span class="breadcrumb-icon">🏠</span> Danh sách Request
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">Chi tiết Request</li>
+                    </ol>
+                </nav>
             </div>
-            <div class="card-body">
-                <!-- ... Phần còn lại giữ nguyên, chỉ thay các icon trong span badge ... -->
-                @if (Model.IsCompleted)
-                {
-                    <span class="badge bg-success fs-6">
-                        <span style="font-size:0.9em;">✅</span> Hoàn thành
-                    </span>
-                }
-                else if (Model.IsRejected)
-                {
-                    <span class="badge bg-danger fs-6">
-                        <span style="font-size:0.9em;">❌</span> Từ chối
-                    </span>
-                }
-                else
-                {
-                    <span class="badge bg-warning text-dark fs-6">
-                        <span style="font-size:0.9em;">⏰</span> Đang xử lý
-                    </span>
-                }
-                <!-- ... rest of content ... -->
+            <div class="header-actions">
+                <a href="@Url.Action("PreviewImage", "Request", new { id = Model.RequestID })"
+                   class="btn btn-excel" target="_blank">
+                    <span class="btn-icon">📊</span> Xem Excel
+                </a>
+                <button type="button" class="btn btn-back" onclick="window.history.back()">
+                    <span class="btn-icon">⬅️</span> Quay lại
+                </button>
             </div>
+        </div>
+
+        <!-- Status Badge -->
+        <div class="status-section">
+            @if (Model.IsCompleted)
+            {
+                <span class="status-badge status-completed">
+                    <span class="status-icon">✅</span> Hoàn thành
+                </span>
+            }
+            else if (Model.IsRejected)
+            {
+                <span class="status-badge status-rejected">
+                    <span class="status-icon">❌</span> Từ chối
+                </span>
+            }
+            else
+            {
+                <span class="status-badge status-processing">
+                    <span class="status-icon">⏰</span> Đang xử lý
+                </span>
+            }
         </div>
     </div>
 
-    <!-- Thông tin Request -->
-    <div class="col-lg-8">
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-info text-white">
-                <h5 class="card-title mb-0">
-                    <span style="font-size:1.1em;">📋</span> Thông tin Request
-                </h5>
-            </div>
-            <div class="card-body">
-                @if (Model.Fields != null && Model.Fields.Any())
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show custom-alert" role="alert">
+            <span class="alert-icon">✅</span> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show custom-alert" role="alert">
+            <span class="alert-icon">⚠️</span> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Enhanced Approval History -->
+    <div class="approval-history-container">
+        <div class="history-header">
+            <h2 class="history-title">
+                <span class="history-icon">📋</span> Lịch sử phê duyệt
+            </h2>
+            <div class="history-stats">
+                @if (Model.History != null && Model.History.Any())
                 {
-                    <div class="row">
-                        @foreach (var field in Model.Fields.OrderBy(f => f.Key))
-                        {
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold text-muted">@field.Key:</label>
-                                <div class="form-control-plaintext">
-                                    @if (field.Key.Contains("EPE-") && (field.Value == "true" || field.Value == "false"))
+                    var completedSteps = Model.History.Count(h => h.Index < Model.CurrentStepIndex);
+                    var totalSteps = Model.History.Count();
+                    <span class="progress-text">@completedSteps/@totalSteps hoàn thành</span>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: @((completedSteps * 100.0 / totalSteps).ToString("F1"))%"></div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="timeline-container">
+            @if (Model.History != null && Model.History.Any())
+            {
+                <div class="enhanced-timeline">
+                    @foreach (var step in Model.History.OrderBy(h => h.Index))
+                    {
+                        var isCurrentStep = step.Index == Model.CurrentStepIndex;
+                        var isPastStep = step.Index < Model.CurrentStepIndex;
+                        var isFutureStep = step.Index > Model.CurrentStepIndex;
+
+                        var stepClass = isPastStep ? "completed" : (isCurrentStep ? "current" : "pending");
+                        var actorIcon = step.Actor == TrueTestRun.Models.StepActor.Approver ? "👔" : "👩‍💻";
+
+                        <div class="timeline-step @stepClass">
+                            <div class="step-connector"></div>
+                            <div class="step-marker">
+                                <div class="marker-circle">
+                                    @if (isPastStep)
                                     {
-                                        if (field.Value == "true")
-                                        {
-                                            <span class="badge bg-success">
-                                                <span style="font-size:0.9em;">✓</span> Đã xác nhận
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-secondary">
-                                                <span style="font-size:0.9em;">❌</span> Chưa xác nhận
-                                            </span>
-                                        }
+                                        <span class="marker-icon completed-icon">✓</span>
                                     }
-                                    else if (string.IsNullOrWhiteSpace(field.Value))
+                                    else if (isCurrentStep)
                                     {
-                                        <em class="text-muted">Chưa điền</em>
+                                        <span class="marker-icon current-icon">⏳</span>
                                     }
                                     else
                                     {
-                                        <span>@field.Value</span>
+                                        <span class="marker-icon pending-icon">@(step.Index + 1)</span>
                                     }
                                 </div>
                             </div>
-                        }
-                    </div>
-                }
-                else
-                {
-                    <div class="alert alert-info">
-                        <span style="font-size:1em;">ℹ️</span>
-                        Chưa có thông tin chi tiết nào được điền.
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Lịch sử phê duyệt -->
-<div class="card shadow-sm">
-    <div class="card-header bg-secondary text-white">
-        <h5 class="card-title mb-0">
-            <span style="font-size:1.1em;">📅</span> Lịch sử phê duyệt
-        </h5>
-    </div>
-    <div class="card-body">
-        @if (Model.History != null && Model.History.Any())
-        {
-            <div class="timeline">
-                @foreach (var step in Model.History.OrderBy(h => h.Index))
-                {
-                    var isCurrentStep = step.Index == Model.CurrentStepIndex;
-                    var isPastStep = step.Index < Model.CurrentStepIndex;
-                    var stepClass = isPastStep ? "timeline-item-completed" : (isCurrentStep ? "timeline-item-current" : "timeline-item-pending");
-
-                    <div class="timeline-item @stepClass">
-                        <div class="timeline-marker">
-                            @if (isPastStep)
-                            {
-                                <span style="font-size:0.8em; color:white;">✓</span>
-                            }
-                            else if (isCurrentStep)
-                            {
-                                <span style="font-size:0.8em; color:white;">⏰</span>
-                            }
-                            else
-                            {
-                                <span style="font-size:0.8em; color:white;">○</span>
-                            }
-                        </div>
-                        <div class="timeline-content">
-                            <!-- ... timeline content ... -->
-                            @if (!string.IsNullOrWhiteSpace(step.ApproverADID))
-                            {
-                                <div class="mt-2">
-                                    <small class="text-muted">
-                                        <span style="font-size:0.9em;">👤</span>
-                                        Người xử lý: @step.ApproverADID
-                                    </small>
-                                </div>
-                            }
-                            @if (!string.IsNullOrWhiteSpace(step.Comment))
-                            {
-                                <div class="mt-2">
-                                    <div class="alert alert-light mb-0">
-                                        <span style="font-size:0.9em;">💬</span>
-                                        <strong>Ghi chú:</strong> @step.Comment
+                            <div class="step-content">
+                                <div class="step-card">
+                                    <div class="step-header">
+                                        <div class="step-info">
+                                            <h3 class="step-title">
+                                                <span class="step-actor-icon">@actorIcon</span>
+                                                @step.StepName
+                                            </h3>
+                                            <div class="step-meta">
+                                                <span class="dept-badge">@step.DeptCode</span>
+                                                <span class="role-badge">@step.Role</span>
+                                            </div>
+                                        </div>
+                                        @if (isPastStep || isCurrentStep)
+                                        {
+                                            <div class="step-status">
+                                                @if (step.Status == "Rejected")
+                                                {
+                                                    <span class="status-indicator rejected">❌ Từ chối</span>
+                                                }
+                                                else if (isPastStep)
+                                                {
+                                                    <span class="status-indicator approved">✅ Đã duyệt</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="status-indicator processing">⏳ Đang xử lý</span>
+                                                }
+                                            </div>
+                                        }
                                     </div>
+
+                                    @if (!string.IsNullOrWhiteSpace(step.ApproverADID) || step.ApprovedAt != null)
+                                    {
+                                        <div class="step-details">
+                                            @if (!string.IsNullOrWhiteSpace(step.ApproverADID))
+                                            {
+                                                <div class="detail-item">
+                                                    <span class="detail-icon">👤</span>
+                                                    <span class="detail-label">Người xử lý:</span>
+                                                    <span class="detail-value">@step.ApproverADID</span>
+                                                </div>
+                                            }
+                                            @if (step.ApprovedAt != null)
+                                            {
+                                                <div class="detail-item">
+                                                    <span class="detail-icon">⏰</span>
+                                                    <span class="detail-label">Thời gian:</span>
+                                                    <span class="detail-value">@step.ApprovedAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+
+                                    @if (!string.IsNullOrWhiteSpace(step.Comment))
+                                    {
+                                        <div class="step-comment">
+                                            <div class="comment-header">
+                                                <span class="comment-icon">💬</span>
+                                                <span class="comment-label">Ghi chú:</span>
+                                            </div>
+                                            <div class="comment-content">@step.Comment</div>
+                                        </div>
+                                    }
                                 </div>
-                            }
+                            </div>
                         </div>
-                    </div>
-                }
-            </div>
-        }
-        else
-        {
-            <div class="alert alert-info">
-                <span style="font-size:1em;">ℹ️</span>
-                Chưa có lịch sử phê duyệt nào.
-            </div>
-        }
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-history">
+                    <div class="empty-icon">📝</div>
+                    <h3>Chưa có lịch sử phê duyệt</h3>
+                    <p>Request này chưa có bước phê duyệt nào được thực hiện.</p>
+                </div>
+            }
+        </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
-    $(document).ready(function () {
+        $(document).ready(function () {
             // Auto dismiss alerts after 5 seconds
             setTimeout(function () {
                 $('.alert').fadeOut('slow');
             }, 5000);
 
-            // Tooltip for buttons
+            // Add smooth animations to timeline items
+            $('.timeline-step').each(function (index) {
+                $(this).css({
+                    'animation-delay': (index * 0.1) + 's',
+                    'animation-fill-mode': 'both'
+                }).addClass('animate-in');
+            });
+
+            // Tooltip initialization
             $('[data-bs-toggle="tooltip"]').tooltip();
-        });</script>
+        });
+    </script>
 }
 
 <style>
-    .timeline {
-        position: relative;
-        padding-left: 30px;
+    .detail-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem;
     }
 
-        .timeline::before {
-            content: '';
-            position: absolute;
-            left: 15px;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: #dee2e6;
-        }
-
-    .timeline-item {
-        position: relative;
-        margin-bottom: 20px;
+    /* Header Styles */
+    .detail-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     }
 
-    .timeline-marker {
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+    }
+
+    .request-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .request-icon {
+        font-size: 1.8rem;
+    }
+
+    .custom-breadcrumb .breadcrumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 25px;
+        padding: 0.5rem 1rem;
+        margin: 0;
+        backdrop-filter: blur(10px);
+    }
+
+    .custom-breadcrumb .breadcrumb-item a {
+        color: rgba(255, 255, 255, 0.9);
+        text-decoration: none;
+    }
+
+    .custom-breadcrumb .breadcrumb-item.active {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .btn-excel, .btn-back {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 25px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-excel:hover, .btn-back:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        color: white;
+    }
+
+    .status-section {
+        display: flex;
+        justify-content: center;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .status-completed {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+    }
+
+    .status-rejected {
+        background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        color: white;
+    }
+
+    .status-processing {
+        background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        color: white;
+    }
+
+    /* Approval History Styles */
+    .approval-history-container {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .history-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 2rem;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .history-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0;
+        color: #2d3748;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .history-icon {
+        font-size: 1.5rem;
+    }
+
+    .history-stats {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.5rem;
+    }
+
+    .progress-text {
+        font-weight: 600;
+        color: #4a5568;
+        font-size: 0.9rem;
+    }
+
+    .progress-bar-container {
+        width: 200px;
+        height: 8px;
+        background: #e2e8f0;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        border-radius: 4px;
+        transition: width 0.8s ease;
+    }
+
+    /* Enhanced Timeline */
+    .timeline-container {
+        padding: 2rem;
+    }
+
+    .enhanced-timeline {
+        position: relative;
+    }
+
+    .timeline-step {
+        position: relative;
+        display: flex;
+        margin-bottom: 3rem;
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    .timeline-step.animate-in {
+        animation: slideInUp 0.6s ease forwards;
+    }
+
+    .step-connector {
         position: absolute;
-        left: -23px;
-        top: 0;
-        width: 30px;
-        height: 30px;
+        left: 35px;
+        top: 60px;
+        width: 3px;
+        height: calc(100% + 3rem);
+        background: linear-gradient(to bottom, #e2e8f0 0%, #e2e8f0 100%);
+        z-index: 1;
+    }
+
+    .timeline-step:last-child .step-connector {
+        display: none;
+    }
+
+    .timeline-step.completed .step-connector {
+        background: linear-gradient(to bottom, #48bb78 0%, #38a169 100%);
+    }
+
+    .timeline-step.current .step-connector {
+        background: linear-gradient(to bottom, #ed8936 0%, #dd6b20 100%);
+    }
+
+    .step-marker {
+        flex-shrink: 0;
+        margin-right: 2rem;
+        z-index: 2;
+    }
+
+    .marker-circle {
+        width: 70px;
+        height: 70px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
+        font-weight: bold;
+        font-size: 1.2rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 4px solid white;
     }
 
-    .timeline-item-completed .timeline-marker {
-        background-color: #28a745;
-        border: 3px solid #fff;
-        box-shadow: 0 0 0 3px #28a745;
+    .timeline-step.completed .marker-circle {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        color: white;
     }
 
-    .timeline-item-current .timeline-marker {
-        background-color: #ffc107;
-        border: 3px solid #fff;
-        box-shadow: 0 0 0 3px #ffc107;
+    .timeline-step.current .marker-circle {
+        background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+        color: white;
         animation: pulse 2s infinite;
     }
 
-    .timeline-item-pending .timeline-marker {
-        background-color: #6c757d;
-        border: 3px solid #fff;
-        box-shadow: 0 0 0 3px #6c757d;
+    .timeline-step.pending .marker-circle {
+        background: linear-gradient(135deg, #a0aec0 0%, #718096 100%);
+        color: white;
     }
 
-    .timeline-content {
-        background: #f8f9fa;
-        padding: 15px;
-        border-radius: 8px;
-        border-left: 4px solid #dee2e6;
-        margin-left: 15px;
+    .step-content {
+        flex: 1;
+        margin-top: 10px;
     }
 
-    .timeline-item-completed .timeline-content {
-        border-left-color: #28a745;
+    .step-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
     }
 
-    .timeline-item-current .timeline-content {
-        border-left-color: #ffc107;
-        background: #fff8e1;
+    .timeline-step.current .step-card {
+        border-color: #ed8936;
+        box-shadow: 0 8px 25px rgba(237, 137, 54, 0.2);
     }
 
-    @@keyframes pulse {
-        0% {
-            transform: scale(1);
-        }
-
-        50% {
-            transform: scale(1.1);
-        }
-
-        100% {
-            transform: scale(1);
-        }
+    .timeline-step.completed .step-card {
+        border-color: #48bb78;
     }
 
-    .card {
-        border: none;
-        border-radius: 10px;
+    .step-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     }
 
-    .card-header {
-        border-radius: 10px 10px 0 0 !important;
+    .step-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
     }
 
-    .form-control-plaintext {
-        background-color: #f8f9fa;
-        padding: 8px 12px;
-        border-radius: 6px;
-        border: 1px solid #e9ecef;
+    .step-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+        color: #2d3748;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
-    .badge.fs-6 {
-        font-size: 0.875rem !important;
+    .step-actor-icon {
+        font-size: 1.2rem;
     }
 
-    .breadcrumb {
-        background-color: transparent;
-        padding: 0;
+    .step-meta {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .dept-badge, .role-badge {
+        background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+        color: #4a5568;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .step-status .status-indicator {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .status-indicator.approved {
+        background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
+        color: #22543d;
+    }
+
+    .status-indicator.rejected {
+        background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+        color: #742a2a;
+    }
+
+    .status-indicator.processing {
+        background: linear-gradient(135deg, #feebc8 0%, #fbd38d 100%);
+        color: #744210;
+    }
+
+    .step-details {
+        background: #f7fafc;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .detail-item:last-child {
         margin-bottom: 0;
     }
 
-    .breadcrumb-item + .breadcrumb-item::before {
-        content: "›";
-        color: #6c757d;
+    .detail-icon {
+        font-size: 1rem;
+        width: 20px;
+        text-align: center;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: #4a5568;
+        min-width: 100px;
+    }
+
+    .detail-value {
+        color: #2d3748;
+        font-weight: 500;
+    }
+
+    .step-comment {
+        background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);
+        border-left: 4px solid #38b2ac;
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+
+    .comment-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .comment-label {
+        font-weight: 700;
+        color: #234e52;
+    }
+
+    .comment-content {
+        color: #2d3748;
+        line-height: 1.6;
+        font-style: italic;
+    }
+
+    /* Empty State */
+    .empty-history {
+        text-align: center;
+        padding: 4rem;
+        color: #a0aec0;
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+
+    .empty-history h3 {
+        color: #4a5568;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Custom Alert */
+    .custom-alert {
+        border: none;
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Animations */
+    @@keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .detail-container {
+            padding: 0 0.5rem;
+        }
+
+        .detail-header {
+            padding: 1.5rem;
+        }
+
+        .header-content {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .request-title {
+            font-size: 1.5rem;
+        }
+
+        .timeline-container {
+            padding: 1rem;
+        }
+
+        .step-card {
+            padding: 1.5rem;
+        }
+
+        .step-header {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .step-meta {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .marker-circle {
+            width: 50px;
+            height: 50px;
+        }
+
+        .step-marker {
+            margin-right: 1rem;
+        }
+
+        .history-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .history-stats {
+            align-items: flex-start;
+        }
+
+        .progress-bar-container {
+            width: 150px;
+        }
     }
 </style>

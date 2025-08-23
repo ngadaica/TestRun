@@ -3,61 +3,717 @@
 @{
     ViewBag.Title = HttpContext.GetGlobalResourceObject("Resources", "CompletedRequestsTitle").ToString();
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var currentUser = Session["CurrentUser"] as TrueTestRun.Models.User;
 }
 
-<h2 class="mb-4"><span style="font-size:1.2em;">✅</span> @ViewBag.Title</h2>
+<!-- Page Header with Japanese Corporate Styling -->
+<div class="page-header">
+    <div class="page-title-section">
+        <h1 class="page-title">@ViewBag.Title</h1>
+        <div class="page-subtitle">完了申請管理 | Completed Request Management</div>
+    </div>
+    <div class="page-info">
+        <div class="completion-stats">
+            <div class="stat-item">
+                <span class="stat-icon">◉</span>
+                <span class="stat-value">@(Model?.Count ?? 0)</span>
+                <span class="stat-label">@HttpContext.GetGlobalResourceObject("Resources", "TotalCompleted")</span>
+            </div>
+        </div>
+    </div>
+</div>
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover align-middle">
-                <thead class="table-light">
+<!-- Status Messages -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="notification success">
+        <div class="notification-icon">✓</div>
+        <div class="notification-content">
+            <div class="notification-text">@TempData["SuccessMessage"]</div>
+        </div>
+        <button type="button" class="notification-close" onclick="this.parentElement.style.display='none'">×</button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="notification error">
+        <div class="notification-icon">✕</div>
+        <div class="notification-content">
+            <div class="notification-text">@TempData["ErrorMessage"]</div>
+        </div>
+        <button type="button" class="notification-close" onclick="this.parentElement.style.display='none'">×</button>
+    </div>
+}
+
+@if (!Model.Any())
+{
+    <!-- Empty State -->
+    <div class="empty-state completed">
+        <div class="empty-state-icon">○</div>
+        <div class="empty-state-title">@HttpContext.GetGlobalResourceObject("Resources", "NoCompletedRequests")</div>
+        <div class="empty-state-description">Chưa có đơn nào được hoàn thành/完了したリクエストがまだありません </div>
+        <div class="empty-state-subtitle">すべてのリクエストが処理されると、ここに表示されます </div>
+    </div>
+}
+else
+{
+    <!-- Professional Completed Requests Table -->
+    <div class="data-table completed-table">
+        <!-- Table Header -->
+        <div class="table-header">
+            <div class="table-title">
+                <div class="title-main">
+                    <span class="title-icon">◉</span>
+                    @HttpContext.GetGlobalResourceObject("Resources", "CompletedRequestsList")
+                </div>
+                <div class="title-sub">すべての完了申請 | All Completed Requests</div>
+            </div>
+            <div class="table-actions">
+                <button class="action-btn secondary" onclick="refreshTable()">
+                    <span class="action-icon">↻</span>
+                    @HttpContext.GetGlobalResourceObject("Resources", "Refresh")
+                </button>
+            </div>
+        </div>
+
+        <!-- Enhanced Table Content -->
+        <div class="table-container">
+            <table class="data-table-content" id="completedTable">
+                <thead>
                     <tr>
-                        <th scope="col">ID</th>
-                        <th scope="col">@HttpContext.GetGlobalResourceObject("Resources", "CreatedDate")</th>
-                        <th scope="col">@HttpContext.GetGlobalResourceObject("Resources", "LastStep")</th>
-                        <th scope="col">@HttpContext.GetGlobalResourceObject("Resources", "Status")</th>
-                        <th scope="col">@HttpContext.GetGlobalResourceObject("Resources", "Actions")</th>
+                        <th class="col-id">Request ID</th>
+                        <th class="col-date">@HttpContext.GetGlobalResourceObject("Resources", "CreatedDate")</th>
+                        <th class="col-component">@HttpContext.GetGlobalResourceObject("Resources", "ComponentCode")</th>
+                        <th class="col-component-name">@HttpContext.GetGlobalResourceObject("Resources", "ComponentName")</th>
+                        <th class="col-supplier">@HttpContext.GetGlobalResourceObject("Resources", "Supplier")</th>
+                        <th class="col-status">Trạng thái</th>
+                        <th class="col-completed-date">@HttpContext.GetGlobalResourceObject("Resources", "CompletedDate")</th>
+                        <th class="col-actions">@HttpContext.GetGlobalResourceObject("Resources", "Actions")</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @if (Model != null && Model.Count > 0)
+                    @foreach (var request in Model.OrderByDescending(r =>
+                        r.History != null && r.History.Any()
+                            ? r.History.Where(h => h.ApprovedAt.HasValue).Max(h => h.ApprovedAt.Value)
+                            : r.CreatedAt))
                     {
-                        foreach (var r in Model)
-                        {
-                            <tr>
-                                <td class="fw-bold">@r.RequestID</td>
-                                <td>@r.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                                <td>
-                                    <span class="badge bg-info text-dark">
-                                        @(r.History.Last().DeptCode + " / " + r.History.Last().Role)
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="badge bg-success">
-                                        <span style="font-size:0.9em;">✓</span> @HttpContext.GetGlobalResourceObject("Resources", "Completed")
-                                    </span>
-                                </td>
-                                <td>
-                                    <a class="btn btn-sm btn-primary"
-                                       href="@Url.Action("Preview","Request", new { id = r.RequestID })">
-                                        <span style="font-size:0.9em;">👁️</span> @HttpContext.GetGlobalResourceObject("Resources", "ViewDetails")
+                        var historyList = request.History?.OrderBy(h => h.Index).ToList();
+
+                        // Get completion date from the last approved step
+                        var completedAt = historyList?.Where(h => h.ApprovedAt.HasValue).LastOrDefault()?.ApprovedAt;
+
+                        // Get component information from Excel via ViewBag
+                        var componentInfo = ViewBag.ComponentInfo as Dictionary<string, Dictionary<string, string>>;
+                        var maLinhKien = componentInfo?[request.RequestID]?["MaLinhKien"] ?? "—";
+                        var tenLinhKien = componentInfo?[request.RequestID]?["TenLinhKien"] ?? "—";
+                        var nhaCungCap = componentInfo?[request.RequestID]?["NhaCungCap"] ?? "—";
+
+                        <tr class="table-row completed-row">
+                            <td class="col-id">
+                                <a href="@Url.Action("Preview", "Request", new { id = request.RequestID })" class="request-id-link completed">
+                                    @request.RequestID
+                                </a>
+                            </td>
+                            <td class="col-date">
+                                <div class="date-info">
+                                    <div class="date-primary">@request.CreatedAt.ToString("dd/MM/yyyy")</div>
+                                    <div class="date-secondary">@request.CreatedAt.ToString("HH:mm")</div>
+                                </div>
+                            </td>
+                            <td class="col-component">
+                                <div class="cell-content component-code">@maLinhKien</div>
+                            </td>
+                            <td class="col-component-name">
+                                <div class="cell-content component-name" title="@tenLinhKien">@tenLinhKien</div>
+                            </td>
+                            <td class="col-supplier">
+                                <div class="cell-content supplier-name" title="@nhaCungCap">@nhaCungCap</div>
+                            </td>
+                            <td class="col-status">
+                                <div class="status-badge completed">
+                                    <span class="status-indicator">●</span>
+                                    <span class="status-text">Đã hoàn thành</span>
+                                </div>
+                            </td>
+                            <td class="col-completed-date">
+                                @if (completedAt.HasValue)
+                                {
+                                    <div class="date-info completion">
+                                        <div class="date-primary completed">@completedAt.Value.ToString("dd/MM/yyyy")</div>
+                                        <div class="date-secondary completed">@completedAt.Value.ToString("HH:mm")</div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="completion-unknown">—</div>
+                                }
+                            </td>
+                            <td class="col-actions">
+                                <div class="action-buttons">
+                                    <a href="@Url.Action("Preview", "Request", new { id = request.RequestID })"
+                                       class="action-btn-small view completed"
+                                       title="@HttpContext.GetGlobalResourceObject("Resources", "ViewDetails")">
+                                        ◉
                                     </a>
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="5" class="text-center text-muted py-4">
-                                <span style="font-size:2em;">📁</span><br />
-                                @HttpContext.GetGlobalResourceObject("Resources", "NoCompletedRequests")
+                                </div>
                             </td>
                         </tr>
                     }
                 </tbody>
             </table>
         </div>
+
+        <!-- Table Footer -->
+        <div class="table-footer">
+            <div class="table-info">
+                <span class="footer-icon">ⓘ</span>
+                @HttpContext.GetGlobalResourceObject("Resources", "ShowingResults") <strong>@Model.Count</strong> @HttpContext.GetGlobalResourceObject("Resources", "CompletedRequests")
+            </div>
+            <div class="completion-summary">
+                <span class="summary-text">完了率: 100% | Completion Rate: 100%</span>
+            </div>
+        </div>
     </div>
-</div>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Auto dismiss notifications
+            setTimeout(function () {
+                $('.notification').fadeOut('slow');
+            }, 5000);
+
+            // Enhanced table interactions for completed requests
+            $('.completed-row').hover(
+                function () { $(this).addClass('hover'); },
+                function () { $(this).removeClass('hover'); }
+            );
+
+            // Click to view details
+            $('.completed-row').on('click', function (e) {
+                if (!$(e.target).closest('a').length) {
+                    var detailLink = $(this).find('.request-id-link');
+                    if (detailLink.length) {
+                        window.location.href = detailLink.attr('href');
+                    }
+                }
+            });
+
+            // Professional loading state
+            $('.action-btn-small').on('click', function () {
+                $(this).addClass('loading');
+            });
+        });
+
+        function refreshTable() {
+            window.location.reload();
+        }
+    </script>
+}
+
+<style>
+    /* ========== JAPANESE CORPORATE COMPLETED REQUESTS DESIGN ========== */
+
+    /* Page Header for Completed Section */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .page-title-section h1.page-title {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: var(--success-green);
+        margin: 0 0 0.25rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .page-title-section h1.page-title::before {
+        content: '◉';
+        color: var(--success-green);
+        font-size: 1.2rem;
+    }
+
+    .page-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    .page-info {
+        display: flex;
+        align-items: center;
+    }
+
+    .completion-stats {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: var(--background-white);
+        padding: 0.75rem 1.25rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-light);
+        box-shadow: var(--shadow-soft);
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .stat-icon {
+        font-size: 1rem;
+        color: var(--success-green);
+        opacity: 0.8;
+    }
+
+    .stat-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--success-green);
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    /* Enhanced Empty State for Completed */
+    .empty-state.completed {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border: 1px solid #bbf7d0;
+        border-radius: 12px;
+        padding: 3rem 2rem;
+        text-align: center;
+        box-shadow: var(--shadow-soft);
+    }
+
+    .empty-state.completed .empty-state-icon {
+        font-size: 3rem;
+        color: var(--success-green);
+        opacity: 0.6;
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-state.completed .empty-state-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--success-green);
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state.completed .empty-state-description {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.25rem;
+    }
+
+    .empty-state.completed .empty-state-subtitle {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-style: italic;
+    }
+
+    /* Professional Completed Table */
+    .data-table.completed-table {
+        background: var(--background-white);
+        border-radius: 12px;
+        border: 1px solid var(--border-light);
+        box-shadow: var(--shadow-medium);
+        overflow: hidden;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 240px);
+        border-left: 4px solid var(--success-green);
+    }
+
+    .completed-table .table-header {
+        background: linear-gradient(180deg, #f0fdf4, #dcfce7);
+        padding: 1.25rem;
+        border-bottom: 1px solid #bbf7d0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .completed-table .title-icon {
+        color: var(--success-green);
+    }
+
+    /* Perfect Column Headers for Completed Table */
+    .completed-table .data-table-content th {
+        background: #f0fdf4;
+        border-bottom: 2px solid #bbf7d0;
+        color: var(--success-green);
+        font-weight: 700;
+        padding: 1rem 1.25rem;
+        text-align: left;
+        font-size: 0.85rem;
+        letter-spacing: 0.02em;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        vertical-align: middle;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .completed-table .data-table-content td {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border-light);
+        font-size: 0.9rem;
+        vertical-align: middle;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--text-primary);
+    }
+
+    /* Completed Row Styling */
+    .completed-row {
+        background: #fefffe;
+        transition: all 0.2s ease;
+    }
+
+    .completed-row:nth-child(even) {
+        background: #f9fffe;
+    }
+
+    .completed-row:hover,
+    .completed-row.hover {
+        background: #f0fdf4;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(5, 150, 105, 0.1);
+    }
+
+    /* Enhanced Request ID for Completed */
+    .request-id-link.completed {
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-weight: 700;
+        color: var(--success-green);
+        text-decoration: none;
+        padding: 0.4rem 0.6rem;
+        border-radius: 999px;
+        transition: all 0.2s ease;
+        display: inline-block;
+        font-size: 0.9rem;
+        background: #dcfce7;
+        border: 1px solid #bbf7d0;
+    }
+
+    .request-id-link.completed:hover {
+        background: #bbf7d0;
+        color: var(--success-green);
+        text-decoration: none;
+        transform: translateY(-1px);
+        border-color: #86efac;
+        box-shadow: 0 2px 8px rgba(5, 150, 105, 0.2);
+    }
+
+    /* Professional Completion Date Styling */
+    .date-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.125rem;
+    }
+
+    .date-primary {
+        font-weight: 600;
+        color: var(--text-primary);
+        line-height: 1.2;
+        font-size: 0.9rem;
+    }
+
+    .date-secondary {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    .date-info.completion .date-primary.completed {
+        color: var(--success-green);
+        font-weight: 600;
+    }
+
+    .date-info.completion .date-secondary.completed {
+        color: #059669;
+        opacity: 0.8;
+    }
+
+    .completion-unknown {
+        color: var(--text-muted);
+        font-style: italic;
+        text-align: center;
+    }
+
+    /* Status Badge for Completed */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.875rem;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: 1px solid transparent;
+        min-width: 110px;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .status-badge.completed {
+        background: #dcfce7;
+        border-color: #bbf7d0;
+        color: var(--success-green);
+    }
+
+    .status-indicator {
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+    .status-text {
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    /* Enhanced Action Button for Completed */
+    .action-btn-small {
+        width: 32px;
+        height: 32px;
+        border: 1px solid var(--border-light);
+        border-radius: 6px;
+        background: var(--background-white);
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+    .action-btn-small.view.completed {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+        color: var(--success-green);
+    }
+
+    .action-btn-small.view.completed:hover {
+        background: #dcfce7;
+        border-color: #86efac;
+        color: var(--success-green);
+        box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15);
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+    .action-btn-small.loading {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+
+    /* Professional Table Footer for Completed */
+    .completed-table .table-footer {
+        background: #f0fdf4;
+        border-top: 1px solid #bbf7d0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .table-info {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .footer-icon {
+        font-size: 0.9rem;
+        opacity: 0.7;
+    }
+
+    .completion-summary {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .summary-text {
+        font-size: 0.8rem;
+        color: var(--success-green);
+        font-weight: 600;
+    }
+
+    /* Professional Component Information */
+    .component-code {
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-weight: 600;
+        color: var(--corporate-blue);
+        font-size: 0.85rem;
+    }
+
+    .component-name,
+    .supplier-name {
+        font-size: 0.85rem;
+        line-height: 1.3;
+        max-width: 180px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Optimized Column Widths for Completed Table */
+    .col-id { width: 13%; }
+    .col-date { width: 12%; }
+    .col-component { width: 13%; }
+    .col-component-name { width: 18%; }
+    .col-supplier { width: 15%; }
+    .col-status { width: 12%; text-align: center; }
+    .col-completed-date { width: 12%; }
+    .col-actions { width: 5%; text-align: center; }
+
+    /* Notifications for Completed Section */
+    .notification {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+        border-radius: 8px;
+        border: 1px solid;
+        font-size: 0.875rem;
+        box-shadow: var(--shadow-soft);
+    }
+
+    .notification.success {
+        background: #f0fdf4;
+        border-color: var(--success-green);
+        color: #166534;
+    }
+
+    .notification.error {
+        background: #fef2f2;
+        border-color: var(--error-red);
+        color: #991b1b;
+    }
+
+    .notification-icon {
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .notification-close {
+        background: none;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        font-size: 1.2rem;
+        margin-left: auto;
+        opacity: 0.7;
+        transition: opacity 0.2s ease;
+    }
+
+    .notification-close:hover {
+        opacity: 1;
+    }
+
+    /* Responsive Design for Completed Table */
+    @@media (max-width: 1024px) {
+        .page-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .completion-stats {
+            justify-content: center;
+        }
+
+        .data-table.completed-table {
+            height: calc(100vh - 300px);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .page-title-section h1.page-title {
+            font-size: 1.5rem;
+        }
+
+        .completion-stats {
+            padding: 0.5rem 1rem;
+        }
+
+        .completed-table .table-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .data-table-content th,
+        .data-table-content td {
+            padding: 0.75rem 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .completed-table .table-footer {
+            flex-direction: column;
+            gap: 0.75rem;
+            text-align: center;
+        }
+
+        .component-name,
+        .supplier-name {
+            max-width: 120px;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .data-table.completed-table {
+            height: calc(100vh - 250px);
+            border-radius: 10px;
+        }
+
+        .completed-table .table-header {
+            padding: 0.75rem;
+        }
+
+        .data-table-content th,
+        .data-table-content td {
+            padding: 0.5rem 0.25rem;
+            font-size: 0.8rem;
+        }
+
+        .action-btn-small {
+            width: 28px;
+            height: 28px;
+            font-size: 0.8rem;
+        }
+
+        .component-name,
+        .supplier-name {
+            max-width: 100px;
+        }
+    }
+</style>

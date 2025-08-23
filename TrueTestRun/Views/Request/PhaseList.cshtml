@@ -20,190 +20,158 @@
     bool IsAdmin = (currentUser != null && currentUser.Role != null)
         ? currentUser.Role == TrueTestRun.Models.UserRole.Admin
         : false;
-
-    // Định nghĩa màu sắc và icon cho từng phase
-    string phaseColor = "";
-    string phaseIcon = "";
-    string phaseBadgeClass = "";
-
-    switch (phase)
-    {
-        case TrueTestRun.Models.TestRunPhase.TruocTestRun:
-            phaseColor = "primary";
-            phaseIcon = "🚀";
-            phaseBadgeClass = "bg-primary";
-            break;
-        case TrueTestRun.Models.TestRunPhase.GiuaTestRun:
-            phaseColor = "warning";
-            phaseIcon = "⚙️";
-            phaseBadgeClass = "bg-warning text-dark";
-            break;
-        case TrueTestRun.Models.TestRunPhase.SauTestRun:
-            phaseColor = "success";
-            phaseIcon = "🏁";
-            phaseBadgeClass = "bg-success";
-            break;
-        default:
-            phaseColor = "secondary";
-            phaseIcon = "📋";
-            phaseBadgeClass = "bg-secondary";
-            break;
-    }
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>@ViewBag.Title</h2>
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-title-section">
+        <h1 class="page-title">@ViewBag.Title</h1>
+        <div class="page-subtitle">テストラン申請管理システム | Test Run Request Management System</div>
+    </div>
     @if (IsStaff)
     {
-        <a href="@Url.Action("Create", "Request")" class="btn btn-success">
-            <span style="font-size:1em;">➕</span> @HttpContext.GetGlobalResourceObject("Resources", "CreateNewRequest")
-        </a>
+        <div class="page-actions">
+            <a href="@Url.Action("Create", "Request")" class="action-btn primary">
+                <span class="action-icon">⊕</span>
+                @HttpContext.GetGlobalResourceObject("Resources", "CreateNewRequest")
+            </a>
+        </div>
     }
 </div>
 
-<!-- Compact Phase Navigation -->
-<div class="phase-tabs-container mb-2">
+<!-- Professional Phase Navigation with Refined Icons -->
+<div class="phase-navigation">
     <div class="phase-tabs">
         <a class="phase-tab @(phase == TrueTestRun.Models.TestRunPhase.TruocTestRun ? "active" : "")"
            href="@Url.Action("TruocTestRun", "Request")">
-            <div class="phase-tab-content">
-                <span class="phase-tab-icon">🚀</span>
-                <span class="phase-tab-text">@HttpContext.GetGlobalResourceObject("Resources", "BeforeTestRun")</span>
+            <div class="tab-icon">◐</div>
+            <div class="tab-content">
+                <div class="tab-title">@HttpContext.GetGlobalResourceObject("Resources", "BeforeTestRun")</div>
+                <div class="tab-subtitle">Preparation Phase</div>
             </div>
         </a>
         <a class="phase-tab @(phase == TrueTestRun.Models.TestRunPhase.GiuaTestRun ? "active" : "")"
            href="@Url.Action("GiuaTestRun", "Request")">
-            <div class="phase-tab-content">
-                <span class="phase-tab-icon">⚙️</span>
-                <span class="phase-tab-text">@HttpContext.GetGlobalResourceObject("Resources", "DuringTestRun")</span>
+            <div class="tab-icon">◑</div>
+            <div class="tab-content">
+                <div class="tab-title">@HttpContext.GetGlobalResourceObject("Resources", "DuringTestRun")</div>
+                <div class="tab-subtitle">Execution Phase</div>
             </div>
         </a>
         <a class="phase-tab @(phase == TrueTestRun.Models.TestRunPhase.SauTestRun ? "active" : "")"
            href="@Url.Action("SauTestRun", "Request")">
-            <div class="phase-tab-content">
-                <span class="phase-tab-icon">🏁</span>
-                <span class="phase-tab-text">@HttpContext.GetGlobalResourceObject("Resources", "AfterTestRun")</span>
+            <div class="tab-icon">◒</div>
+            <div class="tab-content">
+                <div class="tab-title">@HttpContext.GetGlobalResourceObject("Resources", "AfterTestRun")</div>
+                <div class="tab-subtitle">Completion Phase</div>
             </div>
         </a>
     </div>
 </div>
 
+<!-- Status Messages -->
 @if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show custom-alert" role="alert">
-        <span style="font-size:1.1em;">✅</span> @TempData["SuccessMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="notification success">
+        <div class="notification-icon">✓</div>
+        <div class="notification-content">
+            <div class="notification-text">@TempData["SuccessMessage"]</div>
+        </div>
+        <button type="button" class="notification-close" onclick="this.parentElement.style.display='none'">×</button>
     </div>
 }
 
 @if (TempData["ErrorMessage"] != null)
 {
-    <div class="alert alert-danger alert-dismissible fade show custom-alert" role="alert">
-        <span style="font-size:1.1em;">⚠️</span> @TempData["ErrorMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="notification error">
+        <div class="notification-icon">✕</div>
+        <div class="notification-content">
+            <div class="notification-text">@TempData["ErrorMessage"]</div>
+        </div>
+        <button type="button" class="notification-close" onclick="this.parentElement.style.display='none'">×</button>
     </div>
 }
 
 @if (!Model.Any())
 {
-    <div class="empty-state-card">
-        <div class="empty-state-content">
-            <div class="empty-state-icon">
-                <span style="font-size:4em;">@phaseIcon</span>
-            </div>
-            <h3 class="empty-state-title">@HttpContext.GetGlobalResourceObject("Resources", "NoRequestsYet")</h3>
-            <p class="empty-state-text">
-                @HttpContext.GetGlobalResourceObject("Resources", "NoRequestsInPhase") <strong>@ViewBag.CurrentPhaseTitle</strong>.
-            </p>
-            @if (IsStaff)
-            {
-                <a href="@Url.Action("Create", "Request")" class="btn btn-success mt-3">
-                    <span style="font-size:1.1em;">➕</span> @HttpContext.GetGlobalResourceObject("Resources", "CreateFirstRequest")
+    <!-- Empty State -->
+    <div class="empty-state">
+        <div class="empty-state-icon">◯</div>
+        <div class="empty-state-title">@HttpContext.GetGlobalResourceObject("Resources", "NoRequestsYet")</div>
+        <div class="empty-state-description">現在このフェーズにはリクエストがありません</div>
+        @if (IsStaff)
+        {
+            <div class="empty-state-actions">
+                <a href="@Url.Action("Create", "Request")" class="action-btn primary">
+                    <span class="action-icon">⊕</span>
+                    @HttpContext.GetGlobalResourceObject("Resources", "CreateFirstRequest")
                 </a>
-            }
-        </div>
+            </div>
+        }
     </div>
 }
 else
 {
-    <!-- Compact Statistics Cards -->
-    <div class="row mb-2">
-        <div class="col-md-4">
-            <div class="stats-card stats-card-total">
-                <div class="stats-card-content">
-                    <div class="stats-icon">
-                        <span style="font-size:1.5em;">📊</span>
-                    </div>
-                    <div class="stats-info">
-                        <div class="stats-number">@Model.Count</div>
-                        <div class="stats-label">@HttpContext.GetGlobalResourceObject("Resources", "TotalRequests")</div>
-                    </div>
+    <!-- Ultra Compact Statistics Panel with Refined Icons -->
+    <div class="statistics-panel">
+        <div class="statistics-row">
+            <div class="stat-item">
+                <div class="stat-icon">◈</div>
+                <div class="stat-content">
+                    <div class="stat-number">@Model.Count</div>
+                    <div class="stat-label">@HttpContext.GetGlobalResourceObject("Resources", "TotalRequests")</div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stats-card stats-card-processing">
-                <div class="stats-card-content">
-                    <div class="stats-icon">
-                        <span style="font-size:1.5em;">⏳</span>
-                    </div>
-                    <div class="stats-info">
-                        <div class="stats-number">@Model.Count(r => !r.IsCompleted && !r.IsRejected)</div>
-                        <div class="stats-label">@HttpContext.GetGlobalResourceObject("Resources", "Processing")</div>
-                    </div>
+            <div class="stat-divider">|</div>
+            <div class="stat-item">
+                <div class="stat-icon">◐</div>
+                <div class="stat-content">
+                    <div class="stat-number">@Model.Count(r => !r.IsCompleted && !r.IsRejected)</div>
+                    <div class="stat-label">@HttpContext.GetGlobalResourceObject("Resources", "Processing")</div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stats-card stats-card-today">
-                <div class="stats-card-content">
-                    <div class="stats-icon">
-                        <span style="font-size:1.5em;">📅</span>
-                    </div>
-                    <div class="stats-info">
-                        <div class="stats-number">@Model.Count(r => r.CreatedAt.Date == DateTime.Today)</div>
-                        <div class="stats-label">@HttpContext.GetGlobalResourceObject("Resources", "Today")</div>
-                    </div>
+            <div class="stat-divider">|</div>
+            <div class="stat-item">
+                <div class="stat-icon">◑</div>
+                <div class="stat-content">
+                    <div class="stat-number">@Model.Count(r => r.CreatedAt.Date == DateTime.Today)</div>
+                    <div class="stat-label">@HttpContext.GetGlobalResourceObject("Resources", "Today")</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Enhanced Table - Enlarged Display Area -->
-    <div class="requests-table-container requests-table-large">
+    <!-- Maximized Data Table -->
+    <div class="data-table">
+        <!-- Table Header -->
         <div class="table-header">
-            <h4 class="table-title mb-0">
-                <span style="font-size:1.2em;">📋</span> @HttpContext.GetGlobalResourceObject("Resources", "RequestList") - @ViewBag.CurrentPhaseTitle
-            </h4>
+            <div class="table-title">
+                <div class="title-main">
+                    <span class="title-icon">◉</span>
+                    @HttpContext.GetGlobalResourceObject("Resources", "RequestList")
+                </div>
+                <div class="title-sub">@ViewBag.CurrentPhaseTitle</div>
+            </div>
             <div class="table-actions">
-                <button class="btn btn-outline-secondary btn-sm" onclick="refreshTable()">
-                    <span style="font-size:0.9em;">🔄</span> @HttpContext.GetGlobalResourceObject("Resources", "Refresh")
+                <button class="action-btn secondary" onclick="refreshTable()">
+                    <span class="action-icon">↻</span>
+                    @HttpContext.GetGlobalResourceObject("Resources", "Refresh")
                 </button>
             </div>
         </div>
 
-        <div class="table-responsive">
-            <table class="table table-enhanced table-large">
-                <thead class="table-head-enhanced">
+        <!-- Enhanced Table Content with Perfect Column Alignment -->
+        <div class="table-container">
+            <table class="data-table-content" id="dataTable">
+                <thead>
                     <tr>
-                        <th class="col-request-id">
-                            <span style="font-size:1em;">🆔</span> Request ID
-                        </th>
-                        <th class="col-created">
-                            <span style="font-size:1em;">📅</span> @HttpContext.GetGlobalResourceObject("Resources", "CreatedDate")
-                        </th>
-                        <th class="col-creator">
-                            <span style="font-size:1em;">👤</span> @HttpContext.GetGlobalResourceObject("Resources", "Creator")
-                        </th>
-                        <th class="col-current-step">
-                            <span style="font-size:1em;">📍</span> @HttpContext.GetGlobalResourceObject("Resources", "CurrentStep")
-                        </th>
-                        <th class="col-status">
-                            <span style="font-size:1em;">📊</span> @HttpContext.GetGlobalResourceObject("Resources", "Status")
-                        </th>
-                        <th class="col-actions text-center">
-                            <span style="font-size:1em;">⚙️</span> @HttpContext.GetGlobalResourceObject("Resources", "Actions")
-                        </th>
+                        <th class="col-id">Request ID</th>
+                        <th class="col-date">@HttpContext.GetGlobalResourceObject("Resources", "CreatedDate")</th>
+                        <th class="col-component">@HttpContext.GetGlobalResourceObject("Resources", "ComponentCode")</th>
+                        <th class="col-component-name">@HttpContext.GetGlobalResourceObject("Resources", "ComponentName")</th>
+                        <th class="col-supplier">@HttpContext.GetGlobalResourceObject("Resources", "Supplier")</th>
+                        <th class="col-status">@HttpContext.GetGlobalResourceObject("Resources", "Status")</th>
+                        <th class="col-actions">@HttpContext.GetGlobalResourceObject("Resources", "Actions")</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -233,82 +201,78 @@ else
                             && !request.IsCompleted && !request.IsRejected;
                         bool canAdminEdit = IsAdmin;
 
-                        <tr class="table-row-enhanced">
-                            <td class="col-request-id">
-                                <a href="@Url.Action("Detail", "Request", new { id = request.RequestID })"
-                                   class="request-id-link">
-                                    <span style="font-size:1em;">📄</span> @request.RequestID
+                        <tr class="table-row">
+                            <td class="col-id">
+                                <a href="@Url.Action("Detail", "Request", new { id = request.RequestID })" class="request-id-link">
+                                    @request.RequestID
                                 </a>
                             </td>
-                            <td class="col-created">
+                            <td class="col-date">
                                 <div class="date-info">
                                     <div class="date-primary">@request.CreatedAt.ToString("dd/MM/yyyy")</div>
                                     <div class="date-secondary">@request.CreatedAt.ToString("HH:mm")</div>
                                 </div>
                             </td>
-                            <td class="col-creator">
-                                <div class="creator-info">
-                                    <span class="creator-name">@request.CreatedByADID</span>
-                                </div>
+                            <td class="col-component">
+                                @{
+                                    var componentInfo = ViewBag.ComponentInfo as Dictionary<string, Dictionary<string, string>>;
+                                    var maLinhKien = componentInfo?[request.RequestID]?["MaLinhKien"] ?? "—";
+                                }
+                                <div class="cell-content">@maLinhKien</div>
                             </td>
-                            <td class="col-current-step">
-                                @if (currentStep != null && !string.IsNullOrEmpty(currentStep.StepName))
-                                {
-                                    <span class="badge step-badge @phaseBadgeClass">
-                                        <span style="font-size:0.8em;">📍</span> @currentStep.StepName
-                                    </span>
+                            <td class="col-component-name">
+                                @{
+                                    var tenLinhKien = componentInfo?[request.RequestID]?["TenLinhKien"] ?? "—";
                                 }
-                                else
-                                {
-                                    <span class="badge step-badge bg-secondary">
-                                        <span style="font-size:0.8em;">❓</span> @HttpContext.GetGlobalResourceObject("Resources", "Unknown")
-                                    </span>
+                                <div class="cell-content">@tenLinhKien</div>
+                            </td>
+                            <td class="col-supplier">
+                                @{
+                                    var nhaCungCap = componentInfo?[request.RequestID]?["NhaCungCap"] ?? "—";
                                 }
+                                <div class="cell-content">@nhaCungCap</div>
                             </td>
                             <td class="col-status">
                                 @if (request.IsCompleted)
                                 {
-                                    <span class="badge status-badge status-completed">
-                                        <span style="font-size:0.8em;">✅</span> @HttpContext.GetGlobalResourceObject("Resources", "Completed")
-                                    </span>
+                                    <div class="status-badge completed">
+                                        <span class="status-indicator">●</span>
+                                        <span class="status-text">@HttpContext.GetGlobalResourceObject("Resources", "Completed")</span>
+                                    </div>
                                 }
                                 else if (request.IsRejected)
                                 {
-                                    <span class="badge status-badge status-rejected">
-                                        <span style="font-size:0.8em;">❌</span> @HttpContext.GetGlobalResourceObject("Resources", "Rejected")
-                                    </span>
+                                    <div class="status-badge rejected">
+                                        <span class="status-indicator">○</span>
+                                        <span class="status-text">@HttpContext.GetGlobalResourceObject("Resources", "Rejected")</span>
+                                    </div>
                                 }
                                 else
                                 {
-                                    <span class="badge status-badge status-processing">
-                                        <span style="font-size:0.8em;">⏳</span> @HttpContext.GetGlobalResourceObject("Resources", "Processing")
-                                    </span>
+                                    <div class="status-badge processing">
+                                        <span class="status-indicator">◐</span>
+                                        <span class="status-text">@HttpContext.GetGlobalResourceObject("Resources", "Processing")</span>
+                                    </div>
                                 }
                             </td>
-                            <td class="col-actions text-center">
+                            <td class="col-actions">
                                 <div class="action-buttons">
                                     <a href="@Url.Action("Detail", "Request", new { id = request.RequestID })"
-                                       class="btn btn-action btn-view"
-                                       title="@HttpContext.GetGlobalResourceObject("Resources", "ViewDetails")">
-                                        <span style="font-size:1em;">👁️</span>
+                                       class="action-btn-small view" title="@HttpContext.GetGlobalResourceObject("Resources", "ViewDetails")">
+                                        ◉
                                     </a>
-                                    <button type="button" class="btn btn-action btn-documents" onclick="viewDocuments('@request.RequestID')" title="@HttpContext.GetGlobalResourceObject("Resources", "ViewDocuments")">
-                                        <span style="font-size:1em;">📎</span>
-                                    </button>
                                     @if (canEdit || canAdminEdit)
                                     {
                                         <a href="@Url.Action("Edit", "Request", new { id = request.RequestID })"
-                                           class="btn btn-action btn-edit"
-                                           title="@HttpContext.GetGlobalResourceObject("Resources", "Edit")">
-                                            <span style="font-size:1em;">✏️</span>
+                                           class="action-btn-small edit" title="@HttpContext.GetGlobalResourceObject("Resources", "Edit")">
+                                            ◆
                                         </a>
                                     }
                                     @if (canApprove)
                                     {
                                         <a href="@Url.Action("ProcessRequest", "Approval", new { id = request.RequestID })"
-                                           class="btn btn-action btn-approve"
-                                           title="@HttpContext.GetGlobalResourceObject("Resources", "ApprovalProcess")">
-                                            <span style="font-size:1em;">✅</span>
+                                           class="action-btn-small approve" title="@HttpContext.GetGlobalResourceObject("Resources", "ApprovalProcess")">
+                                            ◈
                                         </a>
                                     }
                                 </div>
@@ -319,730 +283,719 @@ else
             </table>
         </div>
 
+        <!-- Table Footer -->
         <div class="table-footer">
-            <div class="table-summary">
-                <span style="font-size:1em;">📊</span>
-                @HttpContext.GetGlobalResourceObject("Resources", "ShowingResults") <strong>@Model.Count</strong> @HttpContext.GetGlobalResourceObject("Resources", "RequestsInPhase") <strong>@ViewBag.CurrentPhaseTitle</strong>
+            <div class="table-info">
+                <span class="footer-icon">ⓘ</span>
+                @HttpContext.GetGlobalResourceObject("Resources", "ShowingResults") <strong>@Model.Count</strong> @HttpContext.GetGlobalResourceObject("Resources", "RequestsInPhase")
             </div>
         </div>
     </div>
 }
-
-<!-- Modal hiển thị danh sách tài liệu -->
-<div class="modal fade" id="documentsModal" tabindex="-1" aria-labelledby="documentsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title" id="documentsModalLabel">
-                    <span style="font-size:1.1em;">📎</span> Tài liệu đính kèm
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div id="documentsContent">
-                    <div class="text-center">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Đang tải...</span>
-                        </div>
-                        <div class="mt-2">Đang tải danh sách tài liệu...</div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <span style="font-size:0.9em;">❌</span> Đóng
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 
 @section Scripts {
     <script>
         $(document).ready(function () {
-            // Auto dismiss alerts after 5 seconds
+            // Auto dismiss notifications
             setTimeout(function () {
-                $('.alert').fadeOut('slow');
+                $('.notification').fadeOut('slow');
             }, 5000);
 
-            // Initialize tooltips
-            $('[title]').tooltip();
-
-            // Auto refresh every 30 seconds
-            setTimeout(function () {
-                location.reload();
-            }, 30000);
-
-            // Add hover effects
-            $('.table-row-enhanced').hover(
-                function () { $(this).addClass('row-hover'); },
-                function () { $(this).removeClass('row-hover'); }
+            // Table row hover effects
+            $('.table-row').hover(
+                function () { $(this).addClass('hover'); },
+                function () { $(this).removeClass('hover'); }
             );
+
+            // Enhanced table interactions
+            $('.table-row').on('click', function (e) {
+                if (!$(e.target).closest('a').length) {
+                    var detailLink = $(this).find('.request-id-link');
+                    if (detailLink.length) {
+                        window.location.href = detailLink.attr('href');
+                    }
+                }
+            });
         });
 
         function refreshTable() {
-            location.reload();
-        }
-
-        function viewDocuments(requestId) {
-            if (!requestId || requestId === 'undefined' || requestId === 'null') {
-                alert('Lỗi: Request ID không hợp lệ');
-                return;
-            }
-
-            // Cập nhật title modal
-            $('#documentsModalLabel').html('<span style="font-size:1.1em;">📎</span> Tài liệu đính kèm - ' + requestId);
-
-            $('#documentsModal').modal('show');
-
-            $.ajax({
-                url: '@Url.Action("GetDocuments", "Document")',
-                type: 'GET',
-                data: { requestId: requestId },
-                dataType: 'json',
-                success: function(response) {
-                    if (response && response.success === true) {
-                        displayDocuments(response.documents);
-                    } else {
-                        $('#documentsContent').html(
-                            '<div class="alert alert-warning">' +
-                                '<span style="font-size:1em;">⚠️</span> ' + (response.message || 'Không thể tải danh sách tài liệu') +
-                            '</div>'
-                        );
-                    }
-                },
-                error: function(xhr, status, error) {
-                    $('#documentsContent').html(
-                        '<div class="alert alert-danger">' +
-                            '<span style="font-size:1em;">❌</span> Có lỗi xảy ra khi tải tài liệu: ' + error +
-                        '</div>'
-                    );
-                }
-            });
-        }
-
-        function displayDocuments(documents) {
-            if (!documents || !Array.isArray(documents) || documents.length === 0) {
-                $('#documentsContent').html(
-                    '<div class="text-center py-5">' +
-                        '<span style="font-size:4em; color: #6c757d;">📄</span>' +
-                        '<h5 class="mt-3 text-muted">Chưa có tài liệu nào</h5>' +
-                        '<p class="text-muted">Request này chưa có tài liệu đính kèm</p>' +
-                    '</div>'
-                );
-                return;
-            }
-
-            var html = '<div class="documents-list" style="max-height: 450px; overflow-y: auto;">' +
-                        '<div class="mb-3 alert alert-info">' +
-                            '<span style="font-size:1em;">📊</span>' +
-                            '<strong>Tổng cộng: ' + documents.length + ' tài liệu đính kèm</strong>' +
-                        '</div>';
-
-            for (var i = 0; i < documents.length; i++) {
-                var doc = documents[i];
-                var fileIcon = getFileIcon(doc.fileName || 'unknown');
-
-                html += '<div class="document-item">' +
-                            '<div class="document-info">' +
-                                '<span class="document-icon">' + fileIcon + '</span>' +
-                                '<div class="document-details">' +
-                                    '<div class="document-name">' + (doc.fileName || 'Tên file không xác định') + '</div>' +
-                                    '<div class="document-meta">' +
-                                        '<span class="badge bg-light text-dark">' + (doc.fileSize || '0 B') + '</span> •' +
-                                        ' Tải lên bởi <strong>' + (doc.uploadedBy || 'N/A') + '</strong> •' +
-                                        ' <span class="text-muted">' + (doc.uploadedAt || '') + '</span>' +
-                                    '</div>';
-
-                if (doc.description) {
-                    html += '<div class="document-description"><em>' + doc.description + '</em></div>';
-                }
-
-                html += '</div>' +
-                        '</div>' +
-                        '<div class="document-actions">' +
-                            '<a href="@Url.Action("View", "Document")?id=' + doc.documentId + '"' +
-                               ' target="_blank"' +
-                               ' class="btn btn-primary btn-sm"' +
-                               ' title="Xem tài liệu - Sẽ hiển thị trực tiếp nếu có thể, hoặc tải về nếu không">' +
-                                '<span style="font-size:0.8em;">👁️</span> Xem' +
-                            '</a>' +
-                        '</div>' +
-                    '</div>';
-            }
-
-            html += '</div>';
-            $('#documentsContent').html(html);
-        }
-
-        function getFileIcon(fileName) {
-            var ext = fileName.split('.').pop().toLowerCase();
-            var icons = {
-                'pdf': '📄',
-                'doc': '📝', 'docx': '📝',
-                'xls': '📊', 'xlsx': '📊',
-                'png': '🖼️', 'jpg': '🖼️', 'jpeg': '🖼️', 'gif': '🖼️', 'webp': '🖼️',
-                'txt': '📃', 'html': '📃',
-                'zip': '📦', 'rar': '📦'
-            };
-            return icons[ext] || '📎';
+            window.location.reload();
         }
     </script>
 }
+
 <style>
-    /* Updated styles for compact design with larger table */
-    .btn-success {
-        border-radius: 8px;
-        font-weight: 600;
-        transition: all 0.3s ease;
+    /* ========== PERFECTLY ALIGNED TABLE WITH REFINED ICONS ========== */
+
+    /* Page Header */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border-light);
     }
 
-        .btn-success:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-        }
+    .page-title-section h1.page-title {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 0.25rem 0;
+    }
 
-    /* Compact Phase Tabs */
-    .phase-tabs-container {
-        background: #fff;
-        border-radius: 12px;
-        padding: 0.6rem;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        border: 1px solid #e9ecef;
+    .page-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        margin: 0;
+    }
+
+    .page-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    /* Professional Phase Navigation with Geometric Icons */
+    .phase-navigation {
+        margin-bottom: 1rem;
     }
 
     .phase-tabs {
         display: flex;
-        gap: 0.5rem;
-        justify-content: center;
+        background: var(--background-white);
+        border-radius: 8px;
+        padding: 0.25rem;
+        border: 1px solid var(--border-light);
+        box-shadow: var(--shadow-soft);
     }
 
     .phase-tab {
         flex: 1;
-        max-width: 200px;
-        background: #f8f9fa;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        padding: 0.8rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
         text-decoration: none;
-        color: #6c757d;
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
+        color: var(--text-secondary);
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        text-align: center;
     }
 
         .phase-tab:hover {
-            border-color: #007bff;
-            background: #f0f8ff;
-            transform: translateY(-1px);
-            box-shadow: 0 3px 10px rgba(0, 123, 255, 0.15);
-            color: #007bff;
+            color: var(--text-primary);
+            background: var(--background-secondary);
             text-decoration: none;
         }
 
         .phase-tab.active {
-            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-            border-color: #007bff;
-            color: white;
-            box-shadow: 0 3px 10px rgba(0, 123, 255, 0.3);
+            color: var(--corporate-blue);
+            background: var(--background-secondary);
+            font-weight: 600;
+            box-shadow: var(--shadow-subtle);
         }
 
-            .phase-tab.active:hover {
-                color: white;
-            }
-
-    .phase-tab-content {
-        text-align: center;
+    .tab-icon {
+        font-size: 1.1rem;
+        flex-shrink: 0;
+        opacity: 0.8;
     }
 
-    .phase-tab-icon {
-        font-size: 1.2rem;
-        display: block;
-        margin-bottom: 0.3rem;
+    .tab-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
 
-    .phase-tab-text {
-        font-size: 0.85rem;
+    .tab-title {
+        font-size: 0.875rem;
         font-weight: 600;
-        display: block;
         line-height: 1.2;
     }
 
-    /* Compact Statistics Cards */
-    .stats-card {
-        background: white;
-        border-radius: 8px;
-        padding: 0.8rem 1rem;
-        border: 1px solid #e9ecef;
-        transition: all 0.3s ease;
-        height: 100%;
-        position: relative;
-        overflow: hidden;
+    .tab-subtitle {
+        font-size: 0.65rem;
+        opacity: 0.7;
+        margin-top: 0.125rem;
     }
 
-        .stats-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .stats-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #007bff, #0056b3);
-        }
-
-    .stats-card-processing::before {
-        background: linear-gradient(90deg, #ffc107, #e68900);
-    }
-
-    .stats-card-today::before {
-        background: linear-gradient(90deg, #28a745, #20c997);
-    }
-
-    .stats-card-content {
+    /* Notifications with Icons */
+    .notification {
         display: flex;
         align-items: center;
-        gap: 0.8rem;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        border-radius: 6px;
+        border: 1px solid;
+        font-size: 0.875rem;
     }
 
-    .stats-icon {
+        .notification.success {
+            background: #f0fdf4;
+            border-color: var(--success-green);
+            color: #166534;
+        }
+
+        .notification.error {
+            background: #fef2f2;
+            border-color: var(--error-red);
+            color: #991b1b;
+        }
+
+    .notification-icon {
+        font-size: 1rem;
         flex-shrink: 0;
     }
 
-    .stats-number {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #2d3748;
-        line-height: 1;
-    }
-
-    .stats-label {
-        font-size: 0.8rem;
-        color: #718096;
-        margin-top: 0.2rem;
-    }
-
-    /* Enlarged Table Container */
-    .requests-table-container {
-        background: white;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-        border: 1px solid #e9ecef;
-    }
-
-    .requests-table-large {
-        min-height: 70vh;
-    }
-
-    .table-header {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        padding: 1.5rem;
-        border-bottom: 1px solid #e9ecef;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .table-title {
-        color: #2d3748;
-        font-weight: 600;
-        font-size: 1.3rem;
-    }
-
-    .table-enhanced {
-        margin: 0;
-        border: none;
-        font-size: 1rem;
-    }
-
-    .table-large {
-        font-size: 1.05rem;
-    }
-
-    .table-head-enhanced {
-        background: #f8f9fa;
-        border-bottom: 2px solid #e9ecef;
-    }
-
-        .table-head-enhanced th {
-            border: none;
-            padding: 1.2rem 1rem;
-            font-weight: 600;
-            color: #4a5568;
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-    .table-row-enhanced {
-        border-bottom: 1px solid #f1f3f4;
-        transition: all 0.2s ease;
-    }
-
-        .table-row-enhanced:hover,
-        .table-row-enhanced.row-hover {
-            background-color: #f8f9fa;
-            transform: scale(1.002);
-        }
-
-        .table-row-enhanced td {
-            border: none;
-            padding: 1.2rem 1rem;
-            vertical-align: middle;
-        }
-
-    .request-id-link {
-        color: #007bff;
-        text-decoration: none;
-        font-weight: 600;
-        padding: 0.6rem 0.8rem;
-        border-radius: 6px;
-        transition: all 0.2s ease;
-        display: inline-block;
-        font-size: 1rem;
-    }
-
-        .request-id-link:hover {
-            background: #e7f3ff;
-            color: #0056b3;
-            text-decoration: none;
-        }
-
-    .date-info {
-        text-align: left;
-    }
-
-    .date-primary {
-        font-weight: 600;
-        color: #2d3748;
-        font-size: 1rem;
-    }
-
-    .date-secondary {
-        font-size: 0.85rem;
-        color: #718096;
-    }
-
-    .creator-name {
-        font-weight: 500;
-        color: #4a5568;
-        font-size: 1rem;
-    }
-
-    .step-badge {
-        font-size: 0.85rem;
-        padding: 0.6rem 0.8rem;
-        border-radius: 8px;
-        font-weight: 500;
-    }
-
-    .status-badge {
-        font-size: 0.85rem;
-        padding: 0.6rem 0.8rem;
-        border-radius: 8px;
-        font-weight: 500;
-    }
-
-    .status-completed {
-        background: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
-    }
-
-    .status-rejected {
-        background: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
-    }
-
-    .status-processing {
-        background: #fff3cd;
-        color: #856404;
-        border: 1px solid #ffeaa7;
-    }
-
-    .action-buttons {
-        display: flex;
-        gap: 0.6rem;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .btn-action {
-        padding: 0.6rem 0.8rem;
-        border-radius: 8px;
-        border: 1px solid #dee2e6;
-        background: white;
-        color: #6c757d;
-        text-decoration: none;
-        transition: all 0.2s ease;
-        min-width: 44px;
+    /* Empty State with Geometric Icon */
+    .empty-state {
+        background: var(--background-white);
+        border-radius: 10px;
+        padding: 2.5rem 2rem;
         text-align: center;
-        cursor: pointer;
-    }
-
-    .btn-view:hover {
-        background: #e7f3ff;
-        border-color: #007bff;
-        color: #007bff;
-    }
-
-    .btn-edit:hover {
-        background: #fff5e6;
-        border-color: #ffc107;
-        color: #e68900;
-    }
-
-    .btn-approve:hover {
-        background: #eafaf1;
-        border-color: #28a745;
-        color: #1e7e34;
-    }
-
-    .btn-documents:hover {
-        background: #f0f8ff;
-        border-color: #17a2b8;
-        color: #17a2b8;
-    }
-
-    .table-footer {
-        background: #f8f9fa;
-        padding: 1.2rem 1.5rem;
-        border-top: 1px solid #e9ecef;
-    }
-
-    .table-summary {
-        color: #6c757d;
-        font-size: 1rem;
-    }
-
-    .empty-state-card {
-        background: white;
-        border-radius: 16px;
-        padding: 3rem;
-        text-align: center;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-        border: 1px solid #e9ecef;
-        min-height: 60vh;
+        border: 1px solid var(--border-light);
+        box-shadow: var(--shadow-soft);
     }
 
     .empty-state-icon {
-        margin-bottom: 1.5rem;
-        opacity: 0.6;
-    }
-
-    .empty-state-title {
-        color: #2d3748;
-        font-weight: 600;
+        font-size: 2.5rem;
         margin-bottom: 1rem;
+        opacity: 0.4;
+        color: var(--text-muted);
     }
 
-    .empty-state-text {
-        color: #718096;
-        font-size: 1.1rem;
-        margin-bottom: 0;
+    /* Statistics Panel with Geometric Icons */
+    .statistics-panel {
+        background: var(--background-white);
+        border-radius: 8px; /* tăng nhẹ để đồng bộ với bảng */
+        border: 1px solid var(--border-light);
+        margin-bottom: 0.75rem;
+        padding: 0.75rem 1rem;
+        box-shadow: var(--shadow-soft);
+        border-left: 4px solid var(--corporate-blue); /* nhấn mạnh khối thống kê */
     }
 
-    .custom-alert {
-        border: none;
-        border-radius: 12px;
-        padding: 1rem 1.5rem;
-        font-weight: 500;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    /* CSS cho document modal từ _DocumentViewButton */
-    .documents-list {
-        max-height: 450px;
-        overflow-y: auto;
-    }
-
-    .document-item {
+    .statistics-row {
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        padding: 1.25rem;
-        margin-bottom: 1rem;
-        background: #f8f9fa;
-        border: 1px solid #e9ecef;
-        border-radius: 12px;
-        transition: all 0.3s ease;
-    }
-
-        .document-item:hover {
-            background: #e9ecef;
-            border-color: #007bff;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
-        }
-
-    .document-info {
-        display: flex;
-        align-items: flex-start;
-        flex: 1;
+        justify-content: center;
         gap: 1rem;
     }
 
-    .document-icon {
-        font-size: 2em;
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-align: center;
+    }
+
+    .stat-icon {
+        font-size: 1.1rem;
         flex-shrink: 0;
+        opacity: 0.7;
+        color: var(--corporate-blue);
     }
 
-    .document-details {
-        flex: 1;
+    .stat-content {
+        display: flex;
+        flex-direction: column;
     }
 
-    .document-name {
-        font-weight: 600;
-        color: #495057;
-        margin-bottom: 0.5rem;
+    .stat-number {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1;
+        margin-bottom: 0.125rem;
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        line-height: 1.2;
+    }
+
+    .stat-divider {
+        color: var(--border-medium);
         font-size: 1rem;
+        opacity: 0.5;
     }
 
-    .document-meta {
-        color: #6c757d;
-        font-size: 0.875rem;
-        margin-bottom: 0.5rem;
+    /* Maximized Data Table (HIGHLIGHTED CARD) */
+    .data-table {
+        background: var(--background-white);
+        border-radius: 12px;
+        border: 1px solid var(--border-light);
+        box-shadow: var(--shadow-medium); /* tăng độ nổi */
+        overflow: hidden;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 220px);
+        border-left: 4px solid var(--corporate-blue); /* vạch nhấn thương hiệu */
     }
 
-    .document-description {
-        color: #495057;
-        font-size: 0.9rem;
-        margin-top: 0.5rem;
-        padding: 0.5rem;
-        background: rgba(0, 123, 255, 0.1);
-        border-radius: 6px;
-    }
-
-    .document-actions {
-        margin-left: 1rem;
+    .table-header {
+        background: linear-gradient(180deg, var(--background-secondary), #e9edf3); /* nhẹ nhàng hơn, dễ nhìn */
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         flex-shrink: 0;
+    }
+
+    .table-title .title-main {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.05rem; /* nhỉnh hơn chút để nổi bật */
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1.2;
+    }
+
+    .title-icon {
+        font-size: 1rem;
+        opacity: 0.75;
+        color: var(--corporate-blue);
+    }
+
+    .table-title .title-sub {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-top: 0.125rem;
+    }
+
+    .table-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    /* Perfect Table Container */
+    .table-container {
+        flex: 1;
+        overflow: auto;
+        position: relative;
+        background: #fcfdff; /* nền rất nhẹ để tách khỏi header */
+    }
+
+    .data-table-content {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem; /* tăng nhẹ size để đọc tốt hơn */
+        table-layout: fixed;
+    }
+
+        /* Perfect Column Headers - HIGHER CONTRAST */
+        .data-table-content th {
+            background: var(--background-secondary);
+            padding: 1rem 1.25rem;
+            text-align: left;
+            font-weight: 700;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border-light);
+            font-size: 0.85rem;
+            letter-spacing: 0.02em;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            vertical-align: middle;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Perfect Table Cells with Better Readability */
+        .data-table-content td {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 0.9rem;
+            vertical-align: middle;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--text-primary);
+        }
+
+    /* Zebra striping + highlight */
+    .table-row:nth-child(even) {
+        background: #f7fbff; /* xanh rất nhạt để dễ quét mắt */
+    }
+
+    .table-row {
+        transition: all 0.15s ease;
+        cursor: pointer;
+    }
+
+        .table-row:hover,
+        .table-row.hover {
+            background: #eff6ff; /* hover xanh nhạt đồng bộ thương hiệu */
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .table-row:focus-within {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.15);
+            background: #eef4ff;
+        }
+
+    /* Standout Request ID "chip" */
+    .request-id-link {
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-weight: 700;
+        color: var(--corporate-blue);
+        text-decoration: none;
+        padding: 0.4rem 0.6rem;
+        border-radius: 999px; /* pill */
+        transition: all 0.2s ease;
+        display: inline-block;
+        font-size: 0.9rem;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+    }
+
+        .request-id-link:hover {
+            background: #dbeafe;
+            color: var(--corporate-blue);
+            text-decoration: none;
+            transform: translateY(-1px);
+            border-color: #93c5fd;
+            box-shadow: 0 1px 6px rgba(30,58,138,0.15);
+        }
+
+    /* Perfect Date Alignment */
+    .date-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.125rem;
+    }
+
+    .date-primary {
+        font-weight: 600; /* tăng nhẹ độ đậm */
+        color: var(--text-primary);
+        line-height: 1.2;
+        font-size: 0.9rem;
+    }
+
+    .date-secondary {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    /* PERFECT Status Badges with Geometric Indicators (emphasized) */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.875rem;
+        border-radius: 999px; /* nhìn hiện đại hơn */
+        font-size: 0.8rem; /* lớn hơn chút */
+        font-weight: 600;
+        border: 1px solid transparent;
+        min-width: 110px;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+        .status-badge.completed {
+            background: #dcfce7;
+            border-color: #bbf7d0;
+            color: #166534;
+        }
+
+        .status-badge.rejected {
+            background: #fee2e2;
+            border-color: #fecaca;
+            color: #991b1b;
+        }
+
+        .status-badge.processing {
+            background: #fef3c7;
+            border-color: #fde68a;
+            color: #92400e;
+        }
+
+    .status-indicator {
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+    .status-text {
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    /* Action Buttons with Refined Icons */
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--border-medium);
+        border-radius: 6px;
+        background: var(--background-white);
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 0.8rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+        .action-btn:hover {
+            border-color: var(--corporate-blue);
+            color: var(--corporate-blue);
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+
+        .action-btn.primary {
+            background: var(--corporate-blue);
+            color: var(--background-white);
+            border-color: var(--corporate-blue);
+        }
+
+            .action-btn.primary:hover {
+                background: #1e40af;
+                color: var(--background-white);
+            }
+
+        .action-btn.secondary {
+            background: var(--background-secondary);
+            border-color: var(--border-light);
+        }
+
+    .action-icon {
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+    /* PERFECT Action Buttons Alignment */
+    .action-buttons {
+        display: flex;
+        gap: 0.375rem;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: nowrap;
+    }
+
+    .action-btn-small {
+        width: 32px;
+        height: 32px;
+        border: 1px solid var(--border-light);
+        border-radius: 6px;
+        background: var(--background-white);
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+        .action-btn-small:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-soft);
+            text-decoration: none;
+        }
+
+        .action-btn-small.view:hover {
+            border-color: var(--corporate-blue);
+            background: #eff6ff;
+            color: var(--corporate-blue);
+        }
+
+        .action-btn-small.edit:hover {
+            border-color: var(--warning-amber);
+            background: #fffbeb;
+            color: var(--warning-amber);
+        }
+
+        .action-btn-small.approve:hover {
+            border-color: var(--success-green);
+            background: #f0fdf4;
+            color: var(--success-green);
+        }
+
+    /* Table Footer with Icon */
+    .table-footer {
+        background: var(--background-secondary);
+        padding: 0.9rem 1.25rem;
+        border-top: 1px solid var(--border-light);
+        text-align: center;
+        flex-shrink: 0;
+    }
+
+    .table-info {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .footer-icon {
+        font-size: 0.9rem;
+        opacity: 0.7;
+    }
+
+    /* PERFECT COLUMN WIDTHS - Equal Distribution */
+    .col-id {
+        width: 14.28%;
+    }
+
+    .col-date {
+        width: 14.28%;
+    }
+
+    .col-component {
+        width: 14.28%;
+    }
+
+    .col-component-name {
+        width: 14.28%;
+    }
+
+    .col-supplier {
+        width: 14.28%;
+    }
+
+    .col-status {
+        width: 14.28%;
+        text-align: center;
+    }
+
+    .col-actions {
+        width: 14.28%;
+        text-align: center;
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 1024px) {
+        .page-header {
+            flex-direction: column;
+            gap: 0.75rem;
+            align-items: stretch;
+        }
+
+        .statistics-row {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .stat-divider {
+            display: none;
+        }
+
+        .data-table {
+            height: calc(100vh - 280px);
+        }
+
+        .table-header {
+            flex-direction: column;
+            gap: 0.75rem;
+            align-items: stretch;
+        }
     }
 
     @@media (max-width: 768px) {
         .phase-tabs {
             flex-direction: column;
-            gap: 0.5rem;
+            padding: 0.25rem;
         }
 
         .phase-tab {
-            max-width: none;
-            padding: 0.6rem;
+            padding: 0.5rem;
         }
 
-        .phase-tab-icon {
-            font-size: 1rem;
-            margin-bottom: 0.2rem;
+        .tab-subtitle {
+            display: none;
         }
 
-        .phase-tab-text {
-            font-size: 0.8rem;
-        }
-
-        .stats-card {
+        .statistics-panel {
             margin-bottom: 0.5rem;
+            padding: 0.5rem;
         }
 
-        .stats-card-content {
-            flex-direction: column;
-            text-align: center;
-            gap: 0.5rem;
+        .data-table {
+            height: calc(100vh - 250px);
         }
 
-        .stats-icon {
-            align-self: center;
-        }
-
-        .stats-number {
-            font-size: 1.3rem;
-        }
-
-        .table-header {
-            flex-direction: column;
-            gap: 1rem;
-            align-items: stretch;
-            padding: 1rem;
-        }
-
-        .table-title {
-            font-size: 1.1rem;
-        }
-
-        .table-enhanced th,
-        .table-enhanced td {
-            padding: 0.8rem 0.6rem;
-            font-size: 0.9rem;
+        .data-table-content th,
+        .data-table-content td {
+            padding: 0.75rem 0.5rem;
+            font-size: 0.85rem;
         }
 
         .action-buttons {
             flex-direction: column;
-            gap: 0.3rem;
+            gap: 0.25rem;
         }
 
-        .document-item {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 1rem;
+        .action-btn-small {
+            width: 28px;
+            height: 28px;
+            font-size: 0.8rem;
         }
 
-        .document-info {
-            width: 100%;
+        .status-badge {
+            min-width: 90px;
+            padding: 0.375rem 0.5rem;
+            font-size: 0.75rem;
         }
-
-        .document-actions {
-            margin-left: 0;
-            width: 100%;
-        }
-
-            .document-actions .btn {
-                width: 100%;
-            }
     }
 
     @@media (max-width: 576px) {
-        .requests-table-container {
-            border-radius: 12px;
+        .page-title {
+            font-size: 1.5rem;
         }
 
-        .table-enhanced th,
-        .table-enhanced td {
-            padding: 0.6rem 0.4rem;
-            font-size: 0.85rem;
+        .data-table {
+            height: calc(100vh - 200px);
+            border-radius: 10px;
         }
 
-        .empty-state-card {
-            padding: 2rem 1rem;
-            min-height: 50vh;
+        .table-header {
+            padding: 0.75rem;
         }
 
-        .phase-tabs-container {
-            padding: 0.4rem;
+        .statistics-panel {
+            padding: 0.5rem 0.75rem;
         }
 
-        .stats-card {
-            padding: 0.6rem;
+        .stat-number {
+            font-size: 1.125rem;
         }
-    }
-    .requests-table-container .table-footer {
-        position: sticky;
-        bottom: 0;
-        background: #f8f9fa;
-        border-top: 1px solid #e9ecef;
-        padding: 1.2rem 1.5rem;
-        margin-top: auto;
-    }
 
-    .requests-table-container {
-        display: flex;
-        flex-direction: column;
-    }
+        .stat-label {
+            font-size: 0.65rem;
+        }
 
-    .table-responsive {
-        flex: 1;
+        .data-table-content th,
+        .data-table-content td {
+            padding: 0.5rem 0.25rem;
+            font-size: 0.8rem;
+        }
+
+        .status-badge {
+            min-width: 80px;
+            padding: 0.35rem 0.5rem;
+            font-size: 0.7rem;
+        }
+
+        .action-btn-small {
+            width: 26px;
+            height: 26px;
+            font-size: 0.75rem;
+        }
     }
 </style>

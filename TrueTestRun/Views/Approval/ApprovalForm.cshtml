@@ -12,124 +12,155 @@
     bool isFinalApprovalStep = isApprovalStep && currentStep != null && currentStep.Index == 10;
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>@HttpContext.GetGlobalResourceObject("Resources", "ApprovalForm"): @Model.RequestID</h2>
-    <a href="javascript:history.back()" class="btn btn-secondary">
-        <span style="font-size:1em;">⬅️</span> @HttpContext.GetGlobalResourceObject("Resources", "Back")
-    </a>
-</div>
-
-<!-- BẢNG THÔNG TIN REQUEST -->
-<div class="card mb-4">
-    <div class="card-header">
-        <h5><span style="font-size:1.1em;">📄</span> @HttpContext.GetGlobalResourceObject("Resources", "RequestInformation")</h5>
+<!-- Professional Page Header -->
+<div class="page-header">
+    <div class="page-title-section">
+        <h1 class="page-title">@HttpContext.GetGlobalResourceObject("Resources", "ApprovalForm")</h1>
+        <div class="page-subtitle">@Model.RequestID | Test Run Request Management System</div>
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th scope="col">ID</th>
-                        <th scope="col">@HttpContext.GetGlobalResourceObject("Resources", "CreatedDate")</th>
-                        <th scope="col">@HttpContext.GetGlobalResourceObject("Resources", "CurrentStep")</th>
-                        <th scope="col">@HttpContext.GetGlobalResourceObject("Resources", "Status")</th>
-                        <th scope="col">@HttpContext.GetGlobalResourceObject("Resources", "Actions")</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            <span class="fw-bold text-primary">@Model.RequestID</span>
-                        </td>
-                        <td>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                        <td>
-                            @if (currentStep != null)
-                            {
-                                <span class="badge bg-primary">@currentStep.StepName</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">@HttpContext.GetGlobalResourceObject("Resources", "Unknown")</span>
-                            }
-                        </td>
-                        <td>
-                            @if (Model.IsCompleted)
-                            {
-                                <span class="badge bg-success">
-                                    <span style="font-size:0.9em;">✅</span> @HttpContext.GetGlobalResourceObject("Resources", "Completed")
-                                </span>
-                            }
-                            else if (Model.IsRejected)
-                            {
-                                <span class="badge bg-danger">
-                                    <span style="font-size:0.9em;">❌</span> @HttpContext.GetGlobalResourceObject("Resources", "Rejected")
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-warning text-dark">
-                                    <span style="font-size:0.9em;">⏰</span> @HttpContext.GetGlobalResourceObject("Resources", "Processing")
-                                </span>
-                            }
-                        </td>
-                        <td>
-                            @if (isApprovalStep)
-                            {
-                                <span class="text-success"><span style="font-size:0.9em;">🔖</span> @HttpContext.GetGlobalResourceObject("Resources", "Approving")</span>
-                            }
-                            else if (isDataEntryStep)
-                            {
-                                <span class="text-warning"><span style="font-size:0.9em;">✏️</span> @HttpContext.GetGlobalResourceObject("Resources", "DataEntry")</span>
-                            }
-                            else
-                            {
-                                <span class="text-muted">@HttpContext.GetGlobalResourceObject("Resources", "ViewInformation")</span>
-                            }
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+    <div class="page-actions">
+        <a href="javascript:history.back()" class="action-btn secondary">
+            <span class="action-icon">←</span>
+            @HttpContext.GetGlobalResourceObject("Resources", "Back")
+        </a>
     </div>
 </div>
 
-<!-- PREVIEW EXCEL PHÓNG TO -->
-<div class="card mb-4">
-    <div class="card-header">
-        <h5><span style="font-size:1.1em;">📊</span> @HttpContext.GetGlobalResourceObject("Resources", "ExcelPreview") - @Model.RequestID</h5>
-    </div>
-    <div class="card-body text-center p-2">
-        <div class="excel-preview-container">
-            <img src="@Url.Action("PreviewImage", "Request", new { id = Model.RequestID })"
-                 class="img-fluid excel-preview-large"
-                 alt="Excel Preview" />
+<!-- Request Information Panel -->
+<div class="info-panel">
+    <div class="panel-header">
+        <div class="panel-title">
+            <span class="panel-icon">◉</span>
+            @HttpContext.GetGlobalResourceObject("Resources", "RequestInformation")
         </div>
+        <div class="panel-subtitle">Request Details & Current Status</div>
     </div>
-</div>
-<div class="text-center mb-4">
-    <div class="card border-info">
-        <div class="card-body py-3">
-            <h6 class="card-title mb-3">
-                <span style="font-size:1.1em;">📎</span> @HttpContext.GetGlobalResourceObject("Resources", "AttachedDocuments")
-            </h6>
-            @Html.Partial("_DocumentViewButton", Model.RequestID)
-            <div class="mt-2">
-                <small class="text-muted">
-                    <span style="font-size:0.9em;">ℹ️</span>
-                    @HttpContext.GetGlobalResourceObject("Resources", "ClickToViewDocuments")
-                </small>
+    <div class="panel-content">
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Request ID</div>
+                <div class="info-value request-id">@Model.RequestID</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">@HttpContext.GetGlobalResourceObject("Resources", "CreatedDate")</div>
+                <div class="info-value">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">@HttpContext.GetGlobalResourceObject("Resources", "CurrentStep")</div>
+                <div class="info-value">
+                    @if (currentStep != null)
+                    {
+                        <div class="step-badge">@currentStep.StepName</div>
+                    }
+                    else
+                    {
+                        <div class="step-badge unknown">@HttpContext.GetGlobalResourceObject("Resources", "Unknown")</div>
+                    }
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">@HttpContext.GetGlobalResourceObject("Resources", "Status")</div>
+                <div class="info-value">
+                    @if (Model.IsCompleted)
+                    {
+                        <div class="status-badge completed">
+                            <span class="status-icon">●</span>
+                            <span class="status-text">@HttpContext.GetGlobalResourceObject("Resources", "Completed")</span>
+                        </div>
+                    }
+                    else if (Model.IsRejected)
+                    {
+                        <div class="status-badge rejected">
+                            <span class="status-icon">○</span>
+                            <span class="status-text">@HttpContext.GetGlobalResourceObject("Resources", "Rejected")</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="status-badge processing">
+                            <span class="status-icon">◐</span>
+                            <span class="status-text">@HttpContext.GetGlobalResourceObject("Resources", "Processing")</span>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">@HttpContext.GetGlobalResourceObject("Resources", "Actions")</div>
+                <div class="info-value">
+                    @if (isApprovalStep)
+                    {
+                        <div class="action-indicator approval">
+                            <span class="action-icon">◈</span>
+                            <span class="action-text">@HttpContext.GetGlobalResourceObject("Resources", "Approving")</span>
+                        </div>
+                    }
+                    else if (isDataEntryStep)
+                    {
+                        <div class="action-indicator data-entry">
+                            <span class="action-icon">◆</span>
+                            <span class="action-text">@HttpContext.GetGlobalResourceObject("Resources", "DataEntry")</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="action-indicator view-only">
+                            <span class="action-icon">◯</span>
+                            <span class="action-text">@HttpContext.GetGlobalResourceObject("Resources", "ViewInformation")</span>
+                        </div>
+                    }
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- FORM PHÊ DUYỆT Ở DƯỚI CÙNG -->
+<!-- Excel Preview Panel -->
+<div class="preview-panel">
+    <div class="panel-header">
+        <div class="panel-title">
+            <span class="panel-icon">◎</span>
+            @HttpContext.GetGlobalResourceObject("Resources", "ExcelPreview")
+        </div>
+        <div class="panel-subtitle">@Model.RequestID - Document Preview</div>
+    </div>
+    <div class="panel-content">
+        <div class="preview-container">
+            <div class="preview-wrapper">
+                <img src="@Url.Action("PreviewImage", "Request", new { id = Model.RequestID })"
+                     class="preview-image"
+                     alt="Excel Preview" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Attached Documents Panel -->
+<div class="documents-panel">
+    <div class="panel-header">
+        <div class="panel-title">
+            <span class="panel-icon">◇</span>
+            @HttpContext.GetGlobalResourceObject("Resources", "AttachedDocuments")
+        </div>
+        <div class="panel-subtitle">Related Documents & Attachments</div>
+    </div>
+    <div class="panel-content">
+        <div class="documents-section">
+            @Html.Partial("_DocumentViewButton", Model.RequestID)
+            <div class="documents-note">
+                <span class="note-icon">ⓘ</span>
+                <span class="note-text">@HttpContext.GetGlobalResourceObject("Resources", "ClickToViewDocuments")</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approval Action Panel -->
 @if (isApprovalStep)
 {
-    <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h6 class="mb-0">
-                <span style="font-size:1em;">🔖</span>
+    <div class="approval-panel @(isFinalApprovalStep ? "final-approval" : "")">
+        <div class="panel-header">
+            <div class="panel-title">
+                <span class="panel-icon">@(isFinalApprovalStep ? "◈" : "◆")</span>
                 @if (isFinalApprovalStep)
                 {
                     <span>@HttpContext.GetGlobalResourceObject("Resources", "FinalApproval")</span>
@@ -138,68 +169,101 @@
                 {
                     <span>@HttpContext.GetGlobalResourceObject("Resources", "ApprovalAndStamp")</span>
                 }
-            </h6>
+            </div>
+            <div class="panel-subtitle">
+                @if (isFinalApprovalStep)
+                {
+                    <span>General Manager Final Decision</span>
+                }
+                else
+                {
+                    <span>Department Manager Approval Process</span>
+                }
+            </div>
         </div>
-        <div class="card-body">
-            @using (Html.BeginForm("ProcessApproval", "Approval", FormMethod.Post, new { id = "approvalForm" }))
+        <div class="panel-content">
+            @using (Html.BeginForm("ProcessApproval", "Approval", FormMethod.Post, new { id = "approvalForm", @class = "approval-form" }))
             {
                 @Html.AntiForgeryToken()
                 @Html.Hidden("RequestID", Model.RequestID)
 
-                <div class="row justify-content-center">
-                    <div class="col-md-8">
-
-                        @if (isFinalApprovalStep)
-                        {
-                            <!-- CHỈ HIỂN THỊ COMMENT CHO BƯỚC CUỐI CÙNG (G.M) -->
-                            <div class="mb-4">
-                                <label class="form-label fw-bold">
-                                    <span style="font-size:0.9em;">💬</span>
+                <div class="form-container">
+                    @if (isFinalApprovalStep)
+                    {
+                        <!-- Final Approval Comments Section -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <div class="section-title">
+                                    <span class="section-icon">◇</span>
                                     @HttpContext.GetGlobalResourceObject("Resources", "FinalApprovalNotes")
-                                </label>
-                                <textarea name="Comments" class="form-control" rows="4"
+                                </div>
+                                <div class="section-subtitle">General Manager Comments & Decision Notes</div>
+                            </div>
+                            <div class="form-group">
+                                <textarea name="Comments" class="form-control large"
+                                          rows="4"
                                           placeholder="@HttpContext.GetGlobalResourceObject("Resources", "EnterGMNotes")"></textarea>
-                                <div class="form-text">
-                                    <span style="font-size:0.9em;">ℹ️</span>
-                                    @HttpContext.GetGlobalResourceObject("Resources", "ApprovalHistoryNote")
+                                <div class="form-note">
+                                    <span class="note-icon">ⓘ</span>
+                                    <span class="note-text">@HttpContext.GetGlobalResourceObject("Resources", "ApprovalHistoryNote")</span>
                                 </div>
                             </div>
-                        }
-                        else
-                        {
-                            <!-- CHỈ HIỂN THỊ CHECKBOX ĐÓNG DẤU CHO CÁC BƯỚC KHÁC -->
-                            <div class="form-check mb-3 text-center">
-                                <input class="form-check-input" type="checkbox" name="shouldStamp" value="true" checked id="shouldStampCheck">
-                                <label class="form-check-label" for="shouldStampCheck">
-                                    <span style="font-size:0.9em;">🔖</span> @HttpContext.GetGlobalResourceObject("Resources", "StampWithApproval")
-                                </label>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Standard Approval Stamp Section -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <div class="section-title">
+                                    <span class="section-icon">◈</span>
+                                    Approval Configuration
+                                </div>
+                                <div class="section-subtitle">Stamp & Approval Settings</div>
                             </div>
-                        }
+                            <div class="form-group">
+                                <div class="checkbox-container">
+                                    <input class="form-checkbox" type="checkbox" name="shouldStamp" value="true" checked id="shouldStampCheck">
+                                    <label class="checkbox-label" for="shouldStampCheck">
+                                        <span class="checkbox-icon">◉</span>
+                                        <span class="checkbox-text">@HttpContext.GetGlobalResourceObject("Resources", "StampWithApproval")</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    }
 
-                        <div class="d-grid gap-2">
-                            <button type="submit" name="action" value="approve" class="btn btn-success btn-lg">
-                                <span style="font-size:1em;">✓</span>
-                                @if (isFinalApprovalStep)
-                                {
-                                    <span>@HttpContext.GetGlobalResourceObject("Resources", "FinalApproval")</span>
-                                }
-                                else
-                                {
-                                    <span>@HttpContext.GetGlobalResourceObject("Resources", "Approve")</span>
-                                }
+                    <!-- Action Buttons Section -->
+                    <div class="actions-section">
+                        <div class="actions-grid">
+                            <button type="submit" name="action" value="approve" class="action-btn primary large">
+                                <span class="btn-icon">✓</span>
+                                <span class="btn-text">
+                                    @if (isFinalApprovalStep)
+                                    {
+                                        <span>@HttpContext.GetGlobalResourceObject("Resources", "FinalApproval")</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@HttpContext.GetGlobalResourceObject("Resources", "Approve")</span>
+                                    }
+                                </span>
                             </button>
+
                             @if (isFinalApprovalStep)
                             {
-                                <!-- Nút từ chối cho G.M - submit trực tiếp -->
-                                <button type="submit" name="action" value="reject" class="btn btn-danger btn-lg">
-                                    <span style="font-size:1em;">❌</span> @HttpContext.GetGlobalResourceObject("Resources", "Reject")
+                                <!-- Direct Reject for GM -->
+                                <button type="submit" name="action" value="reject" class="action-btn danger large">
+                                    <span class="btn-icon">✕</span>
+                                    <span class="btn-text">@HttpContext.GetGlobalResourceObject("Resources", "Reject")</span>
                                 </button>
                             }
                             else
                             {
-                                <!-- Nút từ chối cho các bước trước - mở modal -->
-                                <button type="button" class="btn btn-danger btn-lg" id="btnReject">
-                                    <span style="font-size:1em;">❌</span> @HttpContext.GetGlobalResourceObject("Resources", "Reject")
+                                <!-- Modal Reject for Other Steps -->
+                                <button type="button" class="action-btn danger large" id="btnReject">
+                                    <span class="btn-icon">✕</span>
+                                    <span class="btn-text">@HttpContext.GetGlobalResourceObject("Resources", "Reject")</span>
                                 </button>
                             }
                         </div>
@@ -210,145 +274,182 @@
     </div>
 }
 
+<!-- Data Entry Action Panel -->
 @if (isDataEntryStep)
 {
-    <div class="text-center">
-        @using (Html.BeginForm("ProcessApproval", "Approval", FormMethod.Post))
-        {
-            @Html.AntiForgeryToken()
-            @Html.Hidden("RequestID", Model.RequestID)
+    <div class="data-entry-panel">
+        <div class="panel-header">
+            <div class="panel-title">
+                <span class="panel-icon">◆</span>
+                Data Entry Completion
+            </div>
+            <div class="panel-subtitle">Complete and Forward to Next Step</div>
+        </div>
+        <div class="panel-content">
+            @using (Html.BeginForm("ProcessApproval", "Approval", FormMethod.Post, new { @class = "data-entry-form" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.Hidden("RequestID", Model.RequestID)
 
-            <button type="submit" name="action" value="complete" class="btn btn-success btn-lg">
-                <span style="font-size:1em;">✓</span> @HttpContext.GetGlobalResourceObject("Resources", "CompleteAndForward")
-            </button>
-        }
+                <div class="actions-section">
+                    <button type="submit" name="action" value="complete" class="action-btn success large">
+                        <span class="btn-icon">✓</span>
+                        <span class="btn-text">@HttpContext.GetGlobalResourceObject("Resources", "CompleteAndForward")</span>
+                    </button>
+                </div>
+            }
+        </div>
     </div>
 }
 
-<!-- MODAL TỪ CHỐI CHO CÁC BƯỚC TRƯỚC G.M -->
+<!-- Professional Reject Modal -->
 @if (isApprovalStep && !isFinalApprovalStep)
 {
     <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="rejectModalLabel">
-                        <span style="font-size:1em;">❌</span> @HttpContext.GetGlobalResourceObject("Resources", "RejectApproval")
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content professional-modal">
+                <div class="modal-header">
+                    <div class="modal-title-section">
+                        <h5 class="modal-title" id="rejectModalLabel">
+                            <span class="modal-icon">✕</span>
+                            @HttpContext.GetGlobalResourceObject("Resources", "RejectApproval")
+                        </h5>
+                        <div class="modal-subtitle">Provide rejection reason and feedback</div>
+                    </div>
+                    <button type="button" class="modal-close" data-bs-dismiss="modal" aria-label="Close">×</button>
                 </div>
                 <div class="modal-body">
-                    <form id="rejectForm">
+                    <form id="rejectForm" class="reject-form">
                         @Html.AntiForgeryToken()
                         @Html.Hidden("RequestID", Model.RequestID)
                         <input type="hidden" name="action" value="reject" />
 
-                        <div class="mb-3">
-                            <label for="rejectReason" class="form-label fw-bold">
-                                <span style="font-size:0.9em;">💬</span> @HttpContext.GetGlobalResourceObject("Resources", "RejectReason")
-                            </label>
-                            <textarea name="Comments" id="rejectReason" class="form-control" rows="4"
-                                      placeholder="@HttpContext.GetGlobalResourceObject("Resources", "EnterRejectReason")"></textarea>
-                            <div class="form-text">
-                                <span style="font-size:0.9em;">ℹ️</span> @HttpContext.GetGlobalResourceObject("Resources", "RejectReasonOptional")
+                        <div class="form-section">
+                            <div class="section-header">
+                                <div class="section-title">
+                                    <span class="section-icon">◇</span>
+                                    @HttpContext.GetGlobalResourceObject("Resources", "RejectReason")
+                                </div>
+                                <div class="section-subtitle">Detailed reason for rejection</div>
+                            </div>
+                            <div class="form-group">
+                                <textarea name="Comments" id="rejectReason" class="form-control large" rows="4"
+                                          placeholder="@HttpContext.GetGlobalResourceObject("Resources", "EnterRejectReason")"></textarea>
+                                <div class="form-note">
+                                    <span class="note-icon">ⓘ</span>
+                                    <span class="note-text">@HttpContext.GetGlobalResourceObject("Resources", "RejectReasonOptional")</span>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <div class="alert alert-warning d-flex align-items-center">
-                                <span style="font-size:1.2em; margin-right: 8px;">⚠️</span>
-                                <div>
-                                    <strong>@HttpContext.GetGlobalResourceObject("Resources", "Warning"):</strong> @HttpContext.GetGlobalResourceObject("Resources", "RejectWarning")
+                        <div class="warning-section">
+                            <div class="warning-content">
+                                <span class="warning-icon">⚠</span>
+                                <div class="warning-text">
+                                    <strong>@HttpContext.GetGlobalResourceObject("Resources", "Warning"):</strong>
+                                    <span>@HttpContext.GetGlobalResourceObject("Resources", "RejectWarning")</span>
                                 </div>
                             </div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <span style="font-size:0.9em;">↩️</span> @HttpContext.GetGlobalResourceObject("Resources", "Cancel")
-                    </button>
-                    <button type="button" class="btn btn-danger" id="confirmReject">
-                        <span style="font-size:0.9em;">❌</span> @HttpContext.GetGlobalResourceObject("Resources", "ConfirmReject")
-                    </button>
+                    <div class="modal-actions">
+                        <button type="button" class="action-btn secondary" data-bs-dismiss="modal">
+                            <span class="btn-icon">←</span>
+                            <span class="btn-text">@HttpContext.GetGlobalResourceObject("Resources", "Cancel")</span>
+                        </button>
+                        <button type="button" class="action-btn danger" id="confirmReject">
+                            <span class="btn-icon">✕</span>
+                            <span class="btn-text">@HttpContext.GetGlobalResourceObject("Resources", "ConfirmReject")</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 }
-
 @section Scripts {
     <script>
+        // Declare localized messages as JavaScript variables with proper encoding
+        var confirmFinalApproval = '@Html.Raw(HttpUtility.JavaScriptStringEncode(HttpContext.GetGlobalResourceObject("Resources", "ConfirmFinalApproval").ToString()))';
+        var confirmApprove = '@Html.Raw(HttpUtility.JavaScriptStringEncode(HttpContext.GetGlobalResourceObject("Resources", "ConfirmApprove").ToString()))';
+        var confirmRejectRequest = '@Html.Raw(HttpUtility.JavaScriptStringEncode(HttpContext.GetGlobalResourceObject("Resources", "ConfirmRejectRequest").ToString()))';
+        var confirmComplete = '@Html.Raw(HttpUtility.JavaScriptStringEncode(HttpContext.GetGlobalResourceObject("Resources", "ConfirmComplete").ToString()))';
+        var charactersEntered = '@Html.Raw(HttpUtility.JavaScriptStringEncode(HttpContext.GetGlobalResourceObject("Resources", "CharactersEntered").ToString()))';
+        var approvalHistoryNote = '@Html.Raw(HttpUtility.JavaScriptStringEncode(HttpContext.GetGlobalResourceObject("Resources", "ApprovalHistoryNote").ToString()))';
+        var rejectReasonOptional = '@Html.Raw(HttpUtility.JavaScriptStringEncode(HttpContext.GetGlobalResourceObject("Resources", "RejectReasonOptional").ToString()))';
+
         $(document).ready(function () {
             @if (isFinalApprovalStep)
             {
                 <text>
-                // Logic cho bước cuối cùng (G.M) - có textarea sẵn
+                // Final approval logic
                 $('#approvalForm').on('submit', function (e) {
                     var $form = $(this);
                     var $submitButton = $(document.activeElement);
                     var action = $submitButton.val();
 
                     if (action === 'reject') {
-                        if (!confirm('@HttpContext.GetGlobalResourceObject("Resources", "ConfirmRejectRequest")')) {
+                        if (!confirm(confirmRejectRequest)) {
                             e.preventDefault();
                             return false;
                         }
                     }
 
                     if (action === 'approve') {
-                        if (!confirm('@HttpContext.GetGlobalResourceObject("Resources", "ConfirmFinalApproval")')) {
+                        if (!confirm(confirmFinalApproval)) {
                             e.preventDefault();
                             return false;
                         }
                     }
                 });
 
-                // Character counter for textarea (chỉ cho bước cuối cùng)
+                // Character counter for final approval textarea
                 $('textarea[name="Comments"]').on('input', function() {
                     var len = $(this).val().length;
-                    var info = $(this).siblings('.form-text');
-                    info.html(`<span style="font-size:0.9em;">ℹ️</span> @HttpContext.GetGlobalResourceObject("Resources", "CharactersEntered")`.replace('{0}', len) + ' @HttpContext.GetGlobalResourceObject("Resources", "ApprovalHistoryNote")');
+                    var info = $(this).siblings('.form-note').find('.note-text');
+                    info.text(charactersEntered.replace('{0}', len) + ' - ' + approvalHistoryNote);
                 });
                 </text>
             }
             else
             {
                 <text>
-                // Logic cho các bước trước (không phải G.M) - dùng modal
+                // Standard approval logic with modal
                 $('#approvalForm').on('submit', function (e) {
                     var $form = $(this);
                     var $submitButton = $(document.activeElement);
                     var action = $submitButton.val();
 
                     if (action === 'approve') {
-                        if (!confirm('@HttpContext.GetGlobalResourceObject("Resources", "ConfirmApprove")')) {
+                        if (!confirm(confirmApprove)) {
                             e.preventDefault();
                             return false;
                         }
                     }
                 });
 
-                // Mở modal khi nhấn nút từ chối
+                // Open reject modal
                 $('#btnReject').on('click', function() {
                     $('#rejectModal').modal('show');
                 });
 
-                // Xử lý khi nhấn "Xác nhận từ chối" trong modal
+                // Handle reject confirmation
                 $('#confirmReject').on('click', function() {
                     var reason = $('#rejectReason').val().trim();
 
-                    if (!confirm('@HttpContext.GetGlobalResourceObject("Resources", "ConfirmRejectRequest")')) {
+                    if (!confirm(confirmRejectRequest)) {
                         return;
                     }
 
-                    // Tạo form ẩn để submit
+                    // Create hidden form for submission
                     var form = $('<form>', {
                         'method': 'POST',
                         'action': '@Url.Action("ProcessApproval", "Approval")'
                     });
 
-                    // Thêm các field cần thiết
+                    // Add required fields
                     form.append($('<input>', {
                         'type': 'hidden',
                         'name': '__RequestVerificationToken',
@@ -378,19 +479,19 @@
                     form.submit();
                 });
 
-                // Character counter cho modal textarea
+                // Character counter for reject modal
                 $('#rejectReason').on('input', function() {
                     var len = $(this).val().length;
-                    var info = $(this).siblings('.form-text');
-                    info.html(`<span style="font-size:0.9em;">ℹ️</span> @HttpContext.GetGlobalResourceObject("Resources", "CharactersEntered")`.replace('{0}', len) + ' @HttpContext.GetGlobalResourceObject("Resources", "RejectReasonOptional")');
+                    var info = $(this).siblings('.form-note').find('.note-text');
+                    info.text(charactersEntered.replace('{0}', len) + ' - ' + rejectReasonOptional);
                 });
                 </text>
             }
 
-            // Handle data entry step
+            // Handle data entry completion
             if ($('button[name="action"][value="complete"]').length > 0) {
                 $('button[name="action"][value="complete"]').on('click', function(e) {
-                    if (!confirm('@HttpContext.GetGlobalResourceObject("Resources", "ConfirmComplete")')) {
+                    if (!confirm(confirmComplete)) {
                         e.preventDefault();
                         return false;
                     }
@@ -401,76 +502,659 @@
 }
 
 <style>
-    .excel-preview-container {
-        background: #f8f9fa;
-        border: 2px dashed #dee2e6;
-        border-radius: 8px;
-        padding: 10px;
-        margin: 0 auto;
+    /* ========== JAPANESE CORPORATE APPROVAL FORM DESIGN ========== */
+
+    /* Page Header */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border-light);
     }
 
-    .excel-preview-large {
-        max-width: 100%;
-        min-height: 600px;
-        border-radius: 4px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    .page-title-section h1.page-title {
+        font-size: 1.875rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 0.5rem 0;
     }
 
-    .card {
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        border: 1px solid rgba(0, 0, 0, 0.125);
-    }
-
-    .card-header h6 {
+    .page-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
         margin: 0;
+    }
+
+    .page-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    /* Professional Panels */
+    .info-panel,
+    .preview-panel,
+    .documents-panel,
+    .approval-panel,
+    .data-entry-panel {
+        background: var(--background-white);
+        border-radius: 12px;
+        border: 1px solid var(--border-light);
+        box-shadow: var(--shadow-soft);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+
+    .panel-header {
+        background: var(--background-secondary);
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .panel-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.125rem;
         font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
     }
 
-    .table th {
-        border-top: none;
+    .panel-icon {
+        font-size: 1rem;
+        opacity: 0.7;
+        color: var(--corporate-blue);
+    }
+
+    .panel-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin: 0;
+    }
+
+    .panel-content {
+        padding: 2rem;
+    }
+
+    /* Information Grid */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .info-label {
+        font-size: 0.8rem;
         font-weight: 600;
-        white-space: nowrap;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
 
-    .table td {
-        vertical-align: middle;
+    .info-value {
+        font-size: 1rem;
+        color: var(--text-primary);
+        font-weight: 500;
     }
 
-    .badge {
-        font-size: 0.75em;
-    }
-
-    .btn {
-        border-radius: 6px;
-    }
-
-    .btn-lg {
-        padding: 0.75rem 1.5rem;
+    .request-id {
+        font-family: 'Consolas', 'Monaco', monospace;
+        color: var(--corporate-blue);
+        font-weight: 600;
         font-size: 1.125rem;
     }
 
-    /* THÊM: Style đặc biệt cho bước cuối cùng */
-    .final-approval-highlight {
-        border: 2px solid #ffc107;
-        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    /* Status & Action Badges */
+    .step-badge,
+    .status-badge,
+    .action-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border: 1px solid transparent;
     }
 
-    /* Style cho modal */
-    .modal-content {
+    .step-badge {
+        background: var(--corporate-blue);
+        color: var(--background-white);
+    }
+
+        .step-badge.unknown {
+            background: var(--text-muted);
+            color: var(--background-white);
+        }
+
+    .status-badge.completed {
+        background: #dcfce7;
+        border-color: #bbf7d0;
+        color: #166534;
+    }
+
+    .status-badge.rejected {
+        background: #fee2e2;
+        border-color: #fecaca;
+        color: #991b1b;
+    }
+
+    .status-badge.processing {
+        background: #fef3c7;
+        border-color: #fde68a;
+        color: #92400e;
+    }
+
+    .action-indicator.approval {
+        background: #dcfce7;
+        border-color: #bbf7d0;
+        color: #166534;
+    }
+
+    .action-indicator.data-entry {
+        background: #fef3c7;
+        border-color: #fde68a;
+        color: #92400e;
+    }
+
+    .action-indicator.view-only {
+        background: var(--background-secondary);
+        border-color: var(--border-light);
+        color: var(--text-secondary);
+    }
+
+    .status-icon,
+    .action-icon {
+        font-size: 0.875rem;
+        flex-shrink: 0;
+    }
+
+    /* Preview Panel */
+    .preview-container {
+        background: var(--background-primary);
+        border: 2px dashed var(--border-medium);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .preview-wrapper {
+        display: inline-block;
+        max-width: 100%;
+    }
+
+    .preview-image {
+        max-width: 100%;
+        height: auto;
+        min-height: 500px;
+        border-radius: 8px;
+        box-shadow: var(--shadow-medium);
+        border: 1px solid var(--border-light);
+    }
+
+    /* Documents Panel */
+    .documents-section {
+        text-align: center;
+        padding: 1rem 0;
+    }
+
+    .documents-note {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+
+    .note-icon {
+        font-size: 0.875rem;
+        opacity: 0.7;
+    }
+
+    /* Approval Panel Special Styling */
+    .approval-panel.final-approval {
+        border: 2px solid #fbbf24;
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    }
+
+        .approval-panel.final-approval .panel-header {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: var(--background-white);
+        }
+
+        .approval-panel.final-approval .panel-icon {
+            color: var(--background-white);
+            opacity: 1;
+        }
+
+    /* Form Container */
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+    }
+
+    .section-header {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .section-icon {
+        font-size: 0.9rem;
+        opacity: 0.7;
+        color: var(--corporate-blue);
+    }
+
+    .section-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin: 0;
+    }
+
+    /* Form Controls */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 2px solid var(--border-light);
+        border-radius: 8px;
+        font-size: 0.95rem;
+        color: var(--text-primary);
+        background: var(--background-white);
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+    }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--corporate-blue);
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        }
+
+        .form-control.large {
+            padding: 1rem 1.25rem;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+    .form-note {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+
+    /* Checkbox Styling */
+    .checkbox-container {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        background: var(--background-secondary);
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+        .checkbox-container:hover {
+            background: var(--background-primary);
+            border-color: var(--border-medium);
+        }
+
+    .form-checkbox {
+        width: 20px;
+        height: 20px;
+        accent-color: var(--corporate-blue);
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        font-weight: 500;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .checkbox-icon {
+        font-size: 0.9rem;
+        opacity: 0.7;
+    }
+
+    /* Action Buttons */
+    .actions-section {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border-light);
+    }
+
+    .actions-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 1rem 1.5rem;
+        border: 2px solid transparent;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-align: center;
+    }
+
+        .action-btn.large {
+            padding: 1.25rem 2rem;
+            font-size: 1.125rem;
+        }
+
+        .action-btn.primary {
+            background: var(--corporate-blue);
+            color: var(--background-white);
+            border-color: var(--corporate-blue);
+        }
+
+            .action-btn.primary:hover {
+                background: #1e40af;
+                border-color: #1e40af;
+                color: var(--background-white);
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-medium);
+            }
+
+        .action-btn.danger {
+            background: var(--error-red);
+            color: var(--background-white);
+            border-color: var(--error-red);
+        }
+
+            .action-btn.danger:hover {
+                background: #b91c1c;
+                border-color: #b91c1c;
+                color: var(--background-white);
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-medium);
+            }
+
+        .action-btn.success {
+            background: var(--success-green);
+            color: var(--background-white);
+            border-color: var(--success-green);
+        }
+
+            .action-btn.success:hover {
+                background: #047857;
+                border-color: #047857;
+                color: var(--background-white);
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-medium);
+            }
+
+        .action-btn.secondary {
+            background: var(--background-secondary);
+            color: var(--text-secondary);
+            border-color: var(--border-medium);
+        }
+
+            .action-btn.secondary:hover {
+                background: var(--background-primary);
+                color: var(--text-primary);
+                border-color: var(--border-medium);
+                transform: translateY(-1px);
+            }
+
+    .btn-icon {
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    /* Professional Modal */
+    .professional-modal {
         border-radius: 12px;
         border: none;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        box-shadow: var(--shadow-large);
+        overflow: hidden;
     }
 
     .modal-header {
-        border-radius: 12px 12px 0 0;
+        background: var(--background-secondary);
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .modal-title-section {
+        flex: 1;
+    }
+
+    .modal-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 0.5rem 0;
+    }
+
+    .modal-icon {
+        font-size: 1rem;
+        opacity: 0.7;
+        color: var(--error-red);
+    }
+
+    .modal-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin: 0;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+
+        .modal-close:hover {
+            background: var(--background-primary);
+            color: var(--text-primary);
+        }
+
+    .modal-body {
+        padding: 2rem;
     }
 
     .modal-footer {
-        border-radius: 0 0 12px 12px;
+        background: var(--background-secondary);
+        padding: 1.5rem 2rem;
+        border-top: 1px solid var(--border-light);
     }
 
-    .btn-close-white {
-        filter: brightness(0) invert(1);
+    .modal-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+    }
+
+    /* Warning Section */
+    .warning-section {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background: #fef3c7;
+        border: 1px solid #fbbf24;
+        border-radius: 8px;
+    }
+
+    .warning-content {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .warning-icon {
+        font-size: 1.25rem;
+        color: #d97706;
+        flex-shrink: 0;
+        margin-top: 0.125rem;
+    }
+
+    .warning-text {
+        color: #92400e;
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+
+    /* Data Entry Panel */
+    .data-entry-panel .panel-header {
+        background: linear-gradient(135deg, var(--success-green) 0%, #047857 100%);
+        color: var(--background-white);
+    }
+
+    .data-entry-panel .panel-icon {
+        color: var(--background-white);
+        opacity: 1;
+    }
+
+    /* Single Action Button for Data Entry */
+    .data-entry-panel .actions-section .action-btn {
+        max-width: 400px;
+        margin: 0 auto;
+        display: flex;
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 1024px) {
+        .page-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .actions-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .panel-content {
+            padding: 1.5rem;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .page-title {
+            font-size: 1.5rem;
+        }
+
+        .panel-header {
+            padding: 1rem 1.5rem;
+        }
+
+        .panel-content {
+            padding: 1rem;
+        }
+
+        .form-container {
+            max-width: 100%;
+        }
+
+        .preview-container {
+            padding: 1rem;
+        }
+
+        .preview-image {
+            min-height: 300px;
+        }
+
+        .modal-header,
+        .modal-body,
+        .modal-footer {
+            padding: 1rem;
+        }
+
+        .modal-actions {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .info-grid {
+            gap: 0.75rem;
+        }
+
+        .actions-grid {
+            gap: 0.75rem;
+        }
+
+        .action-btn.large {
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+        }
+
+        .checkbox-container {
+            padding: 0.75rem 1rem;
+        }
+
+        .form-control.large {
+            padding: 0.875rem 1rem;
+        }
     }
 </style>

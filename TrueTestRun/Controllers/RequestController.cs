@@ -54,6 +54,16 @@ namespace TrueTestRun.Controllers
                 .OrderByDescending(r => r.CreatedAt)
                 .ToList();
 
+            // SỬA: Thêm thông tin component cho completed requests
+            var componentInfoDict = new Dictionary<string, Dictionary<string, string>>();
+            foreach (var request in completedRequests)
+            {
+                var componentInfo = GetComponentInfoFromExcel(request.RequestID);
+                componentInfoDict[request.RequestID] = componentInfo;
+            }
+            
+            ViewBag.ComponentInfo = componentInfoDict;
+
             return View(completedRequests);
         }
 
@@ -921,6 +931,17 @@ namespace TrueTestRun.Controllers
         public ActionResult TruocTestRun()
         {
             var requests = GetRequestsByPhase(TestRunPhase.TruocTestRun);
+            
+            // Thêm thông tin component cho mỗi request
+            foreach (var request in requests)
+            {
+                var componentInfo = GetComponentInfoFromExcel(request.RequestID);
+                
+                // Add to ViewBag for this specific request
+                ViewBag.ComponentInfo = ViewBag.ComponentInfo ?? new Dictionary<string, Dictionary<string, string>>();
+                ((Dictionary<string, Dictionary<string, string>>)ViewBag.ComponentInfo)[request.RequestID] = componentInfo;
+            }
+            
             ViewBag.Title = "Request – " + GetResourceString("BeforeTestRun");
             ViewBag.CurrentPhase = TestRunPhase.TruocTestRun;
             ViewBag.CurrentPhaseTitle = GetResourceString("BeforeTestRun");
@@ -930,6 +951,16 @@ namespace TrueTestRun.Controllers
         public ActionResult GiuaTestRun()
         {
             var requests = GetRequestsByPhase(TestRunPhase.GiuaTestRun);
+            
+            // Thêm thông tin component cho mỗi request
+            foreach (var request in requests)
+            {
+                var componentInfo = GetComponentInfoFromExcel(request.RequestID);
+                
+                ViewBag.ComponentInfo = ViewBag.ComponentInfo ?? new Dictionary<string, Dictionary<string, string>>();
+                ((Dictionary<string, Dictionary<string, string>>)ViewBag.ComponentInfo)[request.RequestID] = componentInfo;
+            }
+            
             ViewBag.Title = "Request – " + GetResourceString("DuringTestRun");
             ViewBag.CurrentPhase = TestRunPhase.GiuaTestRun;
             ViewBag.CurrentPhaseTitle = GetResourceString("DuringTestRun");
@@ -939,6 +970,16 @@ namespace TrueTestRun.Controllers
         public ActionResult SauTestRun()
         {
             var requests = GetRequestsByPhase(TestRunPhase.SauTestRun);
+            
+            // Thêm thông tin component cho mỗi request
+            foreach (var request in requests)
+            {
+                var componentInfo = GetComponentInfoFromExcel(request.RequestID);
+                
+                ViewBag.ComponentInfo = ViewBag.ComponentInfo ?? new Dictionary<string, Dictionary<string, string>>();
+                ((Dictionary<string, Dictionary<string, string>>)ViewBag.ComponentInfo)[request.RequestID] = componentInfo;
+            }
+            
             ViewBag.Title = "Request – " + GetResourceString("AfterTestRun");
             ViewBag.CurrentPhase = TestRunPhase.SauTestRun;
             ViewBag.CurrentPhaseTitle = GetResourceString("AfterTestRun");
@@ -1062,6 +1103,7 @@ namespace TrueTestRun.Controllers
                 return Content("{\"success\": false, \"error\": \"" + ex.Message.Replace("\"", "\\\"") + "\"}");
             }
         }
+
         public ActionResult Rejected()
         {
             var currentUser = Session["CurrentUser"] as User;
@@ -1075,6 +1117,16 @@ namespace TrueTestRun.Controllers
                 .Where(r => r.IsRejected)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToList();
+
+            // SỬA: Thêm thông tin component cho rejected requests
+            var componentInfoDict = new Dictionary<string, Dictionary<string, string>>();
+            foreach (var request in rejectedRequests)
+            {
+                var componentInfo = GetComponentInfoFromExcel(request.RequestID);
+                componentInfoDict[request.RequestID] = componentInfo;
+            }
+
+            ViewBag.ComponentInfo = componentInfoDict;
 
             return View(rejectedRequests);
         }
@@ -1098,6 +1150,35 @@ namespace TrueTestRun.Controllers
                 default:
                     return RedirectToAction("TruocTestRun");
             }
+        }
+
+        /// <summary>
+        /// Helper method để đọc thông tin linh kiện từ Excel
+        /// </summary>
+        private Dictionary<string, string> GetComponentInfoFromExcel(string requestId)
+        {
+            var result = new Dictionary<string, string>
+            {
+                ["MaLinhKien"] = "N/A",
+                ["TenLinhKien"] = "N/A", 
+                ["NhaCungCap"] = "N/A"
+            };
+
+            try
+            {
+                var excelPath = Server.MapPath($"~/App_Data/Requests/{requestId}/request.xlsx");
+                if (System.IO.File.Exists(excelPath))
+                {
+                    var fieldKeys = new[] { "MaLinhKien", "TenLinhKien", "NhaCungCap" };
+                    result = ex.ReadFieldsFromExcel(excelPath, fieldKeys);
+                }
+            }
+            catch (Exception)
+            {
+                // Keep default N/A values
+            }
+
+            return result;
         }
     }
 }

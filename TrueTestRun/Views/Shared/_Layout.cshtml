@@ -8,198 +8,311 @@
 <html lang="@currentLanguage">
 <head>
     <meta charset="utf-8" />
-    <title>@ViewBag.Title – Test Run</title>
-    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title – Test Run System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="~/Content/css/bootstrap.css" rel="stylesheet" />
     <link href="~/Content/css/bootstrap.min.css" rel="stylesheet" />
     <script src="~/Content/js/bootstrap.bundle.js"></script>
     <script src="~/Content/js/bootstrap.min.js"></script>
-    <script src="~/Content/js1/fontawesome.js"></script>
 
     <style>
+        /* ========== JAPANESE CORPORATE LAYOUT DESIGN ========== */
+
+        /* Professional Color Palette */
+        :root {
+            --corporate-blue: #1e3a8a;
+            --secondary-blue: #3b82f6;
+            --background-primary: #f8fafc;
+            --background-secondary: #f1f5f9;
+            --background-white: #ffffff;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --border-light: #e5e7eb;
+            --border-medium: #d1d5db;
+            --shadow-subtle: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-soft: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            --shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-large: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --success-green: #059669;
+            --warning-amber: #d97706;
+            --error-red: #dc2626;
+        }
+
         body {
-            font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
-            background-color: #f4f6fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo', sans-serif;
+            background: var(--background-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
         }
 
-        .navbar {
-            background-color: #fff !important;
-            color: #0033a0;
-            z-index: 1050;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-            height: 56px;
-            min-height: 56px;
-            border-bottom: 1px solid #e3eafc;
-        }
+        /* ========== FIXED HEADER ALIGNMENT ========== */
 
-            .navbar .navbar-brand img {
-                height: 56px;
-                width: auto;
-                margin-right: 18px;
-                border-radius: 12px;
-                background: #fff;
-                padding: 6px 18px;
-                box-shadow: 0 1px 6px rgba(0,0,0,0.10);
-            }
-
-            .navbar .navbar-brand,
-            .navbar .nav-link,
-            .navbar .navbar-text {
-                color: #0033a0 !important;
-            }
-
-                .navbar .nav-link.active, .navbar .nav-link:hover {
-                    color: #0033a0 !important;
-                    font-weight: bold;
-                }
-
-                .navbar .navbar-text.hello-highlight {
-                    font-size: 1.25rem;
-                    font-weight: bold;
-                    color: #222 !important;
-                    text-shadow: 0 1px 4px rgba(0,0,0,0.10);
-                    letter-spacing: 0.5px;
-                }
-
-        .sidebar {
-            width: 240px;
-            background: linear-gradient(180deg, #0033a0 80%, #0055b7 100%);
-            min-height: 100vh;
-            padding: 1.5rem 0.7rem 1rem 0.7rem;
+        /* Professional Header */
+        .corporate-header {
+            background: var(--background-white);
+            border-bottom: 1px solid var(--border-light);
+            box-shadow: var(--shadow-soft);
             position: fixed;
             top: 0;
             left: 0;
-            overflow-y: auto;
-            box-shadow: 2px 0 8px rgba(0,0,0,0.04);
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
+            right: 0;
+            height: 64px;
+            z-index: 1000;
         }
 
-            .sidebar a {
-                color: #e3eafc;
-                display: flex;
-                align-items: center;
-                padding: 0.7rem 1.1rem;
-                margin-bottom: 6px;
-                border-radius: 8px;
-                text-decoration: none;
-                font-weight: 500;
-                transition: background 0.2s, color 0.2s;
-                font-size: 1.08rem;
-            }
-
-                .sidebar a:hover,
-                .sidebar a.active {
-                    background-color: #fff;
-                    color: #0033a0 !important;
-                    font-weight: 700;
-                }
-
-            .sidebar i {
-                min-width: 22px;
-                text-align: center;
-                font-size: 1.15em;
-            }
-
-        .main-content {
-            margin-left: 240px;
-            margin-top: 56px;
-            padding: 2.5rem 2.2rem 1.5rem 2.2rem;
-            min-height: calc(100vh - 56px);
-            background: #fff;
-            border-radius: 0 0 14px 14px;
-            position: relative;
-            box-sizing: border-box;
-            padding-bottom: 48px;
-        }
-
-        .card, .main-content {
-            border-radius: 14px;
-            box-shadow: 0 2px 12px rgba(0,51,160,0.07);
-        }
-
-        .dashboard-card {
-            border-radius: 16px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-            border: none;
-            margin-bottom: 24px;
-            padding: 1.5rem 2rem;
+        .header-content {
             display: flex;
             align-items: center;
-            gap: 1.2rem;
+            justify-content: space-between;
+            height: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0 1.5rem;
         }
 
-            .dashboard-card .icon {
-                font-size: 2.5rem;
-                margin-right: 1rem;
+        /* Company Branding - Fixed Left Side */
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-shrink: 0; /* CRITICAL: Prevents shrinking */
+        }
+
+        .company-logo {
+            height: 40px;
+            width: auto;
+            border-radius: 6px;
+            box-shadow: var(--shadow-subtle);
+            flex-shrink: 0; /* Prevents logo shrinking */
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Centers text vertically */
+            min-width: 0; /* Allows text to shrink if needed */
+        }
+
+        .system-name {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.1; /* Tighter line height */
+            margin-bottom: 0.125rem; /* Small margin between lines */
+        }
+
+        .company-name {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            line-height: 1.1;
+        }
+
+        /* Navigation Section - Fixed Right Side */
+        .nav-section {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem; /* Reduced from 2rem */
+            flex-shrink: 0; /* CRITICAL: Prevents shrinking */
+        }
+
+        /* User Information - Fixed */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            white-space: nowrap; /* Prevents text wrapping */
+            flex-shrink: 0; /* Prevents shrinking */
+        }
+
+        .greeting {
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            line-height: 1.2; /* Tighter line height */
+            display: flex;
+            align-items: center;
+        }
+
+        .user-name {
+            color: var(--corporate-blue);
+            font-weight: 600;
+        }
+
+        /* Header Actions - Fixed */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-medium);
+            border-radius: 6px;
+            background: var(--background-white);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+            .action-btn:hover {
+                border-color: var(--corporate-blue);
+                color: var(--corporate-blue);
+                background: var(--background-secondary);
+                text-decoration: none;
             }
 
-        .dashboard-card-success {
-            background: #eafaf1;
-            color: #1e824c;
-        }
-
-        .dashboard-card-warning {
-            background: #fffbe6;
-            color: #e67e22;
-        }
-
-        .dashboard-welcome {
-            text-align: center;
-            margin: 32px 0 24px 0;
-        }
-
-            .dashboard-welcome h2 {
-                font-weight: 600;
-                color: #1976d2;
+            .action-btn.primary {
+                background: var(--corporate-blue);
+                color: var(--background-white);
+                border-color: var(--corporate-blue);
             }
 
-            .dashboard-welcome p {
-                color: #555;
-                font-size: 1.1rem;
-            }
+                .action-btn.primary:hover {
+                    background: #1e40af;
+                    color: var(--background-white);
+                }
 
-            .dashboard-welcome .btn {
-                margin-top: 18px;
-                font-size: 1.1rem;
-                padding: 10px 28px;
-            }
-
-        .footer-brother {
-            position: absolute;
-            right: 18px;
-            bottom: 10px;
-            left: auto;
-            margin: 0;
-            background: transparent;
-            color: #0033a0;
-            text-align: right;
-            padding: 0;
-            font-size: 0.92rem;
-            letter-spacing: 0.2px;
-            border-radius: 0;
-            box-shadow: none;
-            z-index: 9999;
-            opacity: 0.7;
-            user-select: none;
+        .action-icon {
+            font-size: 1rem;
         }
 
-        /* Language selector styles */
-        .language-selector {
+        /* Professional Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 64px;
+            left: 0;
+            width: 280px;
+            height: calc(100vh - 64px);
+            background: var(--background-white);
+            border-right: 1px solid var(--border-light);
+            overflow-y: auto;
+            z-index: 900;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .sidebar-content {
+            padding: 1.5rem 0;
+        }
+
+        /* Navigation Menu */
+        .nav-menu {
+            padding: 0 1rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin: 1.5rem 1rem 0.75rem;
+        }
+
+            .nav-section-title:first-child {
+                margin-top: 0;
+            }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.25rem;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
             position: relative;
         }
+
+            .nav-item:hover {
+                background: var(--background-secondary);
+                color: var(--text-primary);
+                text-decoration: none;
+            }
+
+            .nav-item.active {
+                background: linear-gradient(135deg, var(--corporate-blue) 0%, #1e40af 100%);
+                color: var(--background-white);
+                font-weight: 600;
+            }
+
+                .nav-item.active::before {
+                    content: '';
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    height: 100%;
+                    width: 4px;
+                    background: var(--background-white);
+                    border-radius: 0 4px 4px 0;
+                }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1.1rem;
+        }
+
+        /* Language Selector */
+        .language-selector {
+            margin: 1.5rem 1rem 0;
+            position: relative;
+        }
+
+        .language-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: var(--background-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+            .language-toggle:hover {
+                border-color: var(--border-medium);
+                color: var(--text-primary);
+                text-decoration: none;
+            }
 
         .language-dropdown {
             position: absolute;
             top: 100%;
+            left: 0;
             right: 0;
-            background: white;
-            border: 1px solid #e3eafc;
+            background: var(--background-white);
+            border: 1px solid var(--border-light);
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            min-width: 120px;
-            z-index: 1060;
+            box-shadow: var(--shadow-medium);
+            margin-top: 0.5rem;
+            overflow: hidden;
+            z-index: 1000;
             display: none;
         }
 
@@ -207,147 +320,411 @@
                 display: block;
             }
 
-            .language-dropdown a {
-                display: block;
-                padding: 0.5rem 1rem;
-                color: #0033a0;
-                text-decoration: none;
-                border-bottom: 1px solid #f8f9fa;
+        .language-option {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: background 0.2s ease;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+            .language-option:last-child {
+                border-bottom: none;
             }
 
-                .language-dropdown a:hover {
-                    background: #f8f9fa;
+            .language-option:hover {
+                background: var(--background-secondary);
+                color: var(--text-primary);
+                text-decoration: none;
+            }
+
+            .language-option.active {
+                background: var(--corporate-blue);
+                color: var(--background-white);
+                font-weight: 600;
+            }
+
+        /* Main Content Area */
+        .main-content {
+            margin-left: 280px;
+            margin-top: 64px;
+            min-height: calc(100vh - 64px);
+            background: var(--background-primary);
+            position: relative; /* Important: for absolute footer */
+        }
+
+        .content-wrapper {
+            padding: 2rem;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Professional Footer (NON-sticky, stays at bottom of page content) */
+        .corporate-footer {
+            position: absolute; /* changed from fixed */
+            right: 2rem;
+            bottom: 1rem;
+            background: transparent;
+            color: #1e3a8a; /* refined navy blue */
+            font-size: 0.75rem;
+            z-index: 10;
+            pointer-events: none; /* keep it non-interactive; remove if you need copyable */
+            margin: 0;
+            width: auto;
+            left: auto;
+        }
+
+        /* Mobile Responsiveness */
+        @@media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+                .sidebar.mobile-open {
+                    transform: translateX(0);
                 }
 
-                .language-dropdown a.active {
-                    background: #e3eafc;
-                    font-weight: bold;
+            .main-content {
+                margin-left: 0;
+            }
+
+            .mobile-menu-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 40px;
+                height: 40px;
+                border: 1px solid var(--border-light);
+                border-radius: 6px;
+                background: var(--background-white);
+                color: var(--text-secondary);
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+                .mobile-menu-btn:hover {
+                    border-color: var(--border-medium);
+                    color: var(--text-primary);
                 }
+
+            .brand-text {
+                display: none;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .header-content {
+                padding: 0 1rem;
+            }
+
+            .content-wrapper {
+                padding: 1rem;
+            }
+
+            .user-info .greeting {
+                display: none;
+            }
+
+            .nav-section {
+                gap: 1rem;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .company-logo {
+                height: 32px;
+            }
+
+            .system-name {
+                font-size: 1rem;
+            }
+
+            .action-btn {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Mobile menu overlay */
+        .mobile-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 850;
+            display: none;
+        }
+
+            .mobile-overlay.show {
+                display: block;
+            }
+
+        /* Hidden on desktop */
+        .mobile-menu-btn {
+            display: none;
+        }
+
+        /* Animation for navigation items */
+        .nav-item {
+            animation: fadeInLeft 0.3s ease-out forwards;
+            opacity: 0;
+            transform: translateX(-10px);
+        }
+
+            .nav-item:nth-child(1) {
+                animation-delay: 0.1s;
+            }
+
+            .nav-item:nth-child(2) {
+                animation-delay: 0.15s;
+            }
+
+            .nav-item:nth-child(3) {
+                animation-delay: 0.2s;
+            }
+
+            .nav-item:nth-child(4) {
+                animation-delay: 0.25s;
+            }
+
+            .nav-item:nth-child(5) {
+                animation-delay: 0.3s;
+            }
+
+            .nav-item:nth-child(6) {
+                animation-delay: 0.35s;
+            }
+
+        @@keyframes fadeInLeft {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Professional scrollbar */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: var(--background-secondary);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--border-medium);
+            border-radius: 3px;
+        }
+
+            .sidebar::-webkit-scrollbar-thumb:hover {
+                background: var(--text-muted);
+            }
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <a href="@Url.Action("Index", "Home")"
-           class="@(ViewContext.RouteData.Values["controller"].ToString() == "Home" ? "active" : "")">
-            <span style="font-size:1.2em;">📊</span> @HttpContext.GetGlobalResourceObject("Resources", "Home")
-        </a>
-        <a href="@Url.Action("TruocTestRun", "Request")"
-           class="@(ViewContext.RouteData.Values["controller"].ToString() == "Request" && ViewContext.RouteData.Values["action"].ToString() == "TruocTestRun" ? "active" : "")">
-            <span style="font-size:1.2em;">⏭️</span> @HttpContext.GetGlobalResourceObject("Resources", "BeforeTestRun")
-        </a>
-        <a href="@Url.Action("GiuaTestRun", "Request")"
-           class="@(ViewContext.RouteData.Values["controller"].ToString() == "Request" && ViewContext.RouteData.Values["action"].ToString() == "GiuaTestRun" ? "active" : "")">
-            <span style="font-size:1.2em;">🔄</span> @HttpContext.GetGlobalResourceObject("Resources", "DuringTestRun")
-        </a>
-        <a href="@Url.Action("SauTestRun", "Request")"
-           class="@(ViewContext.RouteData.Values["controller"].ToString() == "Request" && ViewContext.RouteData.Values["action"].ToString() == "SauTestRun" ? "active" : "")">
-            <span style="font-size:1.2em;">🏁</span> @HttpContext.GetGlobalResourceObject("Resources", "AfterTestRun")
-        </a>
-        <a href="@Url.Action("Completed", "Request")"
-           class="@(ViewContext.RouteData.Values["controller"].ToString() == "Request" && ViewContext.RouteData.Values["action"].ToString() == "Completed" ? "active" : "")">
-            <span style="font-size:1.2em;">✅</span> @HttpContext.GetGlobalResourceObject("Resources", "CompletedRequests")
-        </a>
-        <a href="@Url.Action("Rejected", "Request")"
-           class="@(ViewContext.RouteData.Values["controller"].ToString() == "Request" && ViewContext.RouteData.Values["action"].ToString() == "Rejected" ? "active" : "")">
-            <span style="font-size:1.2em;">❌</span> @HttpContext.GetGlobalResourceObject("Resources", "RejectedRequests")
-        </a>
-        <a href="@Url.Action("Index", "User")"
-           class="@(ViewContext.RouteData.Values["controller"].ToString() == "User" ? "active" : "")">
-            <span style="font-size:1.2em;">👥</span> @HttpContext.GetGlobalResourceObject("Resources", "Users")
-        </a>
-        <!-- Language selector trong sidebar -->
-        <div style="margin-left: 1.1rem; margin-top: 0.5rem;">
-            <div class="language-selector">
-                <a href="#" onclick="toggleLanguageDropdown(event)" style="font-size: 0.9rem; padding: 0.5rem 0;">
-                    <span style="font-size:1em;">🌐</span> @HttpContext.GetGlobalResourceObject("Resources", "Language") (@(currentLanguage.ToUpper()))
-                </a>
-                <div class="language-dropdown" id="languageDropdown">
-                    <a href="@Url.Action("ChangeLanguage", "Language", new { langCode = "vi", returnUrl = Request.Url.ToString() })"
-                       class="@(currentLanguage == "vi" ? "active" : "")">
-                        🇻🇳 Tiếng Việt
-                    </a>
-                    <a href="@Url.Action("ChangeLanguage", "Language", new { langCode = "ja", returnUrl = Request.Url.ToString() })"
-                       class="@(currentLanguage == "ja" ? "active" : "")">
-                        🇯🇵 日本語
-                    </a>
+    <!-- Professional Header -->
+    <header class="corporate-header">
+        <div class="header-content">
+            <!-- Brand Section -->
+            <div class="brand-section">
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <span class="action-icon">☰</span>
+                </button>
+                <img src="~/Content/Images/Brotherlg.jpg" alt="Brother Logo" class="company-logo" />
+                <div class="brand-text">
+                    <div class="system-name">Test Run System</div>
+                    <div class="company-name">Brother Industries Vietnam</div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Top Navbar -->
-    <nav class="navbar navbar-expand-lg fixed-top shadow-sm" style="left:240px; width:calc(100% - 240px);">
-        <div class="container-fluid">
-            <a class="navbar-brand fw-bold d-flex align-items-center" href="@Url.Action("TruocTestRun", "Request")">
-                <img src="~/Content/Images/Brotherlg.jpg" alt="Brother Logo" class="logo-brother" />
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarContent">
-                <ul class="navbar-nav me-auto"></ul>
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <span class="navbar-text hello-highlight me-3" style="color: #222;">
-                            @if (currentUser != null && !string.IsNullOrWhiteSpace(currentUser.Name))
+            <!-- Navigation Section -->
+            <div class="nav-section">
+                <!-- User Information -->
+                @if (currentUser != null)
+                {
+                    <div class="user-info">
+                        <div class="greeting">
+                            @if (!string.IsNullOrWhiteSpace(currentUser.Name))
                             {
-                                @Html.Raw(HttpContext.GetGlobalResourceObject("Resources", "Hello") + ", <span class=\"fw-bold\" style=\"color: #222;\">" + currentUser.Name + "</span>")
+                                @Html.Raw(HttpContext.GetGlobalResourceObject("Resources", "Hello") + ", <span class=\"user-name\">" + currentUser.Name + "</span>")
                             }
                             else
                             {
                                 @HttpContext.GetGlobalResourceObject("Resources", "Hello")
                             }
-                        </span>
-                    </li>
-                    <!-- Trong phần navbar, thay thế các hardcoded string -->
-                    @if (currentUser != null)
-                    {
-                        <li class="nav-item">
-                            <a class="nav-link" href="@Url.Action("Logout","Account")">
-                                <span style="font-size:1.2em;">🚪</span> @HttpContext.GetGlobalResourceObject("Resources", "Logout")
-                            </a>
-                        </li>
-                    }
-                    else
-                    {
-                        <li class="nav-item">
-                            <a class="nav-link" href="@Url.Action("Login","Account")">@HttpContext.GetGlobalResourceObject("Resources", "Login")</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="@Url.Action("Register","Account")">@HttpContext.GetGlobalResourceObject("Resources", "Register")</a>
-                        </li>
-                    }
-                </ul>
+                        </div>
+                    </div>
+
+                    <!-- Header Actions -->
+                    <div class="header-actions">
+                        <a href="@Url.Action("Logout","Account")" class="action-btn">
+                            <span class="action-icon">↗</span>
+                            @HttpContext.GetGlobalResourceObject("Resources", "Logout")
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="header-actions">
+                        <a href="@Url.Action("Login","Account")" class="action-btn">
+                            @HttpContext.GetGlobalResourceObject("Resources", "Login")
+                        </a>
+                        <a href="@Url.Action("Register","Account")" class="action-btn primary">
+                            @HttpContext.GetGlobalResourceObject("Resources", "Register")
+                        </a>
+                    </div>
+                }
             </div>
         </div>
-    </nav>
+    </header>
 
-    <!-- Main content -->
-    <div class="main-content">
-        @RenderBody()
-        <div class="footer-brother">
-            Designed by Pham Duc Anh - R&D PE | Brother Vietnam
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <!-- Professional Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-content">
+            <!-- Main Navigation -->
+            <nav class="nav-menu">
+                <div class="nav-section-title">@HttpContext.GetGlobalResourceObject("Resources", "MainMenu")</div>
+
+                <a href="@Url.Action("Index", "Home")"
+                   class="nav-item @(ViewContext.RouteData.Values["controller"].ToString() == "Home" ? "active" : "")">
+                    <div class="nav-icon">🏠</div>
+                    @HttpContext.GetGlobalResourceObject("Resources", "Home")
+                </a>
+
+                <div class="nav-section-title">@HttpContext.GetGlobalResourceObject("Resources", "RequestManagement")</div>
+
+                <a href="@Url.Action("Completed", "Request")"
+                   class="nav-item @(ViewContext.RouteData.Values["controller"].ToString() == "Request" && ViewContext.RouteData.Values["action"].ToString() == "Completed" ? "active" : "")">
+                    <div class="nav-icon">✓</div>
+                    @HttpContext.GetGlobalResourceObject("Resources", "CompletedRequests")
+                </a>
+
+                <a href="@Url.Action("Rejected", "Request")"
+                   class="nav-item @(ViewContext.RouteData.Values["controller"].ToString() == "Request" && ViewContext.RouteData.Values["action"].ToString() == "Rejected" ? "active" : "")">
+                    <div class="nav-icon">✕</div>
+                    @HttpContext.GetGlobalResourceObject("Resources", "RejectedRequests")
+                </a>
+
+                <div class="nav-section-title">@HttpContext.GetGlobalResourceObject("Resources", "SystemManagement")</div>
+
+                <a href="@Url.Action("Index", "User")"
+                   class="nav-item @(ViewContext.RouteData.Values["controller"].ToString() == "User" ? "active" : "")">
+                    <div class="nav-icon">👥</div>
+                    @HttpContext.GetGlobalResourceObject("Resources", "Users")
+                </a>
+            </nav>
+
+            <!-- Language Selector -->
+            <div class="language-selector">
+                <a href="#" class="language-toggle" onclick="toggleLanguageDropdown(event)">
+                    <div class="nav-icon">🌐</div>
+                    @HttpContext.GetGlobalResourceObject("Resources", "Language") (@(currentLanguage.ToUpper()))
+                    <span style="margin-left: auto; font-size: 0.75rem;">▼</span>
+                </a>
+                <div class="language-dropdown" id="languageDropdown">
+                    <a href="@Url.Action("ChangeLanguage", "Language", new { langCode = "vi", returnUrl = Request.Url.ToString() })"
+                       class="language-option @(currentLanguage == "vi" ? "active" : "")">
+                        <span>🇻🇳</span>
+                        Tiếng Việt
+                    </a>
+                    <a href="@Url.Action("ChangeLanguage", "Language", new { langCode = "ja", returnUrl = Request.Url.ToString() })"
+                       class="language-option @(currentLanguage == "ja" ? "active" : "")">
+                        <span>🇯🇵</span>
+                        日本語
+                    </a>
+                </div>
+            </div>
         </div>
-    </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <div class="content-wrapper">
+            @RenderBody()
+        </div>
+
+        <!-- NON-sticky footer pinned to the bottom-right of page content -->
+        <footer class="corporate-footer">
+            Designed by Pham Duc Anh - R&D PE | Brother Vietnam
+        </footer>
+    </main>
 
     @Scripts.Render("~/bundles/jquery")
     <script>
+        // Professional JavaScript for layout functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const sidebar = document.getElementById('sidebar');
+            const mobileOverlay = document.getElementById('mobileOverlay');
+
+            // Mobile menu toggle
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', function () {
+                    sidebar.classList.toggle('mobile-open');
+                    mobileOverlay.classList.toggle('show');
+                });
+            }
+
+            // Close mobile menu when clicking overlay
+            if (mobileOverlay) {
+                mobileOverlay.addEventListener('click', function () {
+                    sidebar.classList.remove('mobile-open');
+                    mobileOverlay.classList.remove('show');
+                });
+            }
+
+            // Handle window resize
+            window.addEventListener('resize', function () {
+                if (window.innerWidth > 1024) {
+                    sidebar.classList.remove('mobile-open');
+                    mobileOverlay.classList.remove('show');
+                }
+            });
+        });
+
+        // Language dropdown functionality
         function toggleLanguageDropdown(event) {
             event.preventDefault();
             event.stopPropagation();
-            var dropdown = document.getElementById('languageDropdown');
+            const dropdown = document.getElementById('languageDropdown');
             dropdown.classList.toggle('show');
         }
 
         // Close dropdown when clicking outside
         document.addEventListener('click', function (event) {
-            var dropdown = document.getElementById('languageDropdown');
-            var isClickInside = event.target.closest('.language-selector');
+            const dropdown = document.getElementById('languageDropdown');
+            const isClickInside = event.target.closest('.language-selector');
 
             if (!isClickInside && dropdown.classList.contains('show')) {
                 dropdown.classList.remove('show');
             }
+        });
+
+        // Professional navigation highlighting
+        document.addEventListener('DOMContentLoaded', function () {
+            const navItems = document.querySelectorAll('.nav-item');
+
+            navItems.forEach(item => {
+                item.addEventListener('mouseenter', function () {
+                    if (!this.classList.contains('active')) {
+                        this.style.transform = 'translateX(4px)';
+                    }
+                });
+
+                item.addEventListener('mouseleave', function () {
+                    this.style.transform = 'translateX(0)';
+                });
+            });
         });
     </script>
     @RenderSection("scripts", required: false)

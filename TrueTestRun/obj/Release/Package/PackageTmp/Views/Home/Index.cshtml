@@ -4,401 +4,802 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<!-- Welcome Card chiếm toàn bộ phía trên -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card welcome-card shadow-sm">
-            <div class="card-body text-center py-5">
-                <h4 class="mb-3 text-primary welcome-title">
-                    <span style="font-size:1.2em;" class="me-2">🚀</span>@HttpContext.GetGlobalResourceObject("Resources", "WelcomeToTestRunSystem")
-                </h4>
-                <p class="lead text-muted mb-4">
-                    @HttpContext.GetGlobalResourceObject("Resources", "ManageTrackApprove")
-                </p>
-                <div class="quick-actions">
-                    <a href="@Url.Action("TruocTestRun", "Request")" class="btn btn-lg btn-primary me-3">
-                        <span style="font-size:1.1em;" class="me-2">🚀</span> @HttpContext.GetGlobalResourceObject("Resources", "BeforeTestRun")
-                    </a>
-                    <a href="@Url.Action("GiuaTestRun", "Request")" class="btn btn-lg btn-warning me-3">
-                        <span style="font-size:1.1em;" class="me-2">⚙️</span> @HttpContext.GetGlobalResourceObject("Resources", "DuringTestRun")
-                    </a>
-                    <a href="@Url.Action("SauTestRun", "Request")" class="btn btn-lg btn-success">
-                        <span style="font-size:1.1em;" class="me-2">🏁</span> @HttpContext.GetGlobalResourceObject("Resources", "AfterTestRun")
-                    </a>
-                </div>
-            </div>
+<!-- Professional Header Section -->
+<div class="dashboard-header">
+    <div class="header-content">
+        <div class="system-branding">
+            <div class="system-title">@HttpContext.GetGlobalResourceObject("Resources", "WelcomeToTestRunSystem")</div>
+            <div class="system-subtitle">@HttpContext.GetGlobalResourceObject("Resources", "ManageTrackApprove")</div>
         </div>
-    </div>
-</div>
-
-<!-- Phần dưới chia 2 cột -->
-<div class="row">
-    <!-- Cột trái: 4 Cards thống kê -->
-    <div class="col-lg-8">
-        <!-- Hàng đầu - 2 cards -->
-        <div class="row mb-3">
-            <div class="col-md-6 mb-3">
-                <div class="card stats-card stats-total border-left-primary shadow h-100">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="stats-icon me-3">
-                            <span style="font-size:3rem;" class="text-primary">📋</span>
-                        </div>
-                        <div class="stats-content">
-                            <div class="stats-label">@HttpContext.GetGlobalResourceObject("Resources", "TotalRequests")</div>
-                            <div class="stats-number text-primary">@Model.TotalCount</div>
-                            <div class="stats-description">@HttpContext.GetGlobalResourceObject("Resources", "AllSystem")</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-                <div class="card stats-card stats-completed border-left-success shadow h-100">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="stats-icon me-3">
-                            <span style="font-size:3rem;" class="text-success">✅</span>
-                        </div>
-                        <div class="stats-content">
-                            <div class="stats-label">@HttpContext.GetGlobalResourceObject("Resources", "Completed")</div>
-                            <div class="stats-number text-success">@Model.CompletedCount</div>
-                            <div class="stats-description">
-                                @if (Model.TotalCount > 0)
-                                {
-                                    <span>@Math.Round((double)Model.CompletedCount / Model.TotalCount * 100, 1)%</span>
-                                }
-                                else
-                                {
-                                    <span>0%</span>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Hàng dưới - 2 cards -->
-        <div class="row mb-4">
-            <div class="col-md-6 mb-3">
-                <div class="card stats-card stats-pending border-left-warning shadow h-100">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="stats-icon me-3">
-                            <span style="font-size:3rem;" class="text-warning">⏳</span>
-                        </div>
-                        <div class="stats-content">
-                            <div class="stats-label">@HttpContext.GetGlobalResourceObject("Resources", "Processing")</div>
-                            <div class="stats-number text-warning">@Model.PendingCount</div>
-                            <div class="stats-description">
-                                @if (Model.TotalCount > 0)
-                                {
-                                    <span>@Math.Round((double)Model.PendingCount / Model.TotalCount * 100, 1)%</span>
-                                }
-                                else
-                                {
-                                    <span>0%</span>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-                <div class="card stats-card stats-rejected border-left-danger shadow h-100">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="stats-icon me-3">
-                            <span style="font-size:3rem;" class="text-danger">❌</span>
-                        </div>
-                        <div class="stats-content">
-                            <div class="stats-label">@HttpContext.GetGlobalResourceObject("Resources", "Rejected") (NG)</div>
-                            <div class="stats-number text-danger">@Model.RejectedCount</div>
-                            <div class="stats-description">
-                                @if (Model.TotalCount > 0)
-                                {
-                                    <span>@Math.Round((double)Model.RejectedCount / Model.TotalCount * 100, 1)%</span>
-                                }
-                                else
-                                {
-                                    <span>0%</span>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Cột phải: Tình trạng hệ thống -->
-    <div class="col-lg-4">
-        <div class="card status-summary-card shadow-sm h-100">
-            <div class="card-header bg-light">
-                <h6 class="card-title mb-0">
-                    <span style="font-size:1em;" class="me-2">📈</span>@HttpContext.GetGlobalResourceObject("Resources", "SystemStatus")
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="status-item mb-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="status-label">
-                            <span style="font-size:0.9em;">✅</span> @HttpContext.GetGlobalResourceObject("Resources", "CompletionRate")
-                        </span>
-                        <span class="status-value text-success fw-bold">
-                            @if (Model.TotalCount > 0)
-                            {
-                                @Math.Round((double)Model.CompletedCount / Model.TotalCount * 100, 1)<span>%</span>
-                            }
-                            else
-                            {
-                                <span>0%</span>
-                            }
-                        </span>
-                    </div>
-                    <div class="progress mt-2" style="height: 6px;">
-                        <div class="progress-bar bg-success" style="width: @(Model.TotalCount > 0 ? Math.Round((double)Model.CompletedCount / Model.TotalCount * 100, 1) : 0)%"></div>
-                    </div>
-                </div>
-
-                <div class="status-item mb-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="status-label">
-                            <span style="font-size:0.9em;">⏳</span> @HttpContext.GetGlobalResourceObject("Resources", "Processing")
-                        </span>
-                        <span class="status-value text-warning fw-bold">
-                            @if (Model.TotalCount > 0)
-                            {
-                                @Math.Round((double)Model.PendingCount / Model.TotalCount * 100, 1)<span>%</span>
-                            }
-                            else
-                            {
-                                <span>0%</span>
-                            }
-                        </span>
-                    </div>
-                    <div class="progress mt-2" style="height: 6px;">
-                        <div class="progress-bar bg-warning" style="width: @(Model.TotalCount > 0 ? Math.Round((double)Model.PendingCount / Model.TotalCount * 100, 1) : 0)%"></div>
-                    </div>
-                </div>
-
-                <div class="status-item">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="status-label">
-                            <span style="font-size:0.9em;">❌</span> @HttpContext.GetGlobalResourceObject("Resources", "Rejected")
-                        </span>
-                        <span class="status-value text-danger fw-bold">
-                            @if (Model.TotalCount > 0)
-                            {
-                                @Math.Round((double)Model.RejectedCount / Model.TotalCount * 100, 1)<span>%</span>
-                            }
-                            else
-                            {
-                                <span>0%</span>
-                            }
-                        </span>
-                    </div>
-                    <div class="progress mt-2" style="height: 6px;">
-                        <div class="progress-bar bg-danger" style="width: @(Model.TotalCount > 0 ? Math.Round((double)Model.RejectedCount / Model.TotalCount * 100, 1) : 0)%"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="card-footer bg-light text-center">
-                <a href="@Url.Action("Completed", "Request")" class="btn btn-sm btn-outline-primary">
-                    <span style="font-size:0.9em;">📊</span> @HttpContext.GetGlobalResourceObject("Resources", "ViewDetails")
+        <div class="header-actions">
+            <div class="quick-navigation">
+                <a href="@Url.Action("TruocTestRun", "Request")" class="nav-link before-phase">
+                    <div class="nav-indicator"></div>
+                    <span class="nav-text">@HttpContext.GetGlobalResourceObject("Resources", "BeforeTestRun")</span>
+                </a>
+                <a href="@Url.Action("GiuaTestRun", "Request")" class="nav-link during-phase">
+                    <div class="nav-indicator"></div>
+                    <span class="nav-text">@HttpContext.GetGlobalResourceObject("Resources", "DuringTestRun")</span>
+                </a>
+                <a href="@Url.Action("SauTestRun", "Request")" class="nav-link after-phase">
+                    <div class="nav-indicator"></div>
+                    <span class="nav-text">@HttpContext.GetGlobalResourceObject("Resources", "AfterTestRun")</span>
                 </a>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Giữ nguyên CSS -->
+<!-- Professional Dashboard Content -->
+<div class="dashboard-content">
+    <div class="content-grid">
+
+        <!-- Statistics Panel -->
+        <div class="statistics-section">
+            <div class="section-header">
+                <h2 class="section-title">システム統計</h2>
+                <div class="section-subtitle">System Statistics Overview</div>
+            </div>
+
+            <div class="stats-grid">
+                <!-- Total Requests Card -->
+                <div class="stat-card primary">
+                    <div class="stat-indicator"></div>
+                    <div class="stat-content">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <svg class="stat-symbol" viewBox="0 0 24 24">
+                                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+                                </svg>
+                            </div>
+                            <div class="stat-label">@HttpContext.GetGlobalResourceObject("Resources", "TotalRequests")</div>
+                        </div>
+                        <div class="stat-value">@Model.TotalCount</div>
+                        <div class="stat-description">@HttpContext.GetGlobalResourceObject("Resources", "AllSystem")</div>
+                    </div>
+                </div>
+
+                <!-- Completed Card -->
+                <div class="stat-card success">
+                    <div class="stat-indicator"></div>
+                    <div class="stat-content">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <svg class="stat-symbol" viewBox="0 0 24 24">
+                                    <path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z" />
+                                </svg>
+                            </div>
+                            <div class="stat-label">@HttpContext.GetGlobalResourceObject("Resources", "Completed")</div>
+                        </div>
+                        <div class="stat-value">@Model.CompletedCount</div>
+                        <div class="stat-description">
+                            @if (Model.TotalCount > 0)
+                            {
+                                @Math.Round((double)Model.CompletedCount / Model.TotalCount * 100, 1)<text>%</text>
+                            }
+                            else
+                            {
+                                <text>0%</text>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Processing Card -->
+                <div class="stat-card processing">
+                    <div class="stat-indicator"></div>
+                    <div class="stat-content">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <svg class="stat-symbol" viewBox="0 0 24 24">
+                                    <path d="M12,6V9L16,5L12,1V4A8,8 0 0,0 4,12C4,13.57 4.46,15.03 5.24,16.26L6.7,14.8C6.25,13.97 6,13 6,12A6,6 0 0,1 12,6M18.76,7.74L17.3,9.2C17.74,10.04 18,11 18,12A6,6 0 0,1 12,18V15L8,19L12,23V20A8,8 0 0,0 20,12C20,10.43 19.54,8.97 18.76,7.74Z" />
+                                </svg>
+                            </div>
+                            <div class="stat-label">@HttpContext.GetGlobalResourceObject("Resources", "Processing")</div>
+                        </div>
+                        <div class="stat-value">@Model.PendingCount</div>
+                        <div class="stat-description">
+                            @if (Model.TotalCount > 0)
+                            {
+                                @Math.Round((double)Model.PendingCount / Model.TotalCount * 100, 1)<text>%</text>
+                            }
+                            else
+                            {
+                                <text>0%</text>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rejected Card -->
+                <div class="stat-card rejected">
+                    <div class="stat-indicator"></div>
+                    <div class="stat-content">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <svg class="stat-symbol" viewBox="0 0 24 24">
+                                    <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+                                </svg>
+                            </div>
+                            <div class="stat-label">@HttpContext.GetGlobalResourceObject("Resources", "Rejected")</div>
+                        </div>
+                        <div class="stat-value">@Model.RejectedCount</div>
+                        <div class="stat-description">
+                            @if (Model.TotalCount > 0)
+                            {
+                                @Math.Round((double)Model.RejectedCount / Model.TotalCount * 100, 1)<text>%</text>
+                            }
+                            else
+                            {
+                                <text>0%</text>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Status Panel -->
+        <div class="status-section">
+            <div class="section-header">
+                <h2 class="section-title">@HttpContext.GetGlobalResourceObject("Resources", "SystemStatus")</h2>
+                <div class="section-subtitle">Real-time Performance Metrics</div>
+            </div>
+
+            <div class="status-panel">
+                <!-- Completion Rate -->
+                <div class="status-item">
+                    <div class="status-header">
+                        <div class="status-label">@HttpContext.GetGlobalResourceObject("Resources", "CompletionRate")</div>
+                        <div class="status-value primary-text">
+                            @if (Model.TotalCount > 0)
+                            {
+                                @Math.Round((double)Model.CompletedCount / Model.TotalCount * 100, 1)<text>%</text>
+                            }
+                            else
+                            {
+                                <text>0%</text>
+                            }
+                        </div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            @{
+                                var completionPercentage = Model.TotalCount > 0 ? Math.Round((double)Model.CompletedCount / Model.TotalCount * 100, 1) : 0;
+                                var completionPercentageCss = completionPercentage.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                            }
+                            <div class="progress-fill success" style="width: @completionPercentageCss%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Processing Rate -->
+                <div class="status-item">
+                    <div class="status-header">
+                        <div class="status-label">@HttpContext.GetGlobalResourceObject("Resources", "Processing")</div>
+                        <div class="status-value processing-text">
+                            @if (Model.TotalCount > 0)
+                            {
+                                @Math.Round((double)Model.PendingCount / Model.TotalCount * 100, 1)<text>%</text>
+                            }
+                            else
+                            {
+                                <text>0%</text>
+                            }
+                        </div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            @{
+                                var processingPercentage = Model.TotalCount > 0 ? Math.Round((double)Model.PendingCount / Model.TotalCount * 100, 1) : 0;
+                                var processingPercentageCss = processingPercentage.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                            }
+                            <div class="progress-fill processing" style="width: @processingPercentageCss%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rejection Rate -->
+                <div class="status-item">
+                    <div class="status-header">
+                        <div class="status-label">@HttpContext.GetGlobalResourceObject("Resources", "Rejected")</div>
+                        <div class="status-value rejected-text">
+                            @if (Model.TotalCount > 0)
+                            {
+                                @Math.Round((double)Model.RejectedCount / Model.TotalCount * 100, 1)<text>%</text>
+                            }
+                            else
+                            {
+                                <text>0%</text>
+                            }
+                        </div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            @{
+                                var rejectionPercentage = Model.TotalCount > 0 ? Math.Round((double)Model.RejectedCount / Model.TotalCount * 100, 1) : 0;
+                                var rejectionPercentageCss = rejectionPercentage.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                            }
+                            <div class="progress-fill rejected" style="width: @rejectionPercentageCss%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <div class="status-actions">
+                    <a href="@Url.Action("Completed", "Request")" class="action-button">
+                        <span class="button-text">@HttpContext.GetGlobalResourceObject("Resources", "ViewDetails")</span>
+                        <svg class="button-arrow" viewBox="0 0 24 24">
+                            <path d="M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
-    /* ===== ENHANCED STATS CARDS ===== */
-    .stats-card {
+    /* ========== JAPANESE CORPORATE DASHBOARD DESIGN ========== */
+
+    /* Professional Color Palette */
+    :root {
+        --primary-blue: #1e3a8a;
+        --secondary-blue: #3b82f6;
+        --success-green: #059669;
+        --processing-amber: #d97706;
+        --rejected-red: #dc2626;
+        --background-primary: #f8fafc;
+        --background-secondary: #f1f5f9;
+        --background-white: #ffffff;
+        --text-primary: #1f2937;
+        --text-secondary: #6b7280;
+        --text-muted: #9ca3af;
+        --border-light: #e5e7eb;
+        --border-medium: #d1d5db;
+        --shadow-subtle: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-soft: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        --shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-large: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    body {
+        background: var(--background-primary);
+        color: var(--text-primary);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo', sans-serif;
+        line-height: 1.6;
+    }
+
+    /* Dashboard Header */
+    .dashboard-header {
+        background: var(--background-white);
+        border-bottom: 1px solid var(--border-light);
+        padding: 2.5rem 0;
+        margin-bottom: 2rem;
+    }
+
+    .header-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .system-branding {
+        flex: 1;
+    }
+
+    .system-title {
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.025em;
+    }
+
+    .system-subtitle {
+        font-size: 1.125rem;
+        color: var(--text-secondary);
+        font-weight: 400;
+    }
+
+    /* Professional Quick Navigation */
+    .quick-navigation {
+        display: flex;
+        gap: 1rem;
+        background: var(--background-secondary);
+        padding: 0.5rem;
         border-radius: 12px;
+        border: 1px solid var(--border-light);
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--text-secondary);
+        font-weight: 500;
+        transition: all 0.2s ease;
+        position: relative;
+        min-width: 140px;
+    }
+
+        .nav-link:hover {
+            background: var(--background-white);
+            color: var(--text-primary);
+            text-decoration: none;
+            box-shadow: var(--shadow-soft);
+        }
+
+    .nav-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+    }
+
+    .nav-link.before-phase .nav-indicator {
+        background: var(--primary-blue);
+    }
+
+    .nav-link.during-phase .nav-indicator {
+        background: var(--processing-amber);
+    }
+
+    .nav-link.after-phase .nav-indicator {
+        background: var(--success-green);
+    }
+
+    .nav-link:hover .nav-indicator {
+        transform: scale(1.3);
+    }
+
+    .nav-text {
+        font-size: 0.875rem;
+        white-space: nowrap;
+    }
+
+    /* Dashboard Content */
+    .dashboard-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        align-items: start;
+    }
+
+    /* Section Headers */
+    .section-header {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--border-light);
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 0.25rem 0;
+        letter-spacing: -0.025em;
+    }
+
+    .section-subtitle {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    /* Statistics Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+
+    /* Professional Stat Cards */
+    .stat-card {
+        background: var(--background-white);
+        border-radius: 12px;
+        border: 1px solid var(--border-light);
+        padding: 2rem;
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
     }
 
-        .stats-card:hover {
+        .stat-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+            box-shadow: var(--shadow-large);
+            border-color: var(--border-medium);
         }
 
-        .stats-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            transition: width 0.3s ease;
-        }
-
-        .stats-card:hover::before {
-            width: 6px;
-        }
-
-    .border-left-primary::before {
-        background: linear-gradient(45deg, #007bff, #0056b3);
+    .stat-indicator {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        transition: width 0.3s ease;
     }
 
-    .border-left-success::before {
-        background: linear-gradient(45deg, #28a745, #20c997);
+    .stat-card:hover .stat-indicator {
+        width: 6px;
     }
 
-    .border-left-warning::before {
-        background: linear-gradient(45deg, #ffc107, #e68900);
+    .stat-card.primary .stat-indicator {
+        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
     }
 
-    .border-left-danger::before {
-        background: linear-gradient(45deg, #dc3545, #c82333);
+    .stat-card.success .stat-indicator {
+        background: linear-gradient(135deg, var(--success-green), #10b981);
     }
 
-    .stats-icon {
+    .stat-card.processing .stat-indicator {
+        background: linear-gradient(135deg, var(--processing-amber), #f59e0b);
+    }
+
+    .stat-card.rejected .stat-indicator {
+        background: linear-gradient(135deg, var(--rejected-red), #ef4444);
+    }
+
+    .stat-content {
+        margin-left: 0.5rem;
+    }
+
+    .stat-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--background-secondary);
         flex-shrink: 0;
     }
 
-    .stats-content {
-        flex: 1;
+    .stat-symbol {
+        width: 24px;
+        height: 24px;
+        fill: var(--text-secondary);
+        transition: all 0.3s ease;
     }
 
-    .stats-label {
-        font-size: 0.8rem;
+    .stat-card:hover .stat-symbol {
+        fill: var(--text-primary);
+        transform: scale(1.1);
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
         font-weight: 600;
+        color: var(--text-secondary);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: #6c757d;
-        margin-bottom: 0.25rem;
+        letter-spacing: 0.05em;
     }
 
-    .stats-number {
-        font-size: 2.2rem;
-        font-weight: 700;
+    .stat-value {
+        font-size: 3rem;
+        font-weight: 800;
         line-height: 1;
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
     }
 
-    .stats-description {
-        font-size: 0.8rem;
-        color: #6c757d;
+    .stat-description {
+        font-size: 0.875rem;
+        color: var(--text-muted);
         font-weight: 500;
     }
 
-    /* ===== WELCOME CARD ===== */
-    .welcome-card {
-        border-radius: 16px;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border: 1px solid #e9ecef;
-    }
-
-    .welcome-title {
-        font-weight: 600;
-    }
-
-    .quick-actions {
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-    }
-
-    /* ===== STATUS SUMMARY CARD ===== */
-    .status-summary-card {
+    /* Status Panel - Fixed Alignment */
+    .status-section {
+        background: var(--background-white);
         border-radius: 12px;
-        border: 1px solid #e9ecef;
+        border: 1px solid var(--border-light);
+        overflow: hidden;
+        align-self: start;
+        margin-top: 4.5rem; /* Đẩy panel xuống thấp hơn để cân */
+    }
+
+    @@media (max-width: 1200px) {
+        .status-section {
+            margin-top: 0;
+        }
+    }
+
+    .status-section .section-header {
+        background: var(--background-secondary);
+        padding: 1.5rem;
+        margin-bottom: 0;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .status-panel {
+        padding: 1.5rem;
     }
 
     .status-item {
-        padding: 0.5rem 0;
+        margin-bottom: 2rem;
+    }
+
+        .status-item:last-of-type {
+            margin-bottom: 1.5rem;
+        }
+
+    .status-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
     }
 
     .status-label {
         font-size: 0.875rem;
-        color: #6c757d;
-        font-weight: 500;
+        font-weight: 600;
+        color: var(--text-secondary);
     }
 
     .status-value {
-        font-size: 0.875rem;
+        font-size: 1.125rem;
+        font-weight: 700;
     }
 
-    .progress {
-        border-radius: 3px;
-        background-color: #f1f3f4;
+    .primary-text {
+        color: var(--primary-blue);
+    }
+
+    .processing-text {
+        color: var(--processing-amber);
+    }
+
+    .rejected-text {
+        color: var(--rejected-red);
+    }
+
+    /* Professional Progress Bars - FIXED */
+    .progress-container {
+        position: relative;
     }
 
     .progress-bar {
-        border-radius: 3px;
-        transition: width 0.6s ease;
+        width: 100%;
+        height: 8px;
+        background: var(--background-secondary);
+        border-radius: 4px;
+        overflow: hidden;
+        position: relative;
     }
 
-    /* ===== BUTTON IMPROVEMENTS ===== */
-    .btn {
+    .progress-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        .progress-fill.success {
+            background: linear-gradient(90deg, var(--success-green), #10b981);
+        }
+
+        .progress-fill.processing {
+            background: linear-gradient(90deg, var(--processing-amber), #f59e0b);
+        }
+
+        .progress-fill.rejected {
+            background: linear-gradient(90deg, var(--rejected-red), #ef4444);
+        }
+
+    @@keyframes shimmer {
+        0% {
+            transform: translateX(-100%);
+        }
+
+        100% {
+            transform: translateX(100%);
+        }
+    }
+
+    /* Action Button */
+    .status-actions {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-light);
+        text-align: center;
+    }
+
+    .action-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1.5rem;
+        background: var(--primary-blue);
+        color: white;
+        text-decoration: none;
         border-radius: 8px;
-        font-weight: 600;
+        font-weight: 500;
+        font-size: 0.875rem;
         transition: all 0.3s ease;
     }
 
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        .action-button:hover {
+            background: #1e40af;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
         }
 
-    .btn-lg {
-        padding: 0.75rem 1.5rem;
-        font-size: 1rem;
+    .button-text {
+        flex: 1;
     }
 
-    /* ===== ANIMATION FOR EMOJIS ===== */
-    .stats-icon span {
-        display: inline-block;
+    .button-arrow {
+        width: 16px;
+        height: 16px;
+        fill: currentColor;
         transition: transform 0.3s ease;
     }
 
-    .stats-card:hover .stats-icon span {
-        transform: scale(1.1);
+    .action-button:hover .button-arrow {
+        transform: translateX(4px);
     }
 
-    .btn:hover span {
-        transform: scale(1.05);
-    }
-
-    /* ===== RESPONSIVE DESIGN ===== */
-    @@media (max-width: 992px) {
-        .col-lg-8, .col-lg-4 {
-            flex: 0 0 100%;
-            max-width: 100%;
+    /* Responsive Design */
+    @@media (max-width: 1200px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+            gap: 2rem;
         }
 
-        .status-summary-card {
-            margin-top: 1rem;
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .status-section {
+            margin-top: 0;
         }
     }
 
     @@media (max-width: 768px) {
-        .stats-number {
-            font-size: 1.8rem;
-        }
-
-        .quick-actions {
+        .header-content {
             flex-direction: column;
-            align-items: center;
+            gap: 2rem;
+            text-align: center;
         }
 
-            .quick-actions .btn {
-                width: 100%;
-                max-width: 300px;
-            }
+        .system-title {
+            font-size: 1.875rem;
+        }
+
+        .quick-navigation {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .nav-link {
+            justify-content: center;
+            min-width: auto;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+        }
+
+        .dashboard-header {
+            padding: 1.5rem 0;
+        }
     }
 
     @@media (max-width: 576px) {
-        .stats-icon span {
-            font-size: 2.5rem !important;
+        .stat-card {
+            padding: 1.5rem;
         }
 
-        .stats-number {
-            font-size: 1.6rem;
+        .stat-value {
+            font-size: 2rem;
+        }
+
+        .system-title {
+            font-size: 1.5rem;
+        }
+
+        .system-subtitle {
+            font-size: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+        }
+    }
+
+    /* Animation Enhancements */
+    .stat-card {
+        animation: fadeInUp 0.6s ease-out forwards;
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+        .stat-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .stat-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .stat-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .stat-card:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+    @@keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .status-item {
+        animation: slideInLeft 0.8s ease-out forwards;
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+        .status-item:nth-child(1) {
+            animation-delay: 0.2s;
+        }
+
+        .status-item:nth-child(2) {
+            animation-delay: 0.4s;
+        }
+
+        .status-item:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+
+    @@keyframes slideInLeft {
+        to {
+            opacity: 1;
+            transform: translateX(0);
         }
     }
 </style>
