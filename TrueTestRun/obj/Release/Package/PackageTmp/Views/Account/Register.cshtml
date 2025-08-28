@@ -1,7 +1,7 @@
 ﻿@model TrueTestRun.Models.User
 @{
     ViewBag.Title = HttpContext.GetGlobalResourceObject("Resources", "RegisterAccount").ToString();
-    Layout = null; // Không sử dụng layout chung
+    Layout = null;
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -71,15 +71,15 @@
             position: relative;
         }
 
-        .register-header::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-        }
+            .register-header::after {
+                content: '';
+                position: absolute;
+                bottom: -1px;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            }
 
         .system-logo {
             width: 50px;
@@ -155,10 +155,20 @@
             margin-bottom: 0.5rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+            min-height: 1.2em; /* SỬA: Ensure consistent height */
+            line-height: 1.2;
         }
 
         .required {
             color: var(--error-red);
+        }
+
+        /* SỬA: Required placeholder for alignment */
+        .required-placeholder {
+            color: transparent;
+            font-size: 0.8rem;
+            display: inline-block;
+            width: 0.5rem;
         }
 
         .form-control {
@@ -173,16 +183,16 @@
             box-sizing: border-box;
         }
 
-        .form-control:focus {
-            outline: none;
-            border-color: var(--corporate-blue);
-            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
-            background: var(--background-white);
-        }
+            .form-control:focus {
+                outline: none;
+                border-color: var(--corporate-blue);
+                box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+                background: var(--background-white);
+            }
 
-        .form-control:hover {
-            border-color: var(--border-medium);
-        }
+            .form-control:hover {
+                border-color: var(--border-medium);
+            }
 
         .form-select {
             appearance: none;
@@ -232,29 +242,29 @@
             overflow: hidden;
         }
 
-        .btn-register:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-medium);
-        }
+            .btn-register:hover {
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-medium);
+            }
 
-        .btn-register:active {
-            transform: translateY(0);
-        }
+            .btn-register:active {
+                transform: translateY(0);
+            }
 
-        .btn-register::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s ease;
-        }
+            .btn-register::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+                transition: left 0.5s ease;
+            }
 
-        .btn-register:hover::before {
-            left: 100%;
-        }
+            .btn-register:hover::before {
+                left: 100%;
+            }
 
         /* Back Link */
         .register-footer {
@@ -269,17 +279,17 @@
             font-size: 0.875rem;
         }
 
-        .back-link a {
-            color: var(--corporate-blue);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s ease;
-        }
+            .back-link a {
+                color: var(--corporate-blue);
+                text-decoration: none;
+                font-weight: 500;
+                transition: color 0.2s ease;
+            }
 
-        .back-link a:hover {
-            color: #1e40af;
-            text-decoration: underline;
-        }
+                .back-link a:hover {
+                    color: #1e40af;
+                    text-decoration: underline;
+                }
 
         /* Error Messages */
         .text-danger {
@@ -301,10 +311,10 @@
             font-size: 0.875rem;
         }
 
-        .validation-summary-errors ul {
-            margin: 0;
-            padding-left: 1.25rem;
-        }
+            .validation-summary-errors ul {
+                margin: 0;
+                padding-left: 1.25rem;
+            }
 
         /* Professional Form Sections */
         .form-section {
@@ -332,13 +342,38 @@
             transform: translateY(20px);
         }
 
-        .form-group:nth-child(1) { animation-delay: 0.1s; }
-        .form-group:nth-child(2) { animation-delay: 0.15s; }
-        .form-group:nth-child(3) { animation-delay: 0.2s; }
-        .form-group:nth-child(4) { animation-delay: 0.25s; }
-        .form-group:nth-child(5) { animation-delay: 0.3s; }
-        .form-group:nth-child(6) { animation-delay: 0.35s; }
-        .form-group:nth-child(7) { animation-delay: 0.4s; }
+            .form-group:nth-child(1) {
+                animation-delay: 0.1s;
+            }
+
+            .form-group:nth-child(2) {
+                animation-delay: 0.15s;
+            }
+
+            .form-group:nth-child(3) {
+                animation-delay: 0.2s;
+            }
+
+            .form-group:nth-child(4) {
+                animation-delay: 0.25s;
+            }
+
+            .form-group:nth-child(5) {
+                animation-delay: 0.3s;
+            }
+
+            .form-group:nth-child(6) {
+                animation-delay: 0.35s;
+            }
+
+            .form-group:nth-child(7) {
+                animation-delay: 0.4s;
+            }
+
+            .form-group:nth-child(8) {
+                animation-delay: 0.45s;
+            }
+
 
         @@keyframes slideInUp {
             to {
@@ -482,10 +517,10 @@
                                 @Html.LabelFor(m => m.DeptCode, new { @class = "form-label" })
                                 <span class="required">*</span>
                                 @Html.DropDownListFor(
-                                         m => m.DeptCode,
-                                         (SelectList)ViewBag.DeptCodes,
-                                         HttpContext.GetGlobalResourceObject("Resources", "SelectDepartment").ToString(),
-                                         new { @class = "form-control form-select", @required = "required" })
+                                                   m => m.DeptCode,
+                                                   (SelectList)ViewBag.DeptCodes,
+                                                   HttpContext.GetGlobalResourceObject("Resources", "SelectDepartment").ToString(),
+                                                   new { @class = "form-control form-select", @required = "required" })
                                 @Html.ValidationMessageFor(m => m.DeptCode, "", new { @class = "text-danger" })
                             </div>
 
@@ -493,21 +528,32 @@
                                 @Html.LabelFor(m => m.Title, new { @class = "form-label" })
                                 <span class="required">*</span>
                                 @Html.DropDownListFor(
-                                         m => m.Title,
-                                         (SelectList)ViewBag.Titles,
-                                         HttpContext.GetGlobalResourceObject("Resources", "SelectPosition").ToString(),
-                                         new { @class = "form-control form-select", @required = "required" })
+                                                   m => m.Title,
+                                                   (SelectList)ViewBag.Titles,
+                                                   HttpContext.GetGlobalResourceObject("Resources", "SelectPosition").ToString(),
+                                                   new { @class = "form-control form-select", @required = "required" })
                                 @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger" })
                             </div>
 
+                            <div class="form-group">
+                                @Html.LabelFor(m => m.Role, "Role", new { @class = "form-label" })
+                                <span class="required">*</span>
+                                @Html.DropDownListFor(
+                                                  m => m.Role,
+                                                  (SelectList)ViewBag.Roles,
+                                                  "-- Chọn role --",
+                                                  new { @class = "form-control form-select", @required = "required" })
+                                @Html.ValidationMessageFor(m => m.Role, "", new { @class = "text-danger" })
+                            </div>
 
                             <div class="form-group">
                                 @Html.LabelFor(m => m.Factory, new { @class = "form-label" })
+                                <span class="required-placeholder">&nbsp;</span>
                                 @Html.DropDownListFor(
-                                         m => m.Factory,
-                                         (SelectList)ViewBag.Factories,
-                                         "-- Chọn nhà máy --",
-                                         new { @class = "form-control form-select" })
+                                                   m => m.Factory,
+                                                   (SelectList)ViewBag.Factories,
+                                                   "-- Chọn nhà máy --",
+                                                   new { @class = "form-control form-select" })
                             </div>
                         </div>
                     </div>
@@ -526,15 +572,13 @@
             </div>
         </div>
 
-        <div class="company-info">
-            © Brother Industries Vietnam - Internal System
-        </div>
+
     </div>
 
     <script src="~/Content/js/bootstrap.bundle.min.js"></script>
     <script>
         // Professional form enhancements
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const form = document.querySelector('form');
             const adidInput = document.querySelector('#ADID');
 
@@ -544,15 +588,15 @@
             }
 
             // Professional ADID formatting
-            adidInput?.addEventListener('input', function(e) {
+            adidInput?.addEventListener('input', function (e) {
                 // Convert to lowercase and remove spaces
                 this.value = this.value.toLowerCase().replace(/\s/g, '');
             });
 
-            
+
 
             // Professional form validation
-            form?.addEventListener('submit', function(e) {
+            form?.addEventListener('submit', function (e) {
                 const requiredFields = form.querySelectorAll('[required]');
                 let hasErrors = false;
 

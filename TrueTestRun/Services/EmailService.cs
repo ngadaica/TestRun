@@ -124,26 +124,26 @@ namespace TrueTestRun.Services
             // HARDCODE EMAIL CHO TỪNG STEP CỤ THỂ
             switch (stepIndex)
             {
-                case 1: return "phamduc.anh@brother-bivn.com.vn";
-                //case 1: return "Doan.PhamCong@brother-bivn.com.vn";
-                //case 2: return "Ly.NguyenThi@brother-bivn.com.vn";
-                //case 3: return "ChuVan.Long@brother-bivn.com.vn";
-                //case 4: return "Ly.NguyenThi@brother-bivn.com.vn";
-                //case 5: return "jun.sato@brother-bivn.com.vn";
-                //case 6: return "Ly.NguyenThi@brother-bivn.com.vn";
-                //case 7: return "jun.sato@brother-bivn.com.vn";
-                //case 8: return "nguyenthi.duyen5@brother-bivn.com.vn";
-                //case 9: return "Doan.PhamCong@brother-bivn.com.vn";
-                //case 10: return "naoya.yada@brother-bivn.com.vn";
-                case 2: return "phamduc.anh@brother-bivn.com.vn";
-                case 3: return "phamduc.anh@brother-bivn.com.vn";
-                case 4: return "phamduc.anh@brother-bivn.com.vn";
-                case 5: return "phamduc.anh@brother-bivn.com.vn";
-                case 6: return "phamduc.anh@brother-bivn.com.vn";
-                case 7: return "phamduc.anh@brother-bivn.com.vn";
-                case 8: return "phamduc.anh@brother-bivn.com.vn";
-                case 9: return "phamduc.anh@brother-bivn.com.vn";
-                case 10: return "phamduc.anh@brother-bivn.com.vn";
+                
+                case 1: return "Doan.PhamCong@brother-bivn.com.vn"; //Doan.PhamCong@brother-bivn.com.vn
+                case 2: return "Ly.NguyenThi@brother-bivn.com.vn";
+                case 3: return "ChuVan.Long@brother-bivn.com.vn";
+                case 4: return "Ly.NguyenThi@brother-bivn.com.vn";
+                case 5: return "jun.sato@brother-bivn.com.vn";
+                case 6: return "Ly.NguyenThi@brother-bivn.com.vn";
+                case 7: return "jun.sato@brother-bivn.com.vn";
+                case 8: return "nguyenthi.duyen5@brother-bivn.com.vn";
+                case 9: return "Doan.PhamCong@brother-bivn.com.vn";
+                case 10: return "naoya.yada@brother-bivn.com.vn";
+                //case 2: return "phamduc.anh@brother-bivn.com.vn";
+                //case 3: return "phamduc.anh@brother-bivn.com.vn";
+                //case 4: return "phamduc.anh@brother-bivn.com.vn";
+                //case 5: return "phamduc.anh@brother-bivn.com.vn";
+                //case 6: return "phamduc.anh@brother-bivn.com.vn";
+                //case 7: return "phamduc.anh@brother-bivn.com.vn";
+                //case 8: return "phamduc.anh@brother-bivn.com.vn";
+                //case 9: return "phamduc.anh@brother-bivn.com.vn";
+                //case 10: return "phamduc.anh@brother-bivn.com.vn";
                 default: return "phamduc.anh@brother-bivn.com.vn";
 
             }
@@ -166,7 +166,23 @@ namespace TrueTestRun.Services
         }
 
         /// <summary>
-        /// Gửi email phê duyệt/ghi nhập - CHỈNH SỬA: Loại bỏ ステップ/Bước và lấy thông tin từ Excel
+        /// THÊM: Helper method để thêm CC cho các email quan trọng
+        /// </summary>
+        private void AddManagementCC(MailMessage message)
+        {
+            try
+            {
+                message.CC.Add("giang.nguyenthi@brother-bivn.com.vn");
+                message.CC.Add("dangthi.ngoc2@brother-bivn.com.vn");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[EmailService] Error adding management CC: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Gửi email phê duyệt/ghi nhập - CHỈNH SỬA: Thêm CC cho management
         /// </summary>
         public void SendApprovalRequest(Request request, WorkflowStep step, string approvalUrl, bool isResubmission = false)
         {
@@ -200,11 +216,9 @@ namespace TrueTestRun.Services
                 var (partNumber, partName) = GetPartInfo(request);
                 var partInfo = !string.IsNullOrEmpty(partName) ? $"{partNumber} - {partName}" : partNumber;
 
-                // SỬA: Subject đơn giản hóa với thông tin Part từ Excel
                 string actionType = step.Actor == StepActor.Approver ? "承認依頼/Yêu cầu phê duyệt" : "データ入力依頼/Yêu cầu ghi nhập";
                 string subject = $"{actionType} [{request.RequestID}] {partInfo}";
 
-                // SỬA: Body đơn giản hóa theo phong cách Nhật - LOẠI BỎ ステップ/Bước
                 string body = $@"
                     <div style='font-family: ""Yu Gothic"", ""Hiragino Kaku Gothic ProN"", ""Meiryo"", sans-serif; max-width: 500px; margin: 0 auto; border: 1px solid #ddd;'>
                         <div style='background: #f0f0f0; padding: 10px 15px; border-bottom: 1px solid #ddd;'>
@@ -262,8 +276,11 @@ namespace TrueTestRun.Services
                     IsBodyHtml = true
                 })
                 {
+                    // THÊM: CC cho management
+                    AddManagementCC(message);
+
                     smtp.Send(message);
-                    System.Diagnostics.Debug.WriteLine($"[EmailService] Sent approval email to {toEmail} for request {request.RequestID} step {step.Index}");
+                    System.Diagnostics.Debug.WriteLine($"[EmailService] Sent approval email to {toEmail} with management CC for request {request.RequestID} step {step.Index}");
                 }
             }
             catch (Exception ex)
@@ -273,7 +290,7 @@ namespace TrueTestRun.Services
         }
 
         /// <summary>
-        /// THÊM MỚI: Gửi email thông báo đã phê duyệt cho Hoangthi.Minh@brother-bivn.com.vn
+        /// THÊM MỚI: Gửi email thông báo đã phê duyệt - CHỈNH SỬA: Thêm CC cho management
         /// </summary>
         public void SendApprovalCompletedNotification(Request request, WorkflowStep completedStep, User approver)
         {
@@ -352,8 +369,11 @@ namespace TrueTestRun.Services
                     IsBodyHtml = true
                 })
                 {
+                    // THÊM: CC cho management
+                    AddManagementCC(message);
+
                     smtp.Send(message);
-                    System.Diagnostics.Debug.WriteLine($"[EmailService] Sent approval completion notification to {notificationEmail} for request {request.RequestID}");
+                    System.Diagnostics.Debug.WriteLine($"[EmailService] Sent approval completion notification to {notificationEmail} with management CC for request {request.RequestID}");
                 }
             }
             catch (Exception ex)
@@ -362,38 +382,8 @@ namespace TrueTestRun.Services
             }
         }
 
-        private string GetActionTextByStep(WorkflowStep step)
-        {
-            // Đơn giản hóa: chỉ dựa vào Actor với resource strings
-            switch (step.Actor)
-            {
-                case StepActor.Approver:
-                    return GetResourceString("ApprovalAndStamp");
-                case StepActor.DataEntry:
-                    return GetResourceString("DataEntryAndInput");
-                default:
-                    return GetResourceString("ProcessRequest");
-            }
-        }
-
         /// <summary>
-        /// Helper method để lấy action text theo cả hai ngôn ngữ
-        /// </summary>
-        private string GetBilingualActionText(WorkflowStep step)
-        {
-            switch (step.Actor)
-            {
-                case StepActor.Approver:
-                    return GetBilingualResourceString("ApprovalAndStamp");
-                case StepActor.DataEntry:
-                    return GetBilingualResourceString("DataEntryAndInput");
-                default:
-                    return GetBilingualResourceString("ProcessRequest");
-            }
-        }
-
-        /// <summary>
-        /// Gửi thông báo từ chối đến người tạo đơn - SỬA: Đơn giản hóa
+        /// Gửi thông báo từ chối đến người tạo đơn - CHỈNH SỬA: Thêm CC cho management
         /// </summary>
         public void SendRejectNotification(Request request, User rejector, string comment)
         {
@@ -435,6 +425,10 @@ namespace TrueTestRun.Services
                                     <td style='padding: 5px 0;'>{rejector.Name} ({rejector.DeptCode})</td>
                                 </tr>
                                 <tr>
+                                    <td style='padding: 5px 0; font-weight: bold;'>却下日時/Thời gian từ chối:</td>
+                                    <td style='padding: 5px 0;'>{DateTime.Now.ToString("yyyy/MM/dd HH:mm")}</td>
+                                </tr>
+                                <tr>
                                     <td style='padding: 5px 0; font-weight: bold;'>状態/Trạng thái:</td>
                                     <td style='padding: 5px 0; color: #cc0000; font-weight: bold;'>却下済み/Đã từ chối</td>
                                 </tr>
@@ -447,7 +441,8 @@ namespace TrueTestRun.Services
                             </div>")}
                             
                             <div style='font-size: 11px; color: #999; text-align: center; border-top: 1px solid #eee; padding-top: 10px; margin-top: 15px;'>
-                                Brother Industries Vietnam - Test Run System
+                                Brother Industries Vietnam - Test Run System<br/>
+                                この通知は自動送信されています / This notification is sent automatically
                             </div>
                         </div>
                     </div>";
@@ -468,8 +463,11 @@ namespace TrueTestRun.Services
                     IsBodyHtml = true
                 })
                 {
+                    // THÊM: CC cho management
+                    AddManagementCC(message);
+
                     smtp.Send(message);
-                    System.Diagnostics.Debug.WriteLine($"[EmailService] Sent reject notification to {toEmail} for request {request.RequestID}");
+                    System.Diagnostics.Debug.WriteLine($"[EmailService] Sent reject notification to {toEmail} with management CC for request {request.RequestID}");
                 }
             }
             catch (Exception ex)
@@ -479,7 +477,7 @@ namespace TrueTestRun.Services
         }
 
         /// <summary>
-        /// Gửi thông báo từ chối về cho người có thể chỉnh sửa - SỬA: Đơn giản hóa
+        /// Gửi thông báo từ chối về cho người có thể chỉnh sửa - CHỈNH SỬA: Thêm CC cho management
         /// </summary>
         public void SendRejectNotificationToPrevApprover(Request request, User prevUser, User rejector, string comment, string editUrl)
         {
@@ -534,7 +532,7 @@ namespace TrueTestRun.Services
                             
                             {(string.IsNullOrEmpty(comment) ? "" : $@"
                             <div style='margin: 15px 0; padding: 10px; background: #f8d7da; border-left: 3px solid #dc3545;'>
-                                <div style='font-weight: bold; font-size: 12px; margin-bottom: 5px;'>修正理由/Lý do sửa đổi:</div>
+                                <div style='font-weight: bold; font-size: 12px; margin-bottom: 5px;'>修正理由/Lý do từ chối:</div>
                                 <div style='font-size: 12px;'>{comment}</div>
                             </div>")}
                             
@@ -568,8 +566,11 @@ namespace TrueTestRun.Services
                     IsBodyHtml = true
                 })
                 {
+                    // THÊM: CC cho management
+                    AddManagementCC(message);
+
                     smtp.Send(message);
-                    System.Diagnostics.Debug.WriteLine($"[EmailService] Sent edit notification to {toEmail} for request {request.RequestID}");
+                    System.Diagnostics.Debug.WriteLine($"[EmailService] Sent edit notification to {toEmail} with management CC for request {request.RequestID}");
                 }
             }
             catch (Exception ex)
@@ -655,6 +656,9 @@ namespace TrueTestRun.Services
                     IsBodyHtml = true
                 })
                 {
+                    // THÊM: CC cho management
+                    AddManagementCC(message);
+
                     smtp.Send(message);
                     System.Diagnostics.Debug.WriteLine($"[EmailService] Sent specific approval email to {selectedApprover.Email} for request {request.RequestID}");
                 }

@@ -61,7 +61,7 @@ namespace TrueTestRun.Controllers
             // Thay vì kiểm tra ActionType phức tạp, chỉ kiểm tra:
             // 1. Staff có thể điền form (các step DataEntry)
             // 2. Manager có thể phê duyệt (các step Approval)
-            
+
             bool hasPermission = true; // Mặc định cho phép xem
             bool canApprove = CanApprove(currentUser);
             bool canEdit = CanEdit(currentUser, request);
@@ -193,8 +193,8 @@ namespace TrueTestRun.Controllers
                         return View("ApprovalForm", request);
                 }
 
-                // Trong Controller sau khi approve thành công
-                if (currentStep.Actor == StepActor.Approver) 
+                
+                if (action?.ToLower() == "approve" && currentStep.Actor == StepActor.Approver)
                 {
                     _email.SendApprovalCompletedNotification(request, currentStep, currentUser);
                 }
@@ -230,7 +230,7 @@ namespace TrueTestRun.Controllers
 
             // Advance workflow (phase sẽ được cập nhật tự động trong WorkflowService)
             _wf.AdvanceStep(request, currentUser.ADID, comment);
-            
+
             // SỬA: Debug log sau khi advance
             System.Diagnostics.Debug.WriteLine($"[ApprovalController] Request {request.RequestID} advanced to step {request.CurrentStepIndex}, new phase: {request.CurrentPhase}");
 
@@ -247,7 +247,7 @@ namespace TrueTestRun.Controllers
             {
                 // Lấy dữ liệu từ form
                 var formData = new List<RequestField>();
-                
+
                 // Xử lý checkbox
                 foreach (string key in Request.Form.AllKeys)
                 {
@@ -265,7 +265,7 @@ namespace TrueTestRun.Controllers
                         }
                     }
                 }
-                
+
                 // SỬA: Xử lý comment - chỉ thêm nếu có nội dung
                 if (!string.IsNullOrEmpty(comment))
                 {
@@ -276,11 +276,11 @@ namespace TrueTestRun.Controllers
                         Value = comment
                     });
                 }
-                
+
                 // Đảm bảo checkbox không được check có giá trị false
                 var checkboxKeys = new[] { "DaNhanHangTestRun", "EPE-PCB1", "EPE-PCB2", "EPE-PCB3" };
                 var submittedKeys = formData.Select(f => f.Key).ToHashSet();
-                
+
                 foreach (var cbKey in checkboxKeys)
                 {
                     if (!submittedKeys.Contains(cbKey))
@@ -293,11 +293,11 @@ namespace TrueTestRun.Controllers
                         });
                     }
                 }
-                
+
                 // Cập nhật fields
                 var existingFields = request.Fields.Where(f => !checkboxKeys.Contains(f.Key) && f.Key != "CommentStep2").ToList();
                 request.Fields.Clear();
-                
+
                 foreach (var field in existingFields.Concat(formData))
                 {
                     request.Fields.Add(field);
@@ -307,7 +307,7 @@ namespace TrueTestRun.Controllers
             else if (currentStep.Index == 4) // Step 4 - PCB Staff điền form
             {
                 var formData = new List<RequestField>();
-                
+
                 // Xử lý 7 ô thông tin
                 var infoKeys = new[] { "ThongTin1Step4", "ThongTin2Step4", "ThongTin3Step4", "ThongTin4Step4", "ThongTin5Step4", "ThongTin6Step4", "ThongTin7Step4" };
                 foreach (var key in infoKeys)
@@ -323,7 +323,7 @@ namespace TrueTestRun.Controllers
                         });
                     }
                 }
-                
+
                 // Xử lý 3 checkbox
                 var checkboxKeys = new[] { "LapRapStep4", "TinhNangStep4", "NgoaiQuanStep4" };
                 foreach (var key in checkboxKeys)
@@ -336,7 +336,7 @@ namespace TrueTestRun.Controllers
                         Value = value == "true" ? "true" : "false"
                     });
                 }
-                
+
                 // SỬA: Xử lý comment tổng quát - chỉ thêm nếu có nội dung
                 if (!string.IsNullOrEmpty(comment))
                 {
@@ -347,12 +347,12 @@ namespace TrueTestRun.Controllers
                         Value = comment
                     });
                 }
-                
+
                 // Cập nhật fields - remove existing Step 4 fields first
                 var allStep4Keys = infoKeys.Concat(checkboxKeys).Concat(new[] { "CommentStep4" }).ToHashSet();
                 var existingFields = request.Fields.Where(f => !allStep4Keys.Contains(f.Key)).ToList();
                 request.Fields.Clear();
-                
+
                 foreach (var field in existingFields.Concat(formData))
                 {
                     request.Fields.Add(field);
@@ -362,7 +362,7 @@ namespace TrueTestRun.Controllers
             else if (currentStep.Index == 6) // Step 6 - PCB Staff điền kết quả
             {
                 var formData = new List<RequestField>();
-                
+
                 // Xử lý kết quả OK/NG
                 var ketQua = Request.Form["KetQuaStep6"];
                 if (!string.IsNullOrEmpty(ketQua))
@@ -374,12 +374,12 @@ namespace TrueTestRun.Controllers
                         Value = ketQua
                     });
                 }
-                
+
                 // SỬA: LUÔN xử lý NG số (không phụ thuộc vào kết quả)
                 var ngR = Request.Form["NGSo_R_Step6"];
                 var ngN = Request.Form["NGSo_N_Step6"];
                 var noiDungNG = Request.Form["NoiDungNG_Step6"];
-                
+
                 if (!string.IsNullOrEmpty(ngR))
                 {
                     formData.Add(new RequestField
@@ -389,7 +389,7 @@ namespace TrueTestRun.Controllers
                         Value = ngR
                     });
                 }
-                
+
                 if (!string.IsNullOrEmpty(ngN))
                 {
                     formData.Add(new RequestField
@@ -399,7 +399,7 @@ namespace TrueTestRun.Controllers
                         Value = ngN
                     });
                 }
-                
+
                 if (!string.IsNullOrEmpty(noiDungNG))
                 {
                     formData.Add(new RequestField
@@ -409,12 +409,12 @@ namespace TrueTestRun.Controllers
                         Value = noiDungNG
                     });
                 }
-                
+
                 // Cập nhật fields - remove existing Step 6 fields first
                 var allStep6Keys = new[] { "KetQuaStep6", "NGSo_R_Step6", "NGSo_N_Step6", "NoiDungNG_Step6" };
                 var existingFields = request.Fields.Where(f => !allStep6Keys.Contains(f.Key)).ToList();
                 request.Fields.Clear();
-                
+
                 foreach (var field in existingFields.Concat(formData))
                 {
                     request.Fields.Add(field);
@@ -424,7 +424,7 @@ namespace TrueTestRun.Controllers
             else if (currentStep.Index == 8) // Step 8 - EE Staff điền form
             {
                 var formData = new List<RequestField>();
-                
+
                 // Xử lý 2 checkbox chính
                 var checkboxKeys = new[] { "TinhNangStep8", "NgoaiQuanStep8" };
                 foreach (var key in checkboxKeys)
@@ -437,7 +437,7 @@ namespace TrueTestRun.Controllers
                         Value = value == "true" ? "true" : "false"
                     });
                 }
-                
+
                 // SỬA: Xử lý 2 comment KTTB và KTLM - chỉ thêm nếu có nội dung
                 var commentKeys = new[] { "CommentKTTB_Step8", "CommentKTLM_Step8" };
                 foreach (var key in commentKeys)
@@ -453,7 +453,7 @@ namespace TrueTestRun.Controllers
                         });
                     }
                 }
-                
+
                 // SỬA: Xử lý dữ liệu bảng 1: Kiểm tra toàn bộ - chỉ thêm nếu có nội dung
                 var toanBoKeys = new[] { "NGSo_R_ToanBo_Step8", "OKSo_N_ToanBo_Step8", "NoiDungNG_ToanBo_Step8" };
                 foreach (var key in toanBoKeys)
@@ -469,7 +469,7 @@ namespace TrueTestRun.Controllers
                         });
                     }
                 }
-                
+
                 // SỬA: Xử lý dữ liệu bảng 2: Kiểm tra lấy mẫu - chỉ thêm nếu có nội dung
                 var layMauKeys = new[] { "NGSo_R_LayMau_Step8", "OKSo_N_LayMau_Step8", "NoiDungNG_LayMau_Step8" };
                 foreach (var key in layMauKeys)
@@ -485,12 +485,12 @@ namespace TrueTestRun.Controllers
                         });
                     }
                 }
-                
+
                 // Cập nhật fields - remove existing Step 8 fields first (bỏ CommentStep8)
                 var allStep8Keys = checkboxKeys.Concat(commentKeys).Concat(toanBoKeys).Concat(layMauKeys).ToHashSet();
                 var existingFields = request.Fields.Where(f => !allStep8Keys.Contains(f.Key)).ToList();
                 request.Fields.Clear();
-                
+
                 foreach (var field in existingFields.Concat(formData))
                 {
                     request.Fields.Add(field);
@@ -513,22 +513,26 @@ namespace TrueTestRun.Controllers
         {
             // Đánh dấu request bị từ chối
             request.IsRejected = true;
-            
+
             // Cập nhật step hiện tại với thông tin từ chối
             currentStep.Status = "Rejected";
             currentStep.ApproverADID = currentUser.ADID;
             currentStep.Comment = comment ?? ""; // SỬA: Cho phép comment rỗng
             currentStep.ApprovedAt = DateTime.Now;
-            
+
             // Lưu request với trạng thái bị từ chối
             _fs.SaveRequest(request);
 
-            // Gửi email thông báo từ chối cho người tạo đơn
+            // SỬA: Gửi cả hai email khi từ chối
             try
             {
                 var creator = _context.Users.FirstOrDefault(u => u.ADID == request.CreatedByADID);
                 if (creator != null)
                 {
+                    // 1. Gửi email thông báo từ chối (màu đỏ) cho người tạo đơn
+                    _email.SendRejectNotification(request, currentUser, comment ?? "Không có lý do cụ thể");
+
+                    // 2. Gửi email yêu cầu sửa đổi (màu vàng) cho người có thể chỉnh sửa
                     var editUrl = Url.Action("Edit", "Request", new { id = request.RequestID }, protocol: Request.Url.Scheme);
                     _email.SendRejectNotificationToPrevApprover(request, creator, currentUser, comment ?? "Không có lý do cụ thể", editUrl);
                 }
@@ -672,12 +676,12 @@ namespace TrueTestRun.Controllers
                 };
 
                 // Remove existing Step 4 fields
-                var step4Keys = new[] { 
-                    "ThongTin1Step4", "ThongTin2Step4", "ThongTin3Step4", "ThongTin4Step4", 
+                var step4Keys = new[] {
+                    "ThongTin1Step4", "ThongTin2Step4", "ThongTin3Step4", "ThongTin4Step4",
                     "ThongTin5Step4", "ThongTin6Step4", "ThongTin7Step4",
                     "LapRapStep4", "TinhNangStep4", "NgoaiQuanStep4", "CommentStep4"
                 };
-                
+
                 var step4Fields = tempRequest.Fields.Where(f => step4Keys.Contains(f.Key)).ToList();
                 foreach (var field in step4Fields)
                 {
@@ -688,7 +692,7 @@ namespace TrueTestRun.Controllers
                 foreach (var key in step4Keys)
                 {
                     var value = form[key] ?? ""; // Lấy value từ form, default là empty string
-                    
+
                     // Đặc biệt xử lý checkbox
                     if (key.Contains("LapRap") || key.Contains("TinhNang") || key.Contains("NgoaiQuan"))
                     {
@@ -697,7 +701,7 @@ namespace TrueTestRun.Controllers
                             value = value == "true" ? "true" : "false";
                         }
                     }
-                    
+
                     tempRequest.Fields.Add(new RequestField
                     {
                         RequestID = RequestID,
@@ -740,7 +744,7 @@ namespace TrueTestRun.Controllers
 
                 // Remove existing Step 6 fields
                 var step6Keys = new[] { "KetQuaStep6", "NGSo_R_Step6", "NGSo_N_Step6", "NoiDungNG_Step6" }; // Bỏ CommentStep6
-                
+
                 var step6Fields = tempRequest.Fields.Where(f => step6Keys.Contains(f.Key)).ToList();
                 foreach (var field in step6Fields)
                 {
@@ -751,7 +755,7 @@ namespace TrueTestRun.Controllers
                 foreach (var key in step6Keys)
                 {
                     var value = form[key] ?? "";
-                    
+
                     tempRequest.Fields.Add(new RequestField
                     {
                         RequestID = RequestID,
@@ -792,13 +796,13 @@ namespace TrueTestRun.Controllers
                     History = request.History
                 };
 
-                var step8Keys = new[] { 
-                    "TinhNangStep8", "NgoaiQuanStep8", 
+                var step8Keys = new[] {
+                    "TinhNangStep8", "NgoaiQuanStep8",
                     "CommentKTTB_Step8", "CommentKTLM_Step8",
                     "NGSo_R_ToanBo_Step8", "OKSo_N_ToanBo_Step8", "NoiDungNG_ToanBo_Step8",
                     "NGSo_R_LayMau_Step8", "OKSo_N_LayMau_Step8", "NoiDungNG_LayMau_Step8"
                 };
-                
+
                 var step8Fields = tempRequest.Fields.Where(f => step8Keys.Contains(f.Key)).ToList();
                 foreach (var field in step8Fields)
                 {
@@ -809,7 +813,7 @@ namespace TrueTestRun.Controllers
                 foreach (var key in step8Keys)
                 {
                     var value = form[key] ?? "";
-                    
+
                     // Đặc biệt xử lý checkbox
                     if (key.Contains("TinhNang") || key.Contains("NgoaiQuan"))
                     {
@@ -818,7 +822,7 @@ namespace TrueTestRun.Controllers
                             value = value == "true" ? "true" : "false";
                         }
                     }
-                    
+
                     tempRequest.Fields.Add(new RequestField
                     {
                         RequestID = RequestID,
@@ -869,7 +873,7 @@ namespace TrueTestRun.Controllers
 
             var title = user.Title.Trim();
             bool isStaff = title.Equals("Staff", StringComparison.OrdinalIgnoreCase);
-            
+
             // Staff có thể edit nếu:
             // 1. Là owner của request, HOẶC
             // 2. Thuộc cùng phòng ban với step hiện tại (để xử lý cross-department workflow)

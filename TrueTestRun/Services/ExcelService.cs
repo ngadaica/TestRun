@@ -17,7 +17,6 @@ namespace TrueTestRun.Services
         {
                 // Thông tin chung
                 { "NgayPhatHanh",       "E8"   },
-                { "Model",              "O8"   },
                 { "MaLinhKien",         "F10"   },
                 { "TenLinhKien",        "Q10"   },
                 { "NhaCungCap",         "AE10"  },
@@ -28,13 +27,13 @@ namespace TrueTestRun.Services
                 { "DaXacNhanFASample",         "B28"  },
                 { "DaXacNhanLapRapTruoc",      "B35"  },
                 { "DaKiemTra",                 "S28"  },
-                { "CommentFASample",           "D30"  },
-                { "CommentLapRapTruoc",        "D37"  },
-                { "CommentDaKiemTra",          "W30"  },
+                { "CommentFASample",           "E30"  },
+                { "CommentLapRapTruoc",        "E37"  },
+                { "CommentDaKiemTra",          "V30"  },
 
                 // ===== CHECKBOX VÀ COMMENT CHO STEP 2 - PCB =====
                 { "DaNhanHangTestRun",         "S35"  }, // Đã nhận hàng test run cho PCB
-                { "CommentStep2",              "V37"  }, // Comment của step 2
+                { "CommentStep2",              "U37"  }, // Comment của step 2
 
                 // ===== THÔNG TIN VÀ CHECKBOX CHO STEP 4 - PCB =====
                 // 7 ô thông tin
@@ -53,7 +52,7 @@ namespace TrueTestRun.Services
                 
                 
                 // Comment tổng quát Step 4
-                { "CommentStep4",              "D46"  },
+                { "CommentStep4",              "U46"  },
 
                 // Các checkbox EE khác
                 {"EPE-EE3", "B52" },

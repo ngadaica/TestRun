@@ -3,6 +3,10 @@
 @{
     ViewBag.Title = HttpContext.GetGlobalResourceObject("Resources", "UsersList").ToString();
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Get current user for role checking
+    var currentUser = Session["CurrentUser"] as User;
+    bool isAdmin = currentUser != null && currentUser.Role == UserRole.Admin;
 }
 
 @if (ViewBag.WindowsUser != null)
@@ -28,10 +32,13 @@
             <span class="action-icon">↻</span>
             @HttpContext.GetGlobalResourceObject("Resources", "Refresh")
         </button>
-        <a href="@Url.Action("Register", "Account")" class="action-btn primary">
-            <span class="action-icon">⊕</span>
-            @HttpContext.GetGlobalResourceObject("Resources", "AddUser")
-        </a>
+        @if (isAdmin)
+        {
+            <a href="@Url.Action("Register", "Account")" class="action-btn primary">
+                <span class="action-icon">⊕</span>
+                @HttpContext.GetGlobalResourceObject("Resources", "AddUser")
+            </a>
+        }
     </div>
 </div>
 
@@ -233,11 +240,14 @@
                                        title="@HttpContext.GetGlobalResourceObject("Resources", "EditInfo")">
                                         ◆
                                     </a>
-                                    <button class="action-btn-small delete"
-                                            onclick="confirmDelete('@u.ADID', '@u.Name')"
-                                            title="@HttpContext.GetGlobalResourceObject("Resources", "DeleteUser")">
-                                        ◯
-                                    </button>
+                                    @if (isAdmin)
+                                    {
+                                        <button class="action-btn-small delete"
+                                                onclick="confirmDelete('@u.ADID', '@u.Name')"
+                                                title="@HttpContext.GetGlobalResourceObject("Resources", "DeleteUser")">
+                                            ◯
+                                        </button>
+                                    }
                                 </div>
                             </td>
                         </tr>
@@ -251,10 +261,13 @@
                                 <div class="empty-icon">◯</div>
                                 <div class="empty-title">@HttpContext.GetGlobalResourceObject("Resources", "NoUsersInSystem")</div>
                                 <div class="empty-subtitle">@HttpContext.GetGlobalResourceObject("Resources", "AddFirstUser")</div>
-                                <a href="@Url.Action("Register", "Account")" class="action-btn primary">
-                                    <span class="action-icon">⊕</span>
-                                    @HttpContext.GetGlobalResourceObject("Resources", "AddFirstUserButton")
-                                </a>
+                                @if (isAdmin)
+                                {
+                                    <a href="@Url.Action("Register", "Account")" class="action-btn primary">
+                                        <span class="action-icon">⊕</span>
+                                        @HttpContext.GetGlobalResourceObject("Resources", "AddFirstUserButton")
+                                    </a>
+                                }
                             </div>
                         </td>
                     </tr>
@@ -274,6 +287,9 @@
 
 @section Scripts {
     <script>
+        // Store the delete confirmation message properly decoded
+        var deleteConfirmMessage = @Html.Raw(Json.Encode(HttpContext.GetGlobalResourceObject("Resources", "ConfirmDeleteUser").ToString()));
+
         $(document).ready(function () {
             // Search functionality
             $('#searchInput').on('input', function() {
@@ -326,7 +342,9 @@
         }
 
         function confirmDelete(adid, name) {
-            if (confirm('@HttpContext.GetGlobalResourceObject("Resources", "ConfirmDeleteUser")'.replace('{0}', name).replace('{1}', adid))) {
+            // Use the properly decoded message and replace placeholders
+            var message = deleteConfirmMessage.replace('{0}', name).replace('{1}', adid);
+            if (confirm(message)) {
                 window.location.href = '@Url.Action("Delete", "User")' + '?id=' + adid;
             }
         }

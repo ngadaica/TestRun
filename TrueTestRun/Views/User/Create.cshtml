@@ -58,11 +58,11 @@
                     </div>
 
                     <div class="mb-3">
-                        @Html.LabelFor(m => m.Role, "Vai trò hệ thống", new { @class = "form-label" })
+                        @Html.LabelFor(m => m.Role, "Role", new { @class = "form-label" })
                         @Html.DropDownListFor(
                                  m => m.Role,
                                  new SelectList(Enum.GetValues(typeof(UserRole))),
-                                 "--- Chọn vai trò ---",
+                                 "--- Chọn role ---",
                                  new { @class = "form-select" }
                              )
                         @Html.ValidationMessageFor(m => m.Role, "", new { @class = "text-danger" })
