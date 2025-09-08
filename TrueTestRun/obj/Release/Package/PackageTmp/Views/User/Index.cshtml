@@ -109,43 +109,43 @@
                     </th>
                     <th class="col-name">
                         <div class="header-content">
-                            <span class="header-text">氏名</span>
+                            @*<span class="header-text">氏名</span>*@
                             <span class="header-subtext">@HttpContext.GetGlobalResourceObject("Resources", "FullName")</span>
                         </div>
                     </th>
                     <th class="col-department">
                         <div class="header-content">
-                            <span class="header-text">部署</span>
+                            @*<span class="header-text">部署</span>*@
                             <span class="header-subtext">@HttpContext.GetGlobalResourceObject("Resources", "Department")</span>
                         </div>
                     </th>
                     <th class="col-position">
                         <div class="header-content">
-                            <span class="header-text">役職</span>
+                            @*<span class="header-text">役職</span>*@
                             <span class="header-subtext">@HttpContext.GetGlobalResourceObject("Resources", "Position")</span>
                         </div>
                     </th>
                     <th class="col-email">
                         <div class="header-content">
-                            <span class="header-text">メール</span>
+                            @*<span class="header-text">メール</span>*@
                             <span class="header-subtext">@HttpContext.GetGlobalResourceObject("Resources", "Email")</span>
                         </div>
                     </th>
                     <th class="col-factory">
                         <div class="header-content">
-                            <span class="header-text">工場</span>
+                            @*<span class="header-text">工場</span>*@
                             <span class="header-subtext">@HttpContext.GetGlobalResourceObject("Resources", "Factory")</span>
                         </div>
                     </th>
                     <th class="col-seal">
                         <div class="header-content">
-                            <span class="header-text">印鑑</span>
+                            @*<span class="header-text">印鑑</span>*@
                             <span class="header-subtext">@HttpContext.GetGlobalResourceObject("Resources", "Seal")</span>
                         </div>
                     </th>
                     <th class="col-actions">
                         <div class="header-content">
-                            <span class="header-text">操作</span>
+                            @*<span class="header-text">操作</span>*@
                             <span class="header-subtext">@HttpContext.GetGlobalResourceObject("Resources", "Actions")</span>
                         </div>
                     </th>
@@ -357,8 +357,8 @@
     /* Fine-tuning variables for alignment */
     :root {
         --name-avatar: 36px;
-        --name-gap: 0.75rem; /* matches .employee-info gap */
-        --name-tweak: 1px; /* small visual tweak; adjust +/- if still off by 1px */
+        --name-gap: 0.75rem;
+        --name-tweak: 1px;
     }
 
     /* Page Header */
@@ -631,7 +631,7 @@
                     align-items: center;
                 }
 
-            /* Align Name header with avatar + gap in cells */
+            /* Align Name header with avatar */
             .data-table-content th.col-name .header-content {
                 padding-left: 0;
             }

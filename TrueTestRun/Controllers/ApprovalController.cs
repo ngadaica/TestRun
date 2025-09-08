@@ -9,7 +9,7 @@ using System.Collections.Generic;
 namespace TrueTestRun.Controllers
 {
     [Authorize]
-    public class ApprovalController : Controller
+    public class ApprovalController : BaseController
     {
         private readonly TrueTestRunDbContext _context;
         private readonly FileStorageService _fs;
@@ -193,7 +193,7 @@ namespace TrueTestRun.Controllers
                         return View("ApprovalForm", request);
                 }
 
-                
+
                 if (action?.ToLower() == "approve" && currentStep.Actor == StepActor.Approver)
                 {
                     _email.SendApprovalCompletedNotification(request, currentStep, currentUser);

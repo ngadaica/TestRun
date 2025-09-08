@@ -78,7 +78,7 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-            flex-shrink: 0; /* CRITICAL: Prevents shrinking */
+            flex-shrink: 0; 
         }
 
         .company-logo {
@@ -86,22 +86,22 @@
             width: auto;
             border-radius: 6px;
             box-shadow: var(--shadow-subtle);
-            flex-shrink: 0; /* Prevents logo shrinking */
+            flex-shrink: 0; 
         }
 
         .brand-text {
             display: flex;
             flex-direction: column;
-            justify-content: center; /* Centers text vertically */
-            min-width: 0; /* Allows text to shrink if needed */
+            justify-content: center; 
+            min-width: 0; 
         }
 
         .system-name {
             font-size: 1.125rem;
             font-weight: 700;
             color: var(--text-primary);
-            line-height: 1.1; /* Tighter line height */
-            margin-bottom: 0.125rem; /* Small margin between lines */
+            line-height: 1.1; 
+            margin-bottom: 0.125rem; 
         }
 
         .company-name {
@@ -115,8 +115,8 @@
         .nav-section {
             display: flex;
             align-items: center;
-            gap: 1.5rem; /* Reduced from 2rem */
-            flex-shrink: 0; /* CRITICAL: Prevents shrinking */
+            gap: 1.5rem; 
+            flex-shrink: 0; 
         }
 
         /* User Information - Fixed */
@@ -124,15 +124,15 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-            white-space: nowrap; /* Prevents text wrapping */
-            flex-shrink: 0; /* Prevents shrinking */
+            white-space: nowrap; 
+            flex-shrink: 0; 
         }
 
         .greeting {
             color: var(--text-primary);
             font-size: 0.875rem;
             font-weight: 500;
-            line-height: 1.2; /* Tighter line height */
+            line-height: 1.2; 
             display: flex;
             align-items: center;
         }
@@ -140,6 +140,45 @@
         .user-name {
             color: var(--corporate-blue);
             font-weight: 600;
+        }
+
+        /* Windows User Badge - NEW */
+        .windows-user-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.375rem 0.75rem;
+            background: var(--background-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .windows-icon {
+            width: 14px;
+            height: 14px;
+            background: var(--corporate-blue);
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.625rem;
+        }
+
+        /* User Details - NEW */
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.25rem;
+        }
+
+        .user-dept-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 400;
         }
 
         /* Header Actions - Fixed */
@@ -354,7 +393,7 @@
             margin-top: 64px;
             min-height: calc(100vh - 64px);
             background: var(--background-primary);
-            position: relative; /* Important: for absolute footer */
+            position: relative; 
         }
 
         .content-wrapper {
@@ -365,14 +404,14 @@
 
         /* Professional Footer (NON-sticky, stays at bottom of page content) */
         .corporate-footer {
-            position: absolute; /* changed from fixed */
+            position: absolute; 
             right: 2rem;
             bottom: 1rem;
             background: transparent;
-            color: #1e3a8a; /* refined navy blue */
+            color: #1e3a8a; 
             font-size: 0.75rem;
             z-index: 10;
-            pointer-events: none; /* keep it non-interactive; remove if you need copyable */
+            pointer-events: none; 
             margin: 0;
             width: auto;
             left: auto;
@@ -427,6 +466,14 @@
             }
 
             .user-info .greeting {
+                display: none;
+            }
+
+            .user-details {
+                display: none;
+            }
+
+            .windows-user-badge {
                 display: none;
             }
 
@@ -526,6 +573,7 @@
             .sidebar::-webkit-scrollbar-thumb:hover {
                 background: var(--text-muted);
             }
+
     </style>
 </head>
 <body>
@@ -546,7 +594,7 @@
 
             <!-- Navigation Section -->
             <div class="nav-section">
-                <!-- User Information -->
+                <!-- User Information - MODIFIED for automatic login -->
                 @if (currentUser != null)
                 {
                     <div class="user-info">
@@ -557,12 +605,15 @@
                             }
                             else
                             {
-                                @HttpContext.GetGlobalResourceObject("Resources", "Hello")
+                                @Html.Raw(HttpContext.GetGlobalResourceObject("Resources", "Hello") + ", <span class=\"user-name\">" + currentUser.ADID + "</span>")
                             }
+                        </div>
+                        <div class="user-details">
+                            <div class="user-dept-title">@currentUser.DeptCode - @currentUser.Title</div>
                         </div>
                     </div>
 
-                    <!-- Header Actions -->
+                    <!-- Header Actions - MODIFIED: Only Logout button -->
                     <div class="header-actions">
                         <a href="@Url.Action("Logout","Account")" class="action-btn">
                             <span class="action-icon">↗</span>
@@ -572,10 +623,14 @@
                 }
                 else
                 {
+                    <!-- Show Windows user info when no authenticated user -->
+                    <div class="windows-user-badge">
+                        <div class="windows-icon">⊞</div>
+                        <span>@User.Identity.Name.Split('\\').Last()</span>
+                    </div>
+
+                    <!-- Register button only - Login is automatic -->
                     <div class="header-actions">
-                        <a href="@Url.Action("Login","Account")" class="action-btn">
-                            @HttpContext.GetGlobalResourceObject("Resources", "Login")
-                        </a>
                         <a href="@Url.Action("Register","Account")" class="action-btn primary">
                             @HttpContext.GetGlobalResourceObject("Resources", "Register")
                         </a>
@@ -675,7 +730,7 @@
                 });
             }
 
-            // Close mobile menu when clicking overlay
+            
             if (mobileOverlay) {
                 mobileOverlay.addEventListener('click', function () {
                     sidebar.classList.remove('mobile-open');

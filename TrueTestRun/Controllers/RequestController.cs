@@ -12,7 +12,7 @@ using TrueTestRun.Services;
 namespace TrueTestRun.Controllers
 {
     [Authorize]
-    public class RequestController : Controller
+    public class RequestController : BaseController
     {
         private readonly FileStorageService fs = new FileStorageService();
         private readonly WorkflowService wf = new WorkflowService();
@@ -61,7 +61,7 @@ namespace TrueTestRun.Controllers
                 var componentInfo = GetComponentInfoFromExcel(request.RequestID);
                 componentInfoDict[request.RequestID] = componentInfo;
             }
-            
+
             ViewBag.ComponentInfo = componentInfoDict;
 
             return View(completedRequests);
@@ -410,7 +410,7 @@ namespace TrueTestRun.Controllers
 
             // SỬA: Convert ICollection<RequestField> to Dictionary cho session và đảm bảo tất cả key cần thiết đều có
             var fieldsDict = req.Fields.ToDictionary(f => f.Key, f => f.Value);
-            
+
             // Đảm bảo các checkbox keys có giá trị mặc định
             var allCheckboxKeys = new List<string> { "EPE-EE", "EPE-EE1", "EPE-EE2", "EPE-EE3", "EPE-EE4", "EPE-PCB", "EPE-PCB1", "EPE-PCB2", "EPE-PCB3", "EPE-G.M", "DaXacNhanFASample", "DaXacNhanLapRapTruoc", "DaKiemTra" };
             foreach (var key in allCheckboxKeys)
@@ -931,17 +931,17 @@ namespace TrueTestRun.Controllers
         public ActionResult TruocTestRun()
         {
             var requests = GetRequestsByPhase(TestRunPhase.TruocTestRun);
-            
+
             // Thêm thông tin component cho mỗi request
             foreach (var request in requests)
             {
                 var componentInfo = GetComponentInfoFromExcel(request.RequestID);
-                
+
                 // Add to ViewBag for this specific request
                 ViewBag.ComponentInfo = ViewBag.ComponentInfo ?? new Dictionary<string, Dictionary<string, string>>();
                 ((Dictionary<string, Dictionary<string, string>>)ViewBag.ComponentInfo)[request.RequestID] = componentInfo;
             }
-            
+
             ViewBag.Title = "Request – " + GetResourceString("BeforeTestRun");
             ViewBag.CurrentPhase = TestRunPhase.TruocTestRun;
             ViewBag.CurrentPhaseTitle = GetResourceString("BeforeTestRun");
@@ -951,16 +951,16 @@ namespace TrueTestRun.Controllers
         public ActionResult GiuaTestRun()
         {
             var requests = GetRequestsByPhase(TestRunPhase.GiuaTestRun);
-            
+
             // Thêm thông tin component cho mỗi request
             foreach (var request in requests)
             {
                 var componentInfo = GetComponentInfoFromExcel(request.RequestID);
-                
+
                 ViewBag.ComponentInfo = ViewBag.ComponentInfo ?? new Dictionary<string, Dictionary<string, string>>();
                 ((Dictionary<string, Dictionary<string, string>>)ViewBag.ComponentInfo)[request.RequestID] = componentInfo;
             }
-            
+
             ViewBag.Title = "Request – " + GetResourceString("DuringTestRun");
             ViewBag.CurrentPhase = TestRunPhase.GiuaTestRun;
             ViewBag.CurrentPhaseTitle = GetResourceString("DuringTestRun");
@@ -970,16 +970,16 @@ namespace TrueTestRun.Controllers
         public ActionResult SauTestRun()
         {
             var requests = GetRequestsByPhase(TestRunPhase.SauTestRun);
-            
+
             // Thêm thông tin component cho mỗi request
             foreach (var request in requests)
             {
                 var componentInfo = GetComponentInfoFromExcel(request.RequestID);
-                
+
                 ViewBag.ComponentInfo = ViewBag.ComponentInfo ?? new Dictionary<string, Dictionary<string, string>>();
                 ((Dictionary<string, Dictionary<string, string>>)ViewBag.ComponentInfo)[request.RequestID] = componentInfo;
             }
-            
+
             ViewBag.Title = "Request – " + GetResourceString("AfterTestRun");
             ViewBag.CurrentPhase = TestRunPhase.SauTestRun;
             ViewBag.CurrentPhaseTitle = GetResourceString("AfterTestRun");
@@ -1160,7 +1160,7 @@ namespace TrueTestRun.Controllers
             var result = new Dictionary<string, string>
             {
                 ["MaLinhKien"] = "N/A",
-                ["TenLinhKien"] = "N/A", 
+                ["TenLinhKien"] = "N/A",
                 ["NhaCungCap"] = "N/A"
             };
 

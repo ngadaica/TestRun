@@ -469,7 +469,7 @@
                                     @Html.TextBoxFor(m => m.ADID, new
                                     {
                                         @class = "form-control with-icon",
-                                        @placeholder = "VD: Mã nhân viên",
+                                        @placeholder = "Nhập tên user",
                                         @required = "required"
                                     })
                                 </div>
@@ -484,7 +484,7 @@
                                     @Html.TextBoxFor(m => m.Name, new
                                     {
                                         @class = "form-control with-icon",
-                                        @placeholder = "Chỉ nhập tên",
+                                        @placeholder = "VD: Minh, Quang...",
                                         @required = "required"
                                     })
                                 </div>
@@ -562,13 +562,6 @@
                         @HttpContext.GetGlobalResourceObject("Resources", "Register")
                     </button>
                 }
-
-                <div class="register-footer">
-                    <div class="back-link">
-                        Đã có tài khoản?
-                        <a href="@Url.Action("Login", "Account")">@HttpContext.GetGlobalResourceObject("Resources", "Login")</a>
-                    </div>
-                </div>
             </div>
         </div>
 

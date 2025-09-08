@@ -228,6 +228,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\ApprovalController.cs" />
+    <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\DocumentController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\LanguageController.cs" />
@@ -426,6 +427,7 @@
   <ItemGroup>
     <Folder Include="App_Data\Lots\" />
     <Folder Include="App_Data\Requests\" />
+    <Folder Include="Views\Base\" />
     <Folder Include="Views\Document\" />
   </ItemGroup>
   <ItemGroup>

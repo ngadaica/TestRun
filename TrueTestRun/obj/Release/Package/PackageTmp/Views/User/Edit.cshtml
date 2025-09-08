@@ -4,6 +4,15 @@
 @{
     ViewBag.Title = "Chỉnh sửa Người dùng";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var currentUser = Session["CurrentUser"] as TrueTestRun.Models.User;
+
+    // SỬA: Kiểm tra admin bằng cách so sánh với database value
+    bool isAdmin = false;
+    if (currentUser != null)
+    {
+        // Kiểm tra role hiện tại trong session hoặc từ database
+        isAdmin = currentUser.Role == UserRole.Admin || (int)currentUser.Role == 0;
+    }
 }
 
 <div class="row justify-content-center">
@@ -12,6 +21,14 @@
             <div class="card-header">
                 <h2 class="card-title mb-0"><i class="fas fa-user-edit text-primary me-2"></i>@ViewBag.Title</h2>
                 <p class="card-subtitle text-muted">Cập nhật thông tin cho tài khoản: @Model.Name</p>
+                @* SỬA: Hiển thị thông tin role hiện tại *@
+                <small class="text-info">
+                    Role hiện tại: <strong>@Model.Role</strong> (SQL value: @((int)Model.Role))
+                    @if (isAdmin)
+                    {
+                        <span class="badge bg-success ms-2">Admin Access</span>
+                    }
+                </small>
             </div>
 
             @using (Html.BeginForm("Edit", "User", FormMethod.Post))
@@ -20,10 +37,7 @@
 
                 <div class="card-body">
 
-                    @* ADID là khóa chính, không được thay đổi.
-                        Ta dùng HiddenFor để đảm bảo giá trị của nó được gửi về server.
-                        Ta cũng dùng TextBoxFor với thuộc tính readonly để hiển thị cho người dùng biết họ đang sửa ai.
-                    *@
+                    @* ADID là khóa chính, không được thay đổi *@
                     @Html.HiddenFor(m => m.ADID)
 
                     <div class="mb-3">
@@ -46,32 +60,89 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             @Html.LabelFor(m => m.DeptCode, "Mã Phòng ban", new { @class = "form-label" })
-                            @Html.TextBoxFor(m => m.DeptCode, new { @class = "form-control", placeholder = "EPE-EE, EPE-PCB..." })
+                            @if (ViewBag.DeptCodes != null)
+                            {
+                                @Html.DropDownListFor(m => m.DeptCode, (SelectList)ViewBag.DeptCodes, "--- Chọn phòng ban ---", new { @class = "form-select" })
+                            }
+                            else
+                            {
+                                @Html.TextBoxFor(m => m.DeptCode, new { @class = "form-control", placeholder = "EPE-EE, EPE-PCB..." })
+                            }
                             @Html.ValidationMessageFor(m => m.DeptCode, "", new { @class = "text-danger" })
                         </div>
                         <div class="col-md-6 mb-3">
                             @Html.LabelFor(m => m.Title, "Chức vụ", new { @class = "form-label" })
-                            @Html.TextBoxFor(m => m.Title, new { @class = "form-control", placeholder = "Staff, Quản lý sơ cấp..." })
+                            @if (ViewBag.Titles != null)
+                            {
+                                @Html.DropDownListFor(m => m.Title, (SelectList)ViewBag.Titles, "--- Chọn chức vụ ---", new { @class = "form-select" })
+                            }
+                            else
+                            {
+                                @Html.TextBoxFor(m => m.Title, new { @class = "form-control", placeholder = "Staff, Quản lý sơ cấp..." })
+                            }
                             @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger" })
                         </div>
                     </div>
 
                     <div class="mb-3">
                         @Html.LabelFor(m => m.Factory, "Nhà máy", new { @class = "form-label" })
-                        @Html.TextBoxFor(m => m.Factory, new { @class = "form-control", placeholder = "Nhập mã nhà máy..." })
+                        @if (ViewBag.Factories != null)
+                        {
+                            @Html.DropDownListFor(m => m.Factory, (SelectList)ViewBag.Factories, "--- Chọn nhà máy ---", new { @class = "form-select" })
+                        }
+                        else
+                        {
+                            @Html.TextBoxFor(m => m.Factory, new { @class = "form-control", placeholder = "Nhập mã nhà máy..." })
+                        }
                         @Html.ValidationMessageFor(m => m.Factory, "", new { @class = "text-danger" })
                     </div>
 
-                    <div class="mb-3">
-                        @Html.LabelFor(m => m.Role, "Vai trò hệ thống", new { @class = "form-label" })
-                        @Html.DropDownListFor(
-                                 m => m.Role,
-                                 new SelectList(Enum.GetValues(typeof(UserRole))),
-                                 "--- Chọn vai trò ---",
-                                 new { @class = "form-select" }
-                             )
-                        @Html.ValidationMessageFor(m => m.Role, "", new { @class = "text-danger" })
-                    </div>
+                    @* SỬA: Chỉ Admin mới thấy được dropdown Role *@
+                    @if (isAdmin)
+                    {
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Role, "Vai trò hệ thống", new { @class = "form-label" })
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    Mapping: Admin=0, DataEntry=1, Approver=2
+                                </small>
+                            </div>
+                            @if (ViewBag.Roles != null)
+                            {
+                                @Html.DropDownListFor(
+                                         m => m.Role,
+                                         (SelectList)ViewBag.Roles,
+                                         "--- Chọn vai trò ---",
+                                         new { @class = "form-select" }
+                                     )
+                            }
+                            else
+                            {
+                                @Html.DropDownListFor(
+                                         m => m.Role,
+                                         new SelectList(Enum.GetValues(typeof(UserRole)).Cast<UserRole>().Select(e => new
+                                         {
+                                             Value = ((int)e).ToString(),
+                                             Text = e.ToString() + " (" + ((int)e).ToString() + ")"
+                                         }), "Value", "Text"),
+                                         "--- Chọn vai trò ---",
+                                         new { @class = "form-select" }
+                                     )
+                            }
+                            @Html.ValidationMessageFor(m => m.Role, "", new { @class = "text-danger" })
+                        </div>
+                    }
+                    else
+                    {
+                        @* Non-admin chỉ được xem role, không được thay đổi *@
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Role, "Vai trò hệ thống", new { @class = "form-label" })
+                            <div class="form-control-plaintext">
+                                <strong>@Model.Role</strong> <small class="text-muted">(SQL value: @((int)Model.Role))</small>
+                            </div>
+                            @Html.HiddenFor(m => m.Role)
+                        </div>
+                    }
                 </div>
 
                 <div class="card-footer text-end">
@@ -86,3 +157,21 @@
         </div>
     </div>
 </div>
+
+@* SỬA: Thêm JavaScript để debug role values *@
+<script>
+    $(document).ready(function() {
+        // Log current role value
+        var currentRole = '@((int)Model.Role)';
+        var isAdmin = @isAdmin.ToString().ToLower();
+        console.log('Current user role (SQL value):', currentRole);
+        console.log('Is Admin access:', isAdmin);
+
+        // Monitor role dropdown changes
+        $('select[name="Role"]').change(function() {
+            var selectedValue = $(this).val();
+            var selectedText = $(this).find('option:selected').text();
+            console.log('Selected role:', selectedText, 'Value:', selectedValue);
+        });
+    });
+</script>

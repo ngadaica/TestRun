@@ -118,7 +118,7 @@ else
             <div class="stat-item">
                 <div class="stat-icon">◈</div>
                 <div class="stat-content">
-                    <div class="stat-number">@Model.Count</div>
+                    <div class="stat-number" id="totalCount">@Model.Count</div>
                     <div class="stat-label">@HttpContext.GetGlobalResourceObject("Resources", "TotalRequests")</div>
                 </div>
             </div>
@@ -126,7 +126,7 @@ else
             <div class="stat-item">
                 <div class="stat-icon">◐</div>
                 <div class="stat-content">
-                    <div class="stat-number">@Model.Count(r => !r.IsCompleted && !r.IsRejected)</div>
+                    <div class="stat-number" id="processingCount">@Model.Count(r => !r.IsCompleted && !r.IsRejected)</div>
                     <div class="stat-label">@HttpContext.GetGlobalResourceObject("Resources", "Processing")</div>
                 </div>
             </div>
@@ -134,7 +134,7 @@ else
             <div class="stat-item">
                 <div class="stat-icon">◑</div>
                 <div class="stat-content">
-                    <div class="stat-number">@Model.Count(r => r.CreatedAt.Date == DateTime.Today)</div>
+                    <div class="stat-number" id="todayCount">@Model.Count(r => r.CreatedAt.Date == DateTime.Today)</div>
                     <div class="stat-label">@HttpContext.GetGlobalResourceObject("Resources", "Today")</div>
                 </div>
             </div>
@@ -143,7 +143,7 @@ else
 
     <!-- Maximized Data Table -->
     <div class="data-table">
-        <!-- Table Header -->
+        <!-- Table Header with Search -->
         <div class="table-header">
             <div class="table-title">
                 <div class="title-main">
@@ -153,6 +153,16 @@ else
                 <div class="title-sub">@ViewBag.CurrentPhaseTitle</div>
             </div>
             <div class="table-actions">
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <span class="search-icon">◎</span>
+                        <input type="text"
+                               id="searchInput"
+                               class="search-input"
+                               placeholder="@HttpContext.GetGlobalResourceObject("Resources", "SearchPlaceholder1")" />
+                        <button class="search-clear" id="clearSearch" style="display: none;">×</button>
+                    </div>
+                </div>
                 <button class="action-btn secondary" onclick="refreshTable()">
                     <span class="action-icon">↻</span>
                     @HttpContext.GetGlobalResourceObject("Resources", "Refresh")
@@ -170,7 +180,7 @@ else
                         <th class="col-component">@HttpContext.GetGlobalResourceObject("Resources", "ComponentCode")</th>
                         <th class="col-component-name">@HttpContext.GetGlobalResourceObject("Resources", "ComponentName")</th>
                         <th class="col-supplier">@HttpContext.GetGlobalResourceObject("Resources", "Supplier")</th>
-                        <th class="col-status">@HttpContext.GetGlobalResourceObject("Resources", "Status")</th>
+                        <th class="col-status">@HttpContext.GetGlobalResourceObject("Resources", "Step")</th>
                         <th class="col-actions">@HttpContext.GetGlobalResourceObject("Resources", "Actions")</th>
                     </tr>
                 </thead>
@@ -201,7 +211,14 @@ else
                             && !request.IsCompleted && !request.IsRejected;
                         bool canAdminEdit = IsAdmin;
 
-                        <tr class="table-row">
+                        // Lấy thông tin component để tìm kiếm - cũng bao gồm tên bước hiện tại
+                        var componentInfo = ViewBag.ComponentInfo as Dictionary<string, Dictionary<string, string>>;
+                        var maLinhKien = componentInfo?[request.RequestID]?["MaLinhKien"] ?? "";
+                        var tenLinhKien = componentInfo?[request.RequestID]?["TenLinhKien"] ?? "";
+                        var nhaCungCap = componentInfo?[request.RequestID]?["NhaCungCap"] ?? "";
+                        var stepName = currentStep?.StepName ?? "";
+
+                        <tr class="table-row" data-search="@($"{request.RequestID} {maLinhKien} {tenLinhKien} {nhaCungCap} {stepName} {request.CreatedAt:dd/MM/yyyy}".ToLower())">
                             <td class="col-id">
                                 <a href="@Url.Action("Detail", "Request", new { id = request.RequestID })" class="request-id-link">
                                     @request.RequestID
@@ -214,23 +231,13 @@ else
                                 </div>
                             </td>
                             <td class="col-component">
-                                @{
-                                    var componentInfo = ViewBag.ComponentInfo as Dictionary<string, Dictionary<string, string>>;
-                                    var maLinhKien = componentInfo?[request.RequestID]?["MaLinhKien"] ?? "—";
-                                }
-                                <div class="cell-content">@maLinhKien</div>
+                                <div class="cell-content">@(maLinhKien == "" ? "—" : maLinhKien)</div>
                             </td>
                             <td class="col-component-name">
-                                @{
-                                    var tenLinhKien = componentInfo?[request.RequestID]?["TenLinhKien"] ?? "—";
-                                }
-                                <div class="cell-content">@tenLinhKien</div>
+                                <div class="cell-content">@(tenLinhKien == "" ? "—" : tenLinhKien)</div>
                             </td>
                             <td class="col-supplier">
-                                @{
-                                    var nhaCungCap = componentInfo?[request.RequestID]?["NhaCungCap"] ?? "—";
-                                }
-                                <div class="cell-content">@nhaCungCap</div>
+                                <div class="cell-content">@(nhaCungCap == "" ? "—" : nhaCungCap)</div>
                             </td>
                             <td class="col-status">
                                 @if (request.IsCompleted)
@@ -249,9 +256,9 @@ else
                                 }
                                 else
                                 {
-                                    <div class="status-badge processing">
-                                        <span class="status-indicator">◐</span>
-                                        <span class="status-text">@HttpContext.GetGlobalResourceObject("Resources", "Processing")</span>
+                                    <div class="status-badge current-step" title="@(currentStep?.StepName ?? "Không xác định")">
+                                        <span class="status-indicator">@(currentStep?.Index + 1 ?? 0)</span>
+                                        <span class="status-text">@(currentStep?.StepName ?? "Không xác định")</span>
                                     </div>
                                 }
                             </td>
@@ -287,7 +294,7 @@ else
         <div class="table-footer">
             <div class="table-info">
                 <span class="footer-icon">ⓘ</span>
-                @HttpContext.GetGlobalResourceObject("Resources", "ShowingResults") <strong>@Model.Count</strong> @HttpContext.GetGlobalResourceObject("Resources", "RequestsInPhase")
+                @HttpContext.GetGlobalResourceObject("Resources", "ShowingResults") <strong id="recordCount">@Model.Count</strong> @HttpContext.GetGlobalResourceObject("Resources", "RequestsInPhase")
             </div>
         </div>
     </div>
@@ -296,6 +303,70 @@ else
 @section Scripts {
     <script>
         $(document).ready(function () {
+            // Search functionality
+            $('#searchInput').on('input', function() {
+                const searchTerm = $(this).val().toLowerCase().trim();
+                const $clearBtn = $('#clearSearch');
+
+                if (searchTerm) {
+                    $clearBtn.show();
+                } else {
+                    $clearBtn.hide();
+                }
+
+                let visibleCount = 0;
+                let processingCount = 0;
+                let todayCount = 0;
+
+                $('.table-row').each(function() {
+                    const searchData = $(this).data('search');
+                    const isVisible = !searchTerm || searchData.includes(searchTerm);
+
+                    if (isVisible) {
+                        $(this).show();
+                        visibleCount++;
+
+                        // Count processing and today requests for filtered results
+                        const $statusBadge = $(this).find('.status-badge');
+                        if ($statusBadge.hasClass('current-step')) {
+                            processingCount++;
+                        }
+
+                        // Check if request was created today (extract from date cell)
+                        const dateText = $(this).find('.date-primary').text();
+                        const today = new Date().toLocaleDateString('en-GB'); // dd/MM/yyyy format
+                        if (dateText === today) {
+                            todayCount++;
+                        }
+                    } else {
+                        $(this).hide();
+                    }
+                });
+
+                // Update counters
+                $('#recordCount').text(visibleCount);
+                $('#totalCount').text(visibleCount);
+                $('#processingCount').text(processingCount);
+                $('#todayCount').text(todayCount);
+            });
+
+            // Clear search
+            $('#clearSearch').on('click', function() {
+                $('#searchInput').val('');
+                $(this).hide();
+                $('.table-row').show();
+
+                // Reset counters to original values
+                const totalRequests = @Model.Count;
+                const originalProcessing = @Model.Count(r => !r.IsCompleted && !r.IsRejected);
+                const originalToday = @Model.Count(r => r.CreatedAt.Date == DateTime.Today);
+
+                $('#recordCount').text(totalRequests);
+                $('#totalCount').text(totalRequests);
+                $('#processingCount').text(originalProcessing);
+                $('#todayCount').text(originalToday);
+            });
+
             // Auto dismiss notifications
             setTimeout(function () {
                 $('.notification').fadeOut('slow');
@@ -551,7 +622,7 @@ else
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        font-size: 1.05rem; /* nhỉnh hơn chút để nổi bật */
+        font-size: 1.05rem;
         font-weight: 700;
         color: var(--text-primary);
         line-height: 1.2;
@@ -572,20 +643,75 @@ else
     .table-actions {
         display: flex;
         gap: 0.75rem;
+        align-items: center;
     }
+
+
+    .search-container {
+        min-width: 280px;
+    }
+
+    .search-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.75rem 1rem 0.75rem 2.5rem;
+        border: 1px solid var(--border-light);
+        border-radius: 6px;
+        font-size: 0.875rem;
+        background: var(--background-white);
+        transition: all 0.2s ease;
+    }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--corporate-blue);
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        }
+
+    .search-icon {
+        position: absolute;
+        left: 0.75rem;
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .search-clear {
+        position: absolute;
+        right: 0.5rem;
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        padding: 0.25rem;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 1rem;
+    }
+
+        .search-clear:hover {
+            background: var(--background-secondary);
+            color: var(--text-primary);
+        }
 
     /* Perfect Table Container */
     .table-container {
         flex: 1;
         overflow: auto;
         position: relative;
-        background: #fcfdff; /* nền rất nhẹ để tách khỏi header */
+        background: #fcfdff;
     }
 
     .data-table-content {
         width: 100%;
         border-collapse: collapse;
-        font-size: 0.9rem; /* tăng nhẹ size để đọc tốt hơn */
+        font-size: 0.9rem;
         table-layout: fixed;
     }
 
@@ -622,7 +748,7 @@ else
 
     /* Zebra striping + highlight */
     .table-row:nth-child(even) {
-        background: #f7fbff; /* xanh rất nhạt để dễ quét mắt */
+        background: #f7fbff;
     }
 
     .table-row {
@@ -632,7 +758,7 @@ else
 
         .table-row:hover,
         .table-row.hover {
-            background: #eff6ff; /* hover xanh nhạt đồng bộ thương hiệu */
+            background: #eff6ff;
             transform: translateY(-1px);
             box-shadow: var(--shadow-subtle);
         }
@@ -650,7 +776,7 @@ else
         color: var(--corporate-blue);
         text-decoration: none;
         padding: 0.4rem 0.6rem;
-        border-radius: 999px; /* pill */
+        border-radius: 999px;
         transition: all 0.2s ease;
         display: inline-block;
         font-size: 0.9rem;
@@ -676,7 +802,7 @@ else
     }
 
     .date-primary {
-        font-weight: 600; /* tăng nhẹ độ đậm */
+        font-weight: 600;
         color: var(--text-primary);
         line-height: 1.2;
         font-size: 0.9rem;
@@ -687,20 +813,23 @@ else
         color: var(--text-secondary);
     }
 
-    /* PERFECT Status Badges with Geometric Indicators (emphasized) */
+    /* ENHANCED Status Badges with Step Names */
     .status-badge {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 0.5rem;
-        padding: 0.5rem 0.875rem;
-        border-radius: 999px; /* nhìn hiện đại hơn */
-        font-size: 0.8rem; /* lớn hơn chút */
+        gap: 0.4rem;
+        padding: 0.4rem 0.7rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
         font-weight: 600;
         border: 1px solid transparent;
-        min-width: 110px;
+        min-width: 140px; /* Tăng width để chứa tên step */
+        max-width: 180px;
         text-align: center;
         white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
         .status-badge.completed {
@@ -715,20 +844,42 @@ else
             color: #991b1b;
         }
 
-        .status-badge.processing {
-            background: #fef3c7;
-            border-color: #fde68a;
-            color: #92400e;
+        .status-badge.current-step {
+            background: #dbeafe;
+            border-color: #93c5fd;
+            color: #1e40af;
         }
 
     .status-indicator {
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         flex-shrink: 0;
+        background: rgba(255, 255, 255, 0.8);
+        color: var(--corporate-blue);
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+    }
+
+    .status-badge.completed .status-indicator {
+        background: rgba(255, 255, 255, 0.9);
+        color: #166534;
+    }
+
+    .status-badge.rejected .status-indicator {
+        background: rgba(255, 255, 255, 0.9);
+        color: #991b1b;
     }
 
     .status-text {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     /* Action Buttons with Refined Icons */
@@ -905,6 +1056,21 @@ else
             gap: 0.75rem;
             align-items: stretch;
         }
+
+        .table-actions {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .search-container {
+            min-width: auto;
+            width: 100%;
+        }
+
+        .status-badge {
+            min-width: 120px;
+            max-width: 150px;
+        }
     }
 
     @@media (max-width: 768px) {
@@ -948,9 +1114,20 @@ else
         }
 
         .status-badge {
-            min-width: 90px;
+            min-width: 100px;
+            max-width: 120px;
             padding: 0.375rem 0.5rem;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
+        }
+
+        .status-text {
+            font-size: 0.7rem;
+        }
+
+        .status-indicator {
+            width: 16px;
+            height: 16px;
+            font-size: 0.7rem;
         }
     }
 
@@ -987,15 +1164,40 @@ else
         }
 
         .status-badge {
-            min-width: 80px;
-            padding: 0.35rem 0.5rem;
-            font-size: 0.7rem;
+            min-width: 90px;
+            max-width: 110px;
+            padding: 0.3rem 0.4rem;
+            font-size: 0.65rem;
+        }
+
+        .status-text {
+            font-size: 0.65rem;
+        }
+
+        .status-indicator {
+            width: 14px;
+            height: 14px;
+            font-size: 0.6rem;
         }
 
         .action-btn-small {
             width: 26px;
             height: 26px;
             font-size: 0.75rem;
+        }
+
+        .search-container {
+            min-width: auto;
+        }
+
+        .search-input {
+            padding: 0.6rem 0.8rem 0.6rem 2rem;
+            font-size: 0.8rem;
+        }
+
+        .search-icon {
+            left: 0.6rem;
+            font-size: 0.8rem;
         }
     }
 </style>

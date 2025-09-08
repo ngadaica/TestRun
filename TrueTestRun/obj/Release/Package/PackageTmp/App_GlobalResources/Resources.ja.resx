@@ -1,5 +1,64 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -58,8 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-
-  <!-- Navigation -->
   <data name="Home" xml:space="preserve">
     <value>ホーム</value>
   </data>
@@ -87,8 +144,6 @@
   <data name="Language" xml:space="preserve">
     <value>言語</value>
   </data>
-
-  <!-- Authentication -->
   <data name="Hello" xml:space="preserve">
     <value>こんにちは</value>
   </data>
@@ -101,8 +156,6 @@
   <data name="Register" xml:space="preserve">
     <value>登録</value>
   </data>
-
-  <!-- Dashboard -->
   <data name="WelcomeToTestRun" xml:space="preserve">
     <value>テストランシステムへようこそ！</value>
   </data>
@@ -113,13 +166,13 @@
     <value>総リクエスト数</value>
   </data>
   <data name="Completed" xml:space="preserve">
-    <value>完了済み</value>
+    <value>完了</value>
   </data>
   <data name="Processing" xml:space="preserve">
     <value>処理中</value>
   </data>
   <data name="Rejected" xml:space="preserve">
-    <value>却下済み（NG）</value>
+    <value>却下済み</value>
   </data>
   <data name="SystemStatus" xml:space="preserve">
     <value>システム状況</value>
@@ -131,13 +184,11 @@
     <value>却下率</value>
   </data>
   <data name="ViewDetails" xml:space="preserve">
-    <value>詳細を見る</value>
+    <value>詳細を表示</value>
   </data>
   <data name="AllSystem" xml:space="preserve">
     <value>全システム</value>
   </data>
-
-  <!-- Create Request -->
   <data name="CreateNewRequest" xml:space="preserve">
     <value>新しいリクエストを作成</value>
   </data>
@@ -168,8 +219,6 @@
   <data name="AdditionalNotes" xml:space="preserve">
     <value>このリクエストに対する追加メモや特別な編集要求。</value>
   </data>
-
-  <!-- Documents -->
   <data name="AttachedDocuments" xml:space="preserve">
     <value>添付ドキュメント</value>
   </data>
@@ -188,8 +237,6 @@
   <data name="SelectedFiles" xml:space="preserve">
     <value>選択されたファイル：</value>
   </data>
-
-  <!-- Confirmation Checklist -->
   <data name="ConfirmationChecklist" xml:space="preserve">
     <value>確認チェックリスト（ステップ0）</value>
   </data>
@@ -214,8 +261,6 @@
   <data name="EnterInspectionNotes" xml:space="preserve">
     <value>検査のメモを入力...</value>
   </data>
-
-  <!-- Buttons -->
   <data name="CreateAndSubmit" xml:space="preserve">
     <value>作成して承認送信</value>
   </data>
@@ -246,8 +291,6 @@
   <data name="Delete" xml:space="preserve">
     <value>削除</value>
   </data>
-
-  <!-- Preview -->
   <data name="ExcelPreview" xml:space="preserve">
     <value>Excelプレビュー</value>
   </data>
@@ -257,8 +300,6 @@
   <data name="PreviewAutoUpdate" xml:space="preserve">
     <value>情報を変更すると自動的にプレビューが更新されます</value>
   </data>
-
-  <!-- Approval -->
   <data name="ApprovalForm" xml:space="preserve">
     <value>リクエスト承認</value>
   </data>
@@ -275,10 +316,7 @@
     <value>ステータス</value>
   </data>
   <data name="Actions" xml:space="preserve">
-    <value>アクション</value>
-  </data>
-  <data name="Processing" xml:space="preserve">
-    <value>処理中</value>
+    <value>操作</value>
   </data>
   <data name="Approving" xml:space="preserve">
     <value>承認中</value>
@@ -305,19 +343,17 @@
     <value>承認と押印</value>
   </data>
   <data name="RejectReason" xml:space="preserve">
-    <value>却下理由：</value>
+    <value>却下理由</value>
   </data>
   <data name="EnterRejectReason" xml:space="preserve">
     <value>却下理由を入力（任意）...</value>
   </data>
   <data name="RejectWarning" xml:space="preserve">
-    <value>却下後、リクエストは作成者に編集のため送り返されます。</value>
+    <value>却下すると、編集可能な担当者にリクエストが送り返されます。</value>
   </data>
   <data name="ConfirmReject" xml:space="preserve">
     <value>却下を確認</value>
   </data>
-
-  <!-- Step 2 - PCB Data Entry -->
   <data name="PCBStaffDataEntry" xml:space="preserve">
     <value>PCBスタッフフォーム入力</value>
   </data>
@@ -331,15 +367,13 @@
     <value>実施した作業の詳細を記載してください...</value>
   </data>
   <data name="DetailedDescription" xml:space="preserve">
-    <value>次の承認者が状況を理解できるよう詳細に記載してください。</value>
+    <value>次の承認者が状況を理解できるよう、詳細に記述してください。</value>
   </data>
-
-  <!-- Messages -->
   <data name="PleaseEnterWorkNotes" xml:space="preserve">
-    <value>実施した作業のメモを入力してください！</value>
+    <value>実施した作業の説明メモを入力してください！</value>
   </data>
   <data name="CheckboxNotChecked" xml:space="preserve">
-    <value>「テストラン品受け取り済み」にチェックが入っていません。続行しますか？</value>
+    <value>「テストラン品受け取り済」にチェックが入っていません。続行しますか？</value>
   </data>
   <data name="ConfirmComplete" xml:space="preserve">
     <value>このリクエストを完了して転送しますか？</value>
@@ -351,20 +385,16 @@
     <value>このリクエストを却下しますか？</value>
   </data>
   <data name="ConfirmFinalApproval" xml:space="preserve">
-    <value>このリクエストを最終承認しますか？承認後、リクエストは完了します。</value>
+    <value>このリクエストを最終承認しますか？</value>
   </data>
-
-  <!-- Character Counter -->
   <data name="CharactersEntered" xml:space="preserve">
     <value>{0}文字入力済み。</value>
   </data>
-
-  <!-- Documents -->
   <data name="ViewDocuments" xml:space="preserve">
-    <value>ドキュメントを表示</value>
+    <value>文書を表示</value>
   </data>
   <data name="ClickToViewDocuments" xml:space="preserve">
-    <value>このリクエストにアップロードされたドキュメントを表示するにはクリック</value>
+    <value>添付文書を表示するにはクリック</value>
   </data>
   <data name="NoDocuments" xml:space="preserve">
     <value>添付ドキュメントはありません</value>
@@ -396,13 +426,9 @@
   <data name="Description" xml:space="preserve">
     <value>説明</value>
   </data>
-
-  <!-- Footer -->
   <data name="DesignedBy" xml:space="preserve">
     <value>Designed by Pham Duc Anh - R&amp;D PE | Brother Vietnam</value>
   </data>
-
-  <!-- Common -->
   <data name="Loading" xml:space="preserve">
     <value>読み込み中...</value>
   </data>
@@ -413,7 +439,7 @@
     <value>成功</value>
   </data>
   <data name="Warning" xml:space="preserve">
-    <value>警告</value>
+    <value>注意</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>情報</value>
@@ -433,7 +459,6 @@
   <data name="Close" xml:space="preserve">
     <value>閉じる</value>
   </data>
-  <!-- Thêm các resource strings tiếng Nhật còn thiếu -->
   <data name="RequestListByPhase" xml:space="preserve">
     <value>フェーズ別リクエスト一覧</value>
   </data>
@@ -479,7 +504,6 @@
   <data name="RequestsInPhase" xml:space="preserve">
     <value>個のリクエスト（フェーズ）</value>
   </data>
-  <!-- Email strings -->
   <data name="Resubmitted" xml:space="preserve">
     <value>再送信</value>
   </data>
@@ -516,10 +540,6 @@
   <data name="ApprovalHistoryNote" xml:space="preserve">
     <value>このメモは承認履歴に保存され、Excelに表示されます。</value>
   </data>
-  <data name="Warning" xml:space="preserve">
-    <value>注意</value>
-  </data>
-  <!-- Email Strings for EmailService -->
   <data name="DataEntryAndInput" xml:space="preserve">
     <value>フォーム入力と情報記録</value>
   </data>
@@ -568,42 +588,11 @@
   <data name="DesignatedApproval" xml:space="preserve">
     <value>指定承認</value>
   </data>
-  <data name="Hello" xml:space="preserve">
-    <value>こんにちは</value>
-  </data>
   <data name="YouAreDesignatedToApprove" xml:space="preserve">
     <value>テストランリクエストの承認を指定されました</value>
   </data>
   <data name="ViewAndApproveRequest" xml:space="preserve">
     <value>リクエストを表示・承認</value>
-  </data>
-  
-  <!-- Additional confirmation messages -->
-  <data name="ConfirmFinalApproval" xml:space="preserve">
-    <value>このリクエストを最終承認しますか？</value>
-  </data>
-  <data name="ConfirmApprove" xml:space="preserve">
-    <value>このリクエストを承認しますか？</value>
-  </data>
-  <data name="ConfirmRejectRequest" xml:space="preserve">
-    <value>このリクエストを却下しますか？</value>
-  </data>
-  <data name="ViewDocuments" xml:space="preserve">
-    <value>文書を表示</value>
-  </data>
-  <data name="ViewDetails" xml:space="preserve">
-    <value>詳細を表示</value>
-  </data>
-  <data name="ClickToViewDocuments" xml:space="preserve">
-    <value>添付文書を表示するにはクリック</value>
-  </data>
-
-  <!-- Account/Authentication -->
-  <data name="Login" xml:space="preserve">
-    <value>ログイン</value>
-  </data>
-  <data name="Register" xml:space="preserve">
-    <value>登録</value>
   </data>
   <data name="RegisterAccount" xml:space="preserve">
     <value>アカウント登録</value>
@@ -620,8 +609,6 @@
   <data name="SelectPosition" xml:space="preserve">
     <value>-- 役職を選択 --</value>
   </data>
-  
-  <!-- Document related -->
   <data name="PleaseLoginAgain" xml:space="preserve">
     <value>再度ログインしてください</value>
   </data>
@@ -664,8 +651,6 @@
   <data name="DeleteDocumentError" xml:space="preserve">
     <value>文書の削除中にエラーが発生しました</value>
   </data>
-  
-  <!-- Step 8 related -->
   <data name="StaffEEForm" xml:space="preserve">
     <value>EEスタッフフォーム入力</value>
   </data>
@@ -687,8 +672,6 @@
   <data name="EnterKTLMComment" xml:space="preserve">
     <value>KTLMのコメントを入力...</value>
   </data>
-  
-  <!-- Step 6 related -->
   <data name="TestRunResults" xml:space="preserve">
     <value>テストラン結果</value>
   </data>
@@ -710,22 +693,6 @@
   <data name="DescribeNGDetails" xml:space="preserve">
     <value>NG問題の詳細を記述...</value>
   </data>
-  
-  <!-- Alert messages for step 2 -->
-  <data name="PleaseEnterWorkNotes" xml:space="preserve">
-    <value>実施した作業の説明メモを入力してください！</value>
-  </data>
-  <data name="CheckboxNotChecked" xml:space="preserve">
-    <value>「テストラン品受け取り済」にチェックが入っていません。続行しますか？</value>
-  </data>
-  <data name="DetailedDescription" xml:space="preserve">
-    <value>次の承認者が状況を理解できるよう、詳細に記述してください。</value>
-  </data>
-  <data name="RejectWarning" xml:space="preserve">
-    <value>却下すると、編集可能な担当者にリクエストが送り返されます。</value>
-  </data>
-
-  <!-- Home page strings -->
   <data name="TestRunSystemTitle" xml:space="preserve">
     <value>EPE-PCB内部テストランシステム</value>
   </data>
@@ -735,57 +702,20 @@
   <data name="ManageTrackApprove" xml:space="preserve">
     <value>テストランリクエストを迅速で便利に管理、追跡、承認します。</value>
   </data>
-  <data name="TotalRequests" xml:space="preserve">
-    <value>総リクエスト数</value>
-  </data>
-  <data name="AllSystem" xml:space="preserve">
-    <value>全システム</value>
-  </data>
-  <data name="SystemStatus" xml:space="preserve">
-    <value>システム状況</value>
-  </data>
-  <data name="CompletionRate" xml:space="preserve">
-    <value>完了率</value>
-  </data>
-  <data name="ViewDetails" xml:space="preserve">
-    <value>詳細を表示</value>
-  </data>
-  
-  <!-- Completed requests page -->
   <data name="CompletedRequestsTitle" xml:space="preserve">
     <value>完了済みリクエスト</value>
-  </data>
-  <data name="CreatedDate" xml:space="preserve">
-    <value>作成日</value>
   </data>
   <data name="LastStep" xml:space="preserve">
     <value>最終ステップ</value>
   </data>
-  <data name="Completed" xml:space="preserve">
-    <value>完了</value>
-  </data>
   <data name="NoCompletedRequests" xml:space="preserve">
     <value>完了したリクエストはありません。</value>
   </data>
-  
-  <!-- Rejected requests page -->
   <data name="RejectedRequestsTitle" xml:space="preserve">
     <value>却下されたリクエスト (NG)</value>
   </data>
-  <data name="Creator" xml:space="preserve">
-    <value>作成者</value>
-  </data>
   <data name="RejectedStep" xml:space="preserve">
     <value>却下されたステップ</value>
-  </data>
-  <data name="RejectReason" xml:space="preserve">
-    <value>却下理由</value>
-  </data>
-  <data name="Rejected" xml:space="preserve">
-    <value>却下済み</value>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>編集</value>
   </data>
   <data name="Undefined" xml:space="preserve">
     <value>未確定</value>
@@ -808,16 +738,11 @@
   <data name="Note" xml:space="preserve">
     <value>注意：作成者の場合、却下されたリクエストを編集できます。</value>
   </data>
-  
-  <!-- Users page -->
   <data name="UsersList" xml:space="preserve">
     <value>ユーザー一覧</value>
   </data>
   <data name="HelloUser" xml:space="preserve">
     <value>こんにちは、{0}！</value>
-  </data>
-  <data name="Refresh" xml:space="preserve">
-    <value>更新</value>
   </data>
   <data name="AddUser" xml:space="preserve">
     <value>ユーザーを追加</value>
@@ -830,9 +755,6 @@
   </data>
   <data name="FullName" xml:space="preserve">
     <value>氏名</value>
-  </data>
-  <data name="Department" xml:space="preserve">
-    <value>部署</value>
   </data>
   <data name="Group" xml:space="preserve">
     <value>グループ</value>
@@ -848,9 +770,6 @@
   </data>
   <data name="Seal" xml:space="preserve">
     <value>印鑑</value>
-  </data>
-  <data name="Actions" xml:space="preserve">
-    <value>操作</value>
   </data>
   <data name="EditInfo" xml:space="preserve">
     <value>情報を編集</value>
@@ -870,26 +789,31 @@
   <data name="ConfirmDeleteUser" xml:space="preserve">
     <value>ユーザー「{0}」（{1}）を削除してもよろしいですか？</value>
   </data>
-
-  <!-- Role strings -->
   <data name="DataEntryPerson" xml:space="preserve">
     <value>データ入力者</value>
   </data>
   <data name="ApproverPerson" xml:space="preserve">
     <value>承認者</value>
   </data>
-
-  <!-- Additional strings for User view -->
   <data name="SealOf" xml:space="preserve">
     <value>印鑑：</value>
   </data>
-  
-  <!-- Additional strings for Account Controller -->
   <data name="ADIDAlreadyExists" xml:space="preserve">
     <value>ADIDは既に存在します</value>
   </data>
   <data name="ADIDNotExist" xml:space="preserve">
     <value>ADIDが存在しません</value>
   </data>
-  
+  <data name="SearchPlaceholder1" xml:space="preserve">
+    <value>リクエストIDまたは部品コードで検索してください。</value>
+  </data>
+  <data name="MiddleManager_Ja" xml:space="preserve">
+    <value>中間管理職</value>
+  </data>
+  <data name="JuniorManager_Ja" xml:space="preserve">
+    <value>初級管理職</value>
+  </data>
+  <data name="Step" xml:space="preserve">
+    <value>現在のステップ</value>
+  </data>
 </root>

@@ -1,5 +1,64 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -58,8 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-
-  <!-- Navigation -->
   <data name="Home" xml:space="preserve">
     <value>Trang chủ</value>
   </data>
@@ -87,8 +144,6 @@
   <data name="Language" xml:space="preserve">
     <value>Ngôn ngữ</value>
   </data>
-
-  <!-- Authentication -->
   <data name="Hello" xml:space="preserve">
     <value>Xin chào</value>
   </data>
@@ -101,8 +156,6 @@
   <data name="Register" xml:space="preserve">
     <value>Đăng ký</value>
   </data>
-
-  <!-- Dashboard -->
   <data name="WelcomeToTestRun" xml:space="preserve">
     <value>Chào mừng đến với hệ thống Test Run!</value>
   </data>
@@ -110,16 +163,16 @@
     <value>Quản lý, theo dõi và phê duyệt các request test run một cách nhanh chóng, thuận tiện.</value>
   </data>
   <data name="TotalRequests" xml:space="preserve">
-    <value>TỔNG REQUEST</value>
+    <value>Tổng Request</value>
   </data>
   <data name="Completed" xml:space="preserve">
-    <value>ĐÃ HOÀN THÀNH</value>
+    <value>Hoàn thành</value>
   </data>
   <data name="Processing" xml:space="preserve">
-    <value>ĐANG XỬ LÝ</value>
+    <value>Đang xử lý</value>
   </data>
   <data name="Rejected" xml:space="preserve">
-    <value>BỊ TỪ CHỐI (NG)</value>
+    <value>Bị từ chối</value>
   </data>
   <data name="SystemStatus" xml:space="preserve">
     <value>Tình trạng hệ thống</value>
@@ -136,8 +189,6 @@
   <data name="AllSystem" xml:space="preserve">
     <value>Toàn hệ thống</value>
   </data>
-
-  <!-- Create Request -->
   <data name="CreateNewRequest" xml:space="preserve">
     <value>Tạo Request mới</value>
   </data>
@@ -168,8 +219,6 @@
   <data name="AdditionalNotes" xml:space="preserve">
     <value>Ghi chú bổ sung hoặc yêu cầu chỉnh sửa đặc biệt cho request này.</value>
   </data>
-
-  <!-- Documents -->
   <data name="AttachedDocuments" xml:space="preserve">
     <value>Tài liệu đính kèm</value>
   </data>
@@ -188,8 +237,6 @@
   <data name="SelectedFiles" xml:space="preserve">
     <value>File đã chọn:</value>
   </data>
-
-  <!-- Confirmation Checklist -->
   <data name="ConfirmationChecklist" xml:space="preserve">
     <value>Bảng xác nhận (Step 0)</value>
   </data>
@@ -214,8 +261,6 @@
   <data name="EnterInspectionNotes" xml:space="preserve">
     <value>Nhập ghi chú cho kiểm tra...</value>
   </data>
-
-  <!-- Buttons -->
   <data name="CreateAndSubmit" xml:space="preserve">
     <value>Tạo và Gửi phê duyệt</value>
   </data>
@@ -246,8 +291,6 @@
   <data name="Delete" xml:space="preserve">
     <value>Xóa</value>
   </data>
-
-  <!-- Preview -->
   <data name="ExcelPreview" xml:space="preserve">
     <value>Preview Excel</value>
   </data>
@@ -257,8 +300,6 @@
   <data name="PreviewAutoUpdate" xml:space="preserve">
     <value>Preview tự động cập nhật khi bạn thay đổi thông tin</value>
   </data>
-
-  <!-- Approval -->
   <data name="ApprovalForm" xml:space="preserve">
     <value>Phê duyệt Request</value>
   </data>
@@ -276,9 +317,6 @@
   </data>
   <data name="Actions" xml:space="preserve">
     <value>Thao tác</value>
-  </data>
-  <data name="Processing" xml:space="preserve">
-    <value>Đang xử lý</value>
   </data>
   <data name="Approving" xml:space="preserve">
     <value>Đang phê duyệt</value>
@@ -305,19 +343,17 @@
     <value>Đóng dấu kèm phê duyệt</value>
   </data>
   <data name="RejectReason" xml:space="preserve">
-    <value>Lý do từ chối:</value>
+    <value>Lý do từ chối</value>
   </data>
   <data name="EnterRejectReason" xml:space="preserve">
     <value>Nhập lý do từ chối (tùy chọn)...</value>
   </data>
   <data name="RejectWarning" xml:space="preserve">
-    <value>Sau khi từ chối, request sẽ được gửi về cho người tạo đơn để chỉnh sửa.</value>
+    <value>Từ chối sẽ gửi đơn về cho người có thể chỉnh sửa.</value>
   </data>
   <data name="ConfirmReject" xml:space="preserve">
     <value>Xác nhận từ chối</value>
   </data>
-
-  <!-- Step 2 - PCB Data Entry -->
   <data name="PCBStaffDataEntry" xml:space="preserve">
     <value>Staff PCB điền form</value>
   </data>
@@ -333,8 +369,6 @@
   <data name="DetailedDescription" xml:space="preserve">
     <value>Vui lòng mô tả chi tiết để người phê duyệt tiếp theo hiểu rõ tình hình.</value>
   </data>
-
-  <!-- Messages -->
   <data name="PleaseEnterWorkNotes" xml:space="preserve">
     <value>Vui lòng nhập ghi chú mô tả công việc đã thực hiện!</value>
   </data>
@@ -351,20 +385,16 @@
     <value>Bạn có chắc chắn muốn từ chối đơn này?</value>
   </data>
   <data name="ConfirmFinalApproval" xml:space="preserve">
-    <value>Bạn có chắc chắn muốn phê duyệt cuối cùng đơn này? Đơn sẽ được hoàn thành sau khi phê duyệt.</value>
+    <value>Bạn có chắc chắn muốn phê duyệt cuối cùng đơn này?</value>
   </data>
-
-  <!-- Character Counter -->
   <data name="CharactersEntered" xml:space="preserve">
     <value>Đã nhập {0} ký tự.</value>
   </data>
-
-  <!-- Documents -->
   <data name="ViewDocuments" xml:space="preserve">
     <value>Xem tài liệu</value>
   </data>
   <data name="ClickToViewDocuments" xml:space="preserve">
-    <value>Nhấn để xem các tài liệu đã upload kèm request này</value>
+    <value>Nhấn để xem tài liệu đính kèm</value>
   </data>
   <data name="NoDocuments" xml:space="preserve">
     <value>Không có tài liệu nào được đính kèm</value>
@@ -396,13 +426,9 @@
   <data name="Description" xml:space="preserve">
     <value>Mô tả</value>
   </data>
-
-  <!-- Footer -->
   <data name="DesignedBy" xml:space="preserve">
     <value>Designed by Pham Duc Anh - R&amp;D PE | Brother Vietnam</value>
   </data>
-
-  <!-- Common -->
   <data name="Loading" xml:space="preserve">
     <value>Đang tải...</value>
   </data>
@@ -413,7 +439,7 @@
     <value>Thành công</value>
   </data>
   <data name="Warning" xml:space="preserve">
-    <value>Cảnh báo</value>
+    <value>Lưu ý</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>Thông tin</value>
@@ -433,7 +459,6 @@
   <data name="Close" xml:space="preserve">
     <value>Đóng</value>
   </data>
-  <!-- Thêm các resource strings còn thiếu cho PhaseList.cshtml -->
   <data name="RequestListByPhase" xml:space="preserve">
     <value>Danh sách Request theo Giai đoạn</value>
   </data>
@@ -479,8 +504,6 @@
   <data name="RequestsInPhase" xml:space="preserve">
     <value>request trong giai đoạn</value>
   </data>
-
-  <!-- Email strings -->
   <data name="Resubmitted" xml:space="preserve">
     <value>GỬI LẠI</value>
   </data>
@@ -517,10 +540,6 @@
   <data name="ApprovalHistoryNote" xml:space="preserve">
     <value>Ghi chú này sẽ được lưu trong lịch sử phê duyệt và hiển thị trên Excel.</value>
   </data>
-  <data name="Warning" xml:space="preserve">
-    <value>Lưu ý</value>
-  </data>
-  <!-- Email Strings for EmailService -->
   <data name="DataEntryAndInput" xml:space="preserve">
     <value>Điền form và ghi nhập thông tin</value>
   </data>
@@ -569,42 +588,11 @@
   <data name="DesignatedApproval" xml:space="preserve">
     <value>Phê duyệt chỉ định</value>
   </data>
-  <data name="Hello" xml:space="preserve">
-    <value>Xin chào</value>
-  </data>
   <data name="YouAreDesignatedToApprove" xml:space="preserve">
     <value>Bạn được chỉ định phê duyệt đơn test run</value>
   </data>
   <data name="ViewAndApproveRequest" xml:space="preserve">
     <value>Xem và phê duyệt đơn</value>
-  </data>
-  
-  <!-- Additional confirmation messages -->
-  <data name="ConfirmFinalApproval" xml:space="preserve">
-    <value>Bạn có chắc chắn muốn phê duyệt cuối cùng đơn này?</value>
-  </data>
-  <data name="ConfirmApprove" xml:space="preserve">
-    <value>Bạn có chắc chắn muốn phê duyệt đơn này?</value>
-  </data>
-  <data name="ConfirmRejectRequest" xml:space="preserve">
-    <value>Bạn có chắc chắn muốn từ chối đơn này?</value>
-  </data>
-  <data name="ViewDocuments" xml:space="preserve">
-    <value>Xem tài liệu</value>
-  </data>
-  <data name="ViewDetails" xml:space="preserve">
-    <value>Xem chi tiết</value>
-  </data>
-  <data name="ClickToViewDocuments" xml:space="preserve">
-    <value>Nhấn để xem tài liệu đính kèm</value>
-  </data>
-
-  <!-- Account/Authentication -->
-  <data name="Login" xml:space="preserve">
-    <value>Đăng nhập</value>
-  </data>
-  <data name="Register" xml:space="preserve">
-    <value>Đăng ký</value>
   </data>
   <data name="RegisterAccount" xml:space="preserve">
     <value>Đăng ký tài khoản</value>
@@ -621,8 +609,6 @@
   <data name="SelectPosition" xml:space="preserve">
     <value>-- Chọn chức vụ --</value>
   </data>
-  
-  <!-- Document related -->
   <data name="PleaseLoginAgain" xml:space="preserve">
     <value>Vui lòng đăng nhập lại</value>
   </data>
@@ -665,8 +651,6 @@
   <data name="DeleteDocumentError" xml:space="preserve">
     <value>Có lỗi xảy ra khi xóa tài liệu</value>
   </data>
-  
-  <!-- Step 8 related -->
   <data name="StaffEEForm" xml:space="preserve">
     <value>Staff EE điền form</value>
   </data>
@@ -688,8 +672,6 @@
   <data name="EnterKTLMComment" xml:space="preserve">
     <value>Nhập comment cho KTLM...</value>
   </data>
-  
-  <!-- Step 6 related -->
   <data name="TestRunResults" xml:space="preserve">
     <value>Kết quả Test Run</value>
   </data>
@@ -711,22 +693,6 @@
   <data name="DescribeNGDetails" xml:space="preserve">
     <value>Mô tả chi tiết vấn đề NG...</value>
   </data>
-  
-  <!-- Alert messages for step 2 -->
-  <data name="PleaseEnterWorkNotes" xml:space="preserve">
-    <value>Vui lòng nhập ghi chú mô tả công việc đã thực hiện!</value>
-  </data>
-  <data name="CheckboxNotChecked" xml:space="preserve">
-    <value>Bạn chưa tick vào checkbox "Đã nhận hàng test run". Bạn có chắc muốn tiếp tục?</value>
-  </data>
-  <data name="DetailedDescription" xml:space="preserve">
-    <value>Vui lòng mô tả chi tiết để người phê duyệt tiếp theo hiểu rõ tình hình.</value>
-  </data>
-  <data name="RejectWarning" xml:space="preserve">
-    <value>Từ chối sẽ gửi đơn về cho người có thể chỉnh sửa.</value>
-  </data>
-
-  <!-- Home page strings -->
   <data name="TestRunSystemTitle" xml:space="preserve">
     <value>Hệ thống test run nội bộ EPE-PCB</value>
   </data>
@@ -736,57 +702,20 @@
   <data name="ManageTrackApprove" xml:space="preserve">
     <value>Quản lý, theo dõi và phê duyệt các request test run một cách nhanh chóng, thuận tiện.</value>
   </data>
-  <data name="TotalRequests" xml:space="preserve">
-    <value>Tổng Request</value>
-  </data>
-  <data name="AllSystem" xml:space="preserve">
-    <value>Toàn hệ thống</value>
-  </data>
-  <data name="SystemStatus" xml:space="preserve">
-    <value>Tình trạng hệ thống</value>
-  </data>
-  <data name="CompletionRate" xml:space="preserve">
-    <value>Tỷ lệ hoàn thành</value>
-  </data>
-  <data name="ViewDetails" xml:space="preserve">
-    <value>Xem chi tiết</value>
-  </data>
-  
-  <!-- Completed requests page -->
   <data name="CompletedRequestsTitle" xml:space="preserve">
     <value>Request đã hoàn thành</value>
-  </data>
-  <data name="CreatedDate" xml:space="preserve">
-    <value>Ngày tạo</value>
   </data>
   <data name="LastStep" xml:space="preserve">
     <value>Bước cuối</value>
   </data>
-  <data name="Completed" xml:space="preserve">
-    <value>Hoàn thành</value>
-  </data>
   <data name="NoCompletedRequests" xml:space="preserve">
     <value>Không có request nào đã hoàn thành.</value>
   </data>
-  
-  <!-- Rejected requests page -->
   <data name="RejectedRequestsTitle" xml:space="preserve">
     <value>Request bị từ chối (NG)</value>
   </data>
-  <data name="Creator" xml:space="preserve">
-    <value>Người tạo</value>
-  </data>
   <data name="RejectedStep" xml:space="preserve">
     <value>Bước bị từ chối</value>
-  </data>
-  <data name="RejectReason" xml:space="preserve">
-    <value>Lý do từ chối</value>
-  </data>
-  <data name="Rejected" xml:space="preserve">
-    <value>Bị từ chối</value>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>Chỉnh sửa</value>
   </data>
   <data name="Undefined" xml:space="preserve">
     <value>Không xác định</value>
@@ -809,16 +738,11 @@
   <data name="Note" xml:space="preserve">
     <value>Lưu ý: Bạn có thể chỉnh sửa lại các request bị từ chối nếu bạn là người tạo.</value>
   </data>
-  
-  <!-- Users page -->
   <data name="UsersList" xml:space="preserve">
     <value>Danh sách Users</value>
   </data>
   <data name="HelloUser" xml:space="preserve">
     <value>Xin chào, {0}!</value>
-  </data>
-  <data name="Refresh" xml:space="preserve">
-    <value>Làm mới</value>
   </data>
   <data name="AddUser" xml:space="preserve">
     <value>Thêm User</value>
@@ -831,9 +755,6 @@
   </data>
   <data name="FullName" xml:space="preserve">
     <value>Họ tên</value>
-  </data>
-  <data name="Department" xml:space="preserve">
-    <value>Phòng ban</value>
   </data>
   <data name="Group" xml:space="preserve">
     <value>Nhóm</value>
@@ -849,9 +770,6 @@
   </data>
   <data name="Seal" xml:space="preserve">
     <value>Con dấu</value>
-  </data>
-  <data name="Actions" xml:space="preserve">
-    <value>Thao tác</value>
   </data>
   <data name="EditInfo" xml:space="preserve">
     <value>Chỉnh sửa thông tin</value>
@@ -871,26 +789,31 @@
   <data name="ConfirmDeleteUser" xml:space="preserve">
     <value>Bạn có chắc chắn muốn xóa user "{0}" ({1})?</value>
   </data>
-
-  <!-- Role strings -->
   <data name="DataEntryPerson" xml:space="preserve">
     <value>Người ghi nhập</value>
   </data>
   <data name="ApproverPerson" xml:space="preserve">
     <value>Người phê duyệt</value>
   </data>
-  
-  <!-- Additional strings for User view -->
   <data name="SealOf" xml:space="preserve">
     <value>Con dấu của</value>
   </data>
-  
-  <!-- Additional strings for Account Controller -->
   <data name="ADIDAlreadyExists" xml:space="preserve">
     <value>ADID đã tồn tại</value>
   </data>
   <data name="ADIDNotExist" xml:space="preserve">
     <value>ADID không tồn tại</value>
   </data>
-  
+  <data name="SearchPlaceholder1" xml:space="preserve">
+    <value>Tìm kiếm theo Request ID, tên mã linh kiện...</value>
+  </data>
+  <data name="MiddleManager_Ja" xml:space="preserve">
+    <value>QLTC</value>
+  </data>
+  <data name="JuniorManager_Ja" xml:space="preserve">
+    <value>QLSC</value>
+  </data>
+  <data name="Step" xml:space="preserve">
+    <value>Bước hiện tại</value>
+  </data>
 </root>

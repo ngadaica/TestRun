@@ -74,42 +74,7 @@ namespace TrueTestRun.Controllers
             _context.Users.Add(model);
             _context.SaveChanges();
 
-            return RedirectToAction("Login");
-        }
-
-        [AllowAnonymous]
-        public ActionResult Login()
-        {
-            return View();
-        }
-
-        [HttpPost, AllowAnonymous]
-        public ActionResult Login(string adid)
-        {
-            // Load user from database using Entity Framework
-            var user = _context.Users
-                          .FirstOrDefault(u =>
-                              u.ADID.Equals(adid,
-                                  StringComparison.OrdinalIgnoreCase));
-            if (user == null)
-            {
-                ModelState.AddModelError("", GetResourceString("ADIDNotExist"));
-                return View();
-            }
-
-            var ticket = new FormsAuthenticationTicket(
-                version: 1,
-                name: user.ADID,
-                issueDate: DateTime.Now,
-                expiration: DateTime.Now.AddHours(8),
-                isPersistent: false,
-                userData: user.ApprovalRole.ToString()
-            );
-            var encrypted = FormsAuthentication.Encrypt(ticket);
-            Response.Cookies.Add(new HttpCookie(
-                FormsAuthentication.FormsCookieName, encrypted));
-
-            Session["CurrentUser"] = user;
+            TempData["SuccessMessage"] = "Tài khoản đã được tạo thành công. Hệ thống sẽ tự động đăng nhập khi bạn truy cập với tên Windows tương ứng.";
             return RedirectToAction("Index", "Home");
         }
 
@@ -118,7 +83,7 @@ namespace TrueTestRun.Controllers
         {
             FormsAuthentication.SignOut();
             Session.Clear();
-            return RedirectToAction("Login");
+            return RedirectToAction("Index", "Home");
         }
 
         // ACTION MỚI: TẠO ẢNH CON DẤU

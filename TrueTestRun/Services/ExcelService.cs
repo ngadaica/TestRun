@@ -46,8 +46,8 @@ namespace TrueTestRun.Services
                 { "ThongTin7Step4",            "AA20" },
                 
                 // 3 checkbox Step 4
-                { "LapRapStep4",               "B43"  }, 
-                { "TinhNangStep4",             "B44"  }, 
+                { "LapRapStep4",               "B43"  },
+                { "TinhNangStep4",             "B44"  },
                 { "NgoaiQuanStep4",            "H43"  },
                 
                 
@@ -190,14 +190,14 @@ namespace TrueTestRun.Services
         {
             // Ánh xạ từ Step Index sang danh sách các ô Excel để chèn dấu
             var sealLocationMapping = new Dictionary<int, List<string>>
-            {
-                { 1, new List<string> { "N29", "N36", "AE29" } },
-                { 3, new List<string> {"AE36"} },
-                { 5, new List<string> {"N45"} },
-                { 7, new List<string> {"AE45"} },
-                { 9, new List<string> {"N54", "AE54"} },
-                { 10, new List<string> {"AE62"} },
-            };
+    {
+        { 1, new List<string> { "N29", "N36", "AE29" } },
+        { 3, new List<string> {"AE36"} },
+        { 5, new List<string> {"N45"} },
+        { 7, new List<string> {"AE45"} },
+        { 9, new List<string> {"N54", "AE54"} },
+        { 10, new List<string> {"AE62"} },
+    };
 
             if (!sealLocationMapping.ContainsKey(stepIndex))
             {
@@ -236,11 +236,93 @@ namespace TrueTestRun.Services
                             var picture = ws.Drawings.AddPicture(imageName, sealAsImage);
 
                             var targetCell = ws.Cells[targetCellAddress];
-                            int row = targetCell.Start.Row - 1;
-                            int col = targetCell.Start.Column - 1;
+                            int rowIndex = targetCell.Start.Row;
+                            int colIndex = targetCell.Start.Column;
 
-                            picture.SetPosition(row, 0, col, 0);
-                            picture.SetSize(70, 70);
+                            // Detect merged range containing the target cell (if any)
+                            string merged = ws.MergedCells.FirstOrDefault(m =>
+                            {
+                                var addr = new ExcelAddress(m);
+                                return addr.Start.Row <= rowIndex && addr.End.Row >= rowIndex
+                                    && addr.Start.Column <= colIndex && addr.End.Column >= colIndex;
+                            });
+
+                            int cellWidthPx;
+                            int cellHeightPx;
+                            int anchorRow = rowIndex;
+                            int anchorCol = colIndex;
+
+                            if (!string.IsNullOrEmpty(merged))
+                            {
+                                var ma = new ExcelAddress(merged);
+                                // use top-left of merged as anchor
+                                anchorRow = ma.Start.Row;
+                                anchorCol = ma.Start.Column;
+
+                                // sum widths of merged columns
+                                cellWidthPx = 0;
+                                for (int c = ma.Start.Column; c <= ma.End.Column; c++)
+                                    cellWidthPx += ColumnWidthToPixels(ws.Column(c).Width);
+
+                                // sum heights of merged rows
+                                cellHeightPx = 0;
+                                for (int r = ma.Start.Row; r <= ma.End.Row; r++)
+                                    cellHeightPx += RowHeightPointsToPixels(ws.Row(r).Height);
+                            }
+                            else
+                            {
+                                cellWidthPx = ColumnWidthToPixels(ws.Column(colIndex).Width);
+                                cellHeightPx = RowHeightPointsToPixels(ws.Row(rowIndex).Height);
+                            }
+
+                            // Fallback defaults if cell dims not available
+                            if (cellWidthPx <= 0) cellWidthPx = 80;
+                            if (cellHeightPx <= 0) cellHeightPx = 80;
+
+                            // Provide a small padding so seal doesn't touch borders
+                            const int padding = 8;
+                            int availableW = Math.Max(1, cellWidthPx - padding);
+                            int availableH = Math.Max(1, cellHeightPx - padding);
+
+                            // Determine scale to fit image inside the available area preserving aspect ratio
+                            int imgW = sealAsImage.Width;
+                            int imgH = sealAsImage.Height;
+                            if (imgW <= 0) imgW = availableW;
+                            if (imgH <= 0) imgH = availableH;
+
+                            double scale = Math.Min((double)availableW / imgW, (double)availableH / imgH);
+
+                            // Limit upscale and then apply a small visual shrink to avoid touching borders
+                            if (scale > 2.0) scale = 2.0;
+                            const double visualShrink = 0.92; // make image slightly smaller for margin
+                            scale = scale * visualShrink;
+
+                            int newWidth = Math.Max(1, (int)Math.Round(imgW * scale));
+                            int newHeight = Math.Max(1, (int)Math.Round(imgH * scale));
+
+                            // Ensure the image fits inside the cell (defensive)
+                            if (newWidth > cellWidthPx) newWidth = cellWidthPx - 2;
+                            if (newHeight > cellHeightPx) newHeight = cellHeightPx - 2;
+
+                            // Apply size and center it
+                            picture.SetSize(newWidth, newHeight);
+
+                            // Calculate centered offsets
+                            int offsetX = (cellWidthPx - newWidth) / 2;
+                            int offsetY = (cellHeightPx - newHeight) / 2;
+
+                            // Shift left a bit more (12% of cell width) per your request
+                            int leftShift = (int)Math.Round(cellWidthPx * 0.12);
+                            offsetX = offsetX - leftShift;
+
+                            // Defensive clamps
+                            if (offsetX < 0) offsetX = 0;
+                            if (offsetY < 0) offsetY = 0;
+                            if (offsetX > cellWidthPx - newWidth) offsetX = Math.Max(0, cellWidthPx - newWidth);
+                            if (offsetY > cellHeightPx - newHeight) offsetY = Math.Max(0, cellHeightPx - newHeight);
+
+                            // EPPlus SetPosition expects zero-based row/col indexes
+                            picture.SetPosition(anchorRow - 1, offsetY, anchorCol - 1, offsetX);
                         }
                         catch (Exception)
                         {
@@ -254,6 +336,46 @@ namespace TrueTestRun.Services
             catch (Exception)
             {
                 // Ignore errors
+            }
+        }
+
+        /// <summary>
+        /// Convert Excel column width (characters) to pixels (approximate).
+        /// Uses common approximation used by many Excel libraries.
+        /// </summary>
+        private int ColumnWidthToPixels(double excelColumnWidth)
+        {
+            try
+            {
+                if (excelColumnWidth <= 0) return 0;
+                double integerPortion = Math.Floor(excelColumnWidth);
+                double fractionalPortion = excelColumnWidth - integerPortion;
+                double pixels = integerPortion * 7 + Math.Round(fractionalPortion * 7);
+                // Add padding often present in Excel cells
+                pixels += 5;
+                return (int)Math.Max(1, Math.Round(pixels));
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Convert row height in points to pixels.
+        /// 1 point = 96/72 pixels.
+        /// </summary>
+        private int RowHeightPointsToPixels(double rowHeightPoints)
+        {
+            try
+            {
+                if (rowHeightPoints <= 0) return 0;
+                double pixels = rowHeightPoints * 96.0 / 72.0;
+                return (int)Math.Max(1, Math.Round(pixels));
+            }
+            catch
+            {
+                return 0;
             }
         }
 
@@ -292,7 +414,7 @@ namespace TrueTestRun.Services
         public Dictionary<string, string> ReadFieldsFromExcel(string excelPath, string[] fieldKeys)
         {
             var result = new Dictionary<string, string>();
-            
+
             try
             {
                 if (!System.IO.File.Exists(excelPath))
@@ -332,7 +454,7 @@ namespace TrueTestRun.Services
         }
 
         /// <summary>
-        /// Thêm hình tròn quanh OK hoặc NG dựa trên kết quả, xóa highlight cũ
+        /// Thêm hình tròn quanh OK hoặc NG dựa trên kết quả
         /// </summary>
         private void AddCircleToResult(OfficeOpenXml.ExcelWorksheet ws, string baseCell, string result)
         {
@@ -367,16 +489,16 @@ namespace TrueTestRun.Services
             try
             {
                 var cell = ws.Cells[cellAddress];
-                
+
                 // Xóa background color
                 cell.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.None;
-                
+
                 // Xóa borders
                 cell.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.None;
                 cell.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.None;
                 cell.Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.None;
                 cell.Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.None;
-                
+
                 // Reset font về mặc định
                 cell.Style.Font.Bold = false;
                 cell.Style.Font.Size = 11; // Default size
@@ -395,7 +517,7 @@ namespace TrueTestRun.Services
             try
             {
                 var cell = ws.Cells[cellAddress];
-                
+
                 // Thêm background color
                 if (result == "OK")
                 {
@@ -407,20 +529,20 @@ namespace TrueTestRun.Services
                     cell.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                     cell.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightCoral);
                 }
-                
+
                 // Thêm border dày
                 cell.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thick;
                 cell.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thick;
                 cell.Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thick;
                 cell.Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thick;
-                
+
                 // Màu border
                 var borderColor = result == "OK" ? System.Drawing.Color.Green : System.Drawing.Color.Red;
                 cell.Style.Border.Top.Color.SetColor(borderColor);
                 cell.Style.Border.Bottom.Color.SetColor(borderColor);
                 cell.Style.Border.Left.Color.SetColor(borderColor);
                 cell.Style.Border.Right.Color.SetColor(borderColor);
-                
+
                 // Làm đậm chữ
                 cell.Style.Font.Bold = true;
                 cell.Style.Font.Size = 12;

@@ -1006,6 +1006,15 @@ namespace TrueTestRun.App_GlobalResources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to QLSC.
+        /// </summary>
+        public static string JuniorManager_Ja {
+            get {
+                return ResourceManager.GetString("JuniorManager_Ja", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to KTLM Comment.
         /// </summary>
         public static string KTLMComment {
@@ -1092,6 +1101,15 @@ namespace TrueTestRun.App_GlobalResources {
         public static string MaxFileSize {
             get {
                 return ResourceManager.GetString("MaxFileSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to QLTC.
+        /// </summary>
+        public static string MiddleManager_Ja {
+            get {
+                return ResourceManager.GetString("MiddleManager_Ja", resourceCulture);
             }
         }
         
@@ -1708,6 +1726,15 @@ namespace TrueTestRun.App_GlobalResources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Tìm kiếm theo Request ID, tên mã linh kiện....
+        /// </summary>
+        public static string SearchPlaceholder1 {
+            get {
+                return ResourceManager.GetString("SearchPlaceholder1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to -- Chọn phòng ban --.
         /// </summary>
         public static string SelectDepartment {
@@ -1803,6 +1830,15 @@ namespace TrueTestRun.App_GlobalResources {
         public static string Status {
             get {
                 return ResourceManager.GetString("Status", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bước hiện tại.
+        /// </summary>
+        public static string Step {
+            get {
+                return ResourceManager.GetString("Step", resourceCulture);
             }
         }
         

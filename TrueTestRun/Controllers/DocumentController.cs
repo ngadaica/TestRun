@@ -139,11 +139,11 @@ namespace TrueTestRun.Controllers
                 // Xác định xem có thể hiển thị inline không
                 var inlineTypes = new[] { "application/pdf", "image/jpeg", "image/png", "image/gif", "image/webp", "text/plain", "text/html" };
                 var isInlineViewable = inlineTypes.Contains(document.ContentType.ToLower());
-                
+
                 // Set Content-Disposition header
                 var disposition = isInlineViewable ? "inline" : "attachment";
                 Response.Headers.Add("Content-Disposition", $"{disposition}; filename=\"{document.OriginalFileName}\"");
-                
+
                 return File(fileStream, document.ContentType);
             }
             catch (Exception)

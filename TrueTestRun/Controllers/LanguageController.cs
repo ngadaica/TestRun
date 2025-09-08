@@ -34,7 +34,7 @@ namespace TrueTestRun.Controllers
             {
                 return Redirect(returnUrl);
             }
-            
+
             return RedirectToAction("Index", "Home");
         }
 
@@ -45,7 +45,7 @@ namespace TrueTestRun.Controllers
                 var cultureInfo = new CultureInfo(langCode == "ja" ? "ja-JP" : "vi-VN");
                 Thread.CurrentThread.CurrentCulture = cultureInfo;
                 Thread.CurrentThread.CurrentUICulture = cultureInfo;
-                
+
                 // Store in session as well
                 Session["UserLanguage"] = langCode;
             }
