@@ -11,7 +11,6 @@ namespace TrueTestRun.Controllers
     [Authorize]
     public class ApprovalController : BaseController
     {
-        private readonly TrueTestRunDbContext _context;
         private readonly FileStorageService _fs;
         private readonly WorkflowService _wf;
         private readonly EmailService _email;
@@ -20,7 +19,7 @@ namespace TrueTestRun.Controllers
 
         public ApprovalController()
         {
-            _context = new TrueTestRunDbContext();
+            // SỬA: Don't create new context, use inherited one from BaseController
             _fs = new FileStorageService();
             _wf = new WorkflowService();
             _email = new EmailService();
@@ -43,9 +42,12 @@ namespace TrueTestRun.Controllers
                 return RedirectToAction("TruocTestRun", "Request");
             }
 
+            // SỬA: Use Session directly since BaseController handles authentication
             var currentUser = Session["CurrentUser"] as User;
             if (currentUser == null)
             {
+                // SỬA: This shouldn't happen since BaseController handles auth, but just in case
+                System.Diagnostics.Debug.WriteLine("[ApprovalController] Session user is null, redirecting to login");
                 return RedirectToAction("Login", "Account");
             }
 
@@ -107,65 +109,79 @@ namespace TrueTestRun.Controllers
             return View(viewName, request);
         }
 
+        // Replace the existing ProcessApproval method and add the GetPhaseUrl helper.
+        // This is a drop-in replacement for the method in the current file.
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult ProcessApproval(string RequestID, string action, string Comments)
         {
-            if (string.IsNullOrEmpty(RequestID))
-            {
-                TempData["ErrorMessage"] = "Request ID không hợp lệ.";
-                return RedirectToAction("TruocTestRun", "Request");
-            }
-
-            var request = _fs.LoadRequest(RequestID);
-            if (request == null)
-            {
-                TempData["ErrorMessage"] = "Không tìm thấy request.";
-                return RedirectToAction("TruocTestRun", "Request");
-            }
-
-            var currentUser = Session["CurrentUser"] as User;
-            if (currentUser == null)
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            var currentStep = _wf.GetCurrentStep(request);
-
-            if (currentStep == null)
-            {
-                TempData["ErrorMessage"] = "Không xác định được bước hiện tại của request.";
-                return GetRedirectToPhase(request);
-            }
-
-            // ========== SỬA: LOGIC KIỂM TRA QUYỀN ĐƠN GIẢN ==========
-            bool canPerformAction = false;
-
-            // SỬA: Logic đơn giản dựa trên Actor
-            switch (action?.ToLower())
-            {
-                case "approve":
-                case "reject":
-                    canPerformAction = CanApprove(currentUser) && currentStep.Actor == StepActor.Approver;
-                    break;
-
-                case "complete":
-                    canPerformAction = CanEdit(currentUser, request) && currentStep.Actor == StepActor.DataEntry;
-                    break;
-
-                default:
-                    canPerformAction = false;
-                    break;
-            }
-
-            if (!canPerformAction)
-            {
-                TempData["ErrorMessage"] = $"Bạn không có quyền thực hiện '{action}'. Cần: {(action == "approve" || action == "reject" ? "Manager" : "Staff")} thuộc phòng {currentStep.DeptCode}";
-                return GetRedirectToPhase(request);
-            }
-
             try
             {
+                if (string.IsNullOrEmpty(RequestID))
+                {
+                    TempData["ErrorMessage"] = "Request ID không hợp lệ.";
+                    return RedirectToAction("TruocTestRun", "Request");
+                }
+
+                var request = _fs.LoadRequest(RequestID);
+                if (request == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy request.";
+                    return RedirectToAction("TruocTestRun", "Request");
+                }
+
+                // SỬA: Enhanced user authentication check with better error handling
+                var currentUser = GetCurrentUser();
+                if (currentUser == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("[ApprovalController] Current user is null, attempting re-authentication");
+                    
+                    // Try to re-authenticate
+                    currentUser = Session["CurrentUser"] as User;
+                    if (currentUser == null)
+                    {
+                        TempData["ErrorMessage"] = "Phiên đăng nhập đã hết hạn. Vui lòng đóng trình duyệt và click lại vào link trong email.";
+                        return RedirectToAction("Index", "Home");
+                    }
+                }
+
+                var currentStep = _wf.GetCurrentStep(request);
+                if (currentStep == null)
+                {
+                    TempData["ErrorMessage"] = "Không xác định được bước hiện tại của request.";
+                    return GetRedirectToPhase(request);
+                }
+
+                // ========== SỬA: LOGIC KIỂM TRA QUYỀN ĐƠN GIẢN ==========
+                bool canPerformAction = false;
+
+                // SỬA: Logic đơn giản dựa trên Actor
+                switch (action?.ToLower())
+                {
+                    case "approve":
+                    case "reject":
+                        canPerformAction = CanApprove(currentUser) && currentStep.Actor == StepActor.Approver;
+                        break;
+
+                    case "complete":
+                        canPerformAction = CanEdit(currentUser, request) && currentStep.Actor == StepActor.DataEntry;
+                        break;
+
+                    default:
+                        canPerformAction = false;
+                        break;
+                }
+
+                if (!canPerformAction)
+                {
+                    var errorMsg = $"Bạn không có quyền thực hiện '{action}'. Cần: {(action == "approve" || action == "reject" ? "Manager" : "Staff")} thuộc phòng {currentStep.DeptCode}";
+                    TempData["ErrorMessage"] = errorMsg;
+                    System.Diagnostics.Debug.WriteLine($"[ApprovalController] Permission denied: {errorMsg}");
+                    return GetRedirectToPhase(request);
+                }
+
+                // SỬA: Enhanced action processing with better error handling
                 switch (action?.ToLower())
                 {
                     case "approve":
@@ -174,7 +190,6 @@ namespace TrueTestRun.Controllers
                         break;
 
                     case "reject":
-                        // SỬA: Bỏ validation bắt buộc comment cho reject
                         ProcessRejectAction(request, currentUser, currentStep, Comments);
                         TempData["SuccessMessage"] = $"Đã từ chối đơn {request.RequestID}.";
                         break;
@@ -186,29 +201,85 @@ namespace TrueTestRun.Controllers
 
                     default:
                         TempData["ErrorMessage"] = "Hành động không hợp lệ.";
-                        ViewBag.CurrentUser = currentUser;
-                        ViewBag.CurrentStep = currentStep;
-                        ViewBag.CanApprove = CanApprove(currentUser);
-                        ViewBag.CanEdit = CanEdit(currentUser, request);
-                        return View("ApprovalForm", request);
+                        return GetRedirectToPhase(request);
                 }
-
 
                 if (action?.ToLower() == "approve" && currentStep.Actor == StepActor.Approver)
                 {
-                    _email.SendApprovalCompletedNotification(request, currentStep, currentUser);
+                    try
+                    {
+                        _email.SendApprovalCompletedNotification(request, currentStep, currentUser);
+                    }
+                    catch (Exception emailEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[ApprovalController] Email notification failed: {emailEx.Message}");
+                        // Don't fail the whole operation for email issues
+                    }
+
+                    // After approve, show the "approved" screen instead of redirecting to phase list.
+                    ViewBag.BackUrl = GetPhaseUrl(request);
+                    ViewBag.CurrentUser = currentUser;
+                    ViewBag.CurrentStep = currentStep;
+                    ViewBag.CanApprove = false;
+                    ViewBag.CanEdit = false;
+
+                    return View("ApprovedRequest", request);
                 }
 
+                // other actions: keep original behaviour (redirect back to phase list)
                 return GetRedirectToPhase(request);
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"Có lỗi xảy ra: {ex.Message}";
-                ViewBag.CurrentUser = currentUser;
-                ViewBag.CurrentStep = currentStep;
-                ViewBag.CanApprove = CanApprove(currentUser);
-                ViewBag.CanEdit = CanEdit(currentUser, request);
-                return View("ApprovalForm", request);
+                System.Diagnostics.Debug.WriteLine($"[ApprovalController] ProcessApproval error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[ApprovalController] Stack trace: {ex.StackTrace}");
+                
+                var errorMessage = "Có lỗi xảy ra khi xử lý phê duyệt. ";
+                if (ex.Message.Contains("authentication") || ex.Message.Contains("session"))
+                {
+                    errorMessage += "Vui lòng đóng trình duyệt và thử lại từ link email mới.";
+                }
+                else
+                {
+                    errorMessage += "Vui lòng thử lại sau.";
+                }
+                
+                TempData["ErrorMessage"] = errorMessage;
+                
+                try
+                {
+                    var request = _fs.LoadRequest(RequestID);
+                    return GetRedirectToPhase(request);
+                }
+                catch
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Compute the URL for the phase list (TruocTestRun/GiuaTestRun/SauTestRun) based on request.CurrentStepIndex.
+        /// Returned URL is absolute to be safe for views.
+        /// </summary>
+        private string GetPhaseUrl(Request request)
+        {
+            if (request == null)
+            {
+                return Url.Action("TruocTestRun", "Request");
+            }
+
+            var phase = GetPhaseByCurrentStep(request.CurrentStepIndex);
+            switch (phase)
+            {
+                case TestRunPhase.TruocTestRun:
+                    return Url.Action("TruocTestRun", "Request", null, Request.Url?.Scheme);
+                case TestRunPhase.GiuaTestRun:
+                    return Url.Action("GiuaTestRun", "Request", null, Request.Url?.Scheme);
+                case TestRunPhase.SauTestRun:
+                    return Url.Action("SauTestRun", "Request", null, Request.Url?.Scheme);
+                default:
+                    return Url.Action("TruocTestRun", "Request", null, Request.Url?.Scheme);
             }
         }
 
@@ -517,29 +588,88 @@ namespace TrueTestRun.Controllers
             // Cập nhật step hiện tại với thông tin từ chối
             currentStep.Status = "Rejected";
             currentStep.ApproverADID = currentUser.ADID;
-            currentStep.Comment = comment ?? ""; // SỬA: Cho phép comment rỗng
+            currentStep.Comment = comment ?? "";
             currentStep.ApprovedAt = DateTime.Now;
 
             // Lưu request với trạng thái bị từ chối
             _fs.SaveRequest(request);
 
-            // SỬA: Gửi cả hai email khi từ chối
+            // SỬA: LUÔN GỬI CẢ 2 EMAIL - KHÔNG PHỤ THUỘC VÀO LOGIC PHỨC TẠP
             try
             {
-                var creator = _context.Users.FirstOrDefault(u => u.ADID == request.CreatedByADID);
-                if (creator != null)
-                {
-                    // 1. Gửi email thông báo từ chối (màu đỏ) cho người tạo đơn
-                    _email.SendRejectNotification(request, currentUser, comment ?? "Không có lý do cụ thể");
+                System.Diagnostics.Debug.WriteLine($"[ApprovalController] Starting reject notifications for request {request.RequestID}, step {currentStep.Index}");
 
-                    // 2. Gửi email yêu cầu sửa đổi (màu vàng) cho người có thể chỉnh sửa
+                // 1. LUÔN gửi email thông báo từ chối (màu đỏ) cho người tạo đơn
+                System.Diagnostics.Debug.WriteLine($"[ApprovalController] Sending reject notification to request creator");
+                _email.SendRejectNotification(request, currentUser, comment ?? "Không có lý do cụ thể");
+
+                // 2. Tìm người có thể sửa đơn và gửi email yêu cầu sửa đổi (màu vàng)
+                User targetUser = null;
+
+                // SỬA: Logic đơn giản hơn để tìm target user
+                if (currentStep.Index > 0)
+                {
+                    // Tìm step trước step bị từ chối
+                    var prevStep = request.History?.FirstOrDefault(h => h.Index == currentStep.Index - 1 && h.Status == "Completed");
+                    if (prevStep != null && !string.IsNullOrEmpty(prevStep.ApproverADID))
+                    {
+                        targetUser = _context.Users.FirstOrDefault(u => u.ADID == prevStep.ApproverADID);
+                        System.Diagnostics.Debug.WriteLine($"[ApprovalController] Found prev step approver: {targetUser?.Name} ({targetUser?.Email}) from step {prevStep.Index}");
+                    }
+                }
+
+                // SỬA: Fallback cuối cùng - sử dụng hardcode email
+                if (targetUser == null || string.IsNullOrEmpty(targetUser.Email))
+                {
+                    // Tạo fake user với email hardcode dựa trên step bị từ chối
+                    var fallbackEmail = GetFallbackEmailForStep(currentStep.Index - 1);
+                    targetUser = new User
+                    {
+                        ADID = "FALLBACK",
+                        Name = $"Fallback User Step {currentStep.Index - 1}",
+                        Email = fallbackEmail,
+                        DeptCode = currentStep.DeptCode
+                    };
+                    System.Diagnostics.Debug.WriteLine($"[ApprovalController] Using fallback email: {fallbackEmail}");
+                }
+
+                // Gửi email yêu cầu sửa đổi
+                if (targetUser != null && !string.IsNullOrEmpty(targetUser.Email))
+                {
                     var editUrl = Url.Action("Edit", "Request", new { id = request.RequestID }, protocol: Request.Url.Scheme);
-                    _email.SendRejectNotificationToPrevApprover(request, creator, currentUser, comment ?? "Không có lý do cụ thể", editUrl);
+                    System.Diagnostics.Debug.WriteLine($"[ApprovalController] Sending edit notification to: {targetUser.Email}");
+
+                    _email.SendRejectNotificationToPrevApprover(request, targetUser, currentUser, comment ?? "Không có lý do cụ thể", editUrl);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ApprovalController] ERROR: No target user found for edit notification");
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Không throw exception vì việc gửi email không critical
+                System.Diagnostics.Debug.WriteLine($"[ApprovalController] Error sending reject notifications: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[ApprovalController] Stack trace: {ex.StackTrace}");
+            }
+        }
+
+        // SỬA: Thêm helper method để lấy fallback email
+        private string GetFallbackEmailForStep(int stepIndex)
+        {
+            // Sử dụng hardcode email giống như trong EmailService
+            switch (stepIndex)
+            {
+                case 0: return "Hoangthi.Minh@brother-bivn.com.vn"; // Step 0 creator
+                case 1: return "Doan.PhamCong@brother-bivn.com.vn"; // Step 1
+                case 2: return "Ly.NguyenThi@brother-bivn.com.vn"; // Step 2
+                case 3: return "jun.sato@brother-bivn.com.vn"; // Step 3
+                case 4: return "Ly.NguyenThi@brother-bivn.com.vn"; // Step 4
+                case 5: return "jun.sato@brother-bivn.com.vn"; // Step 5
+                case 6: return "Ly.NguyenThi@brother-bivn.com.vn"; // Step 6
+                case 7: return "jun.sato@brother-bivn.com.vn"; // Step 7
+                case 8: return "nguyenthi.duyen5@brother-bivn.com.vn"; // Step 8
+                case 9: return "Doan.PhamCong@brother-bivn.com.vn"; // Step 9
+                default: return "phamduc.anh@brother-bivn.com.vn";
             }
         }
 

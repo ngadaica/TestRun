@@ -1006,7 +1006,7 @@ namespace TrueTestRun.App_GlobalResources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to QLSC.
+        ///   Looks up a localized string similar to 初級管理職.
         /// </summary>
         public static string JuniorManager_Ja {
             get {
@@ -1105,7 +1105,7 @@ namespace TrueTestRun.App_GlobalResources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to QLTC.
+        ///   Looks up a localized string similar to 中間管理職.
         /// </summary>
         public static string MiddleManager_Ja {
             get {

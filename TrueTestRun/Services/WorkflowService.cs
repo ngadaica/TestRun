@@ -44,18 +44,18 @@ namespace TrueTestRun.Services
                 Index = 2, StepName = "Staff (PCB)",
                 Actor = StepActor.DataEntry,
                 DeptCode = "EPE-PCB", Role = "Staff",
-                NextApproverDept = "EPE-PCB", NextApproverRole = "Quản lý sơ cấp"
+                NextApproverDept = "EPE-PCB", NextApproverRole = "Quản lý trung cấp"
             },
 
             new WorkflowStep {
-                Index = 3, StepName = "QLSC (PCB) - " + GetResource("JuniorManager_Ja", "初級管理職"),
+                Index = 3, StepName = "QLTC (PCB) - " + GetResource("MiddleManager_Ja", "中間管理職"),
                 Actor = StepActor.Approver,
-                DeptCode = "EPE-PCB", Role = "Quản lý sơ cấp",
+                DeptCode = "EPE-PCB", Role = "Quản lý trung cấp",
                 NextApproverDept = "EPE-PCB", NextApproverRole = "Staff"
             },
 
             new WorkflowStep {
-                Index = 4, StepName = "Staff (PCB)",
+                Index = 4, StepName = "Staff (PCB)", //
                 Actor = StepActor.DataEntry,
                 DeptCode = "EPE-PCB", Role = "Staff",
                 NextApproverDept = "EPE-PCB", NextApproverRole = "Quản lý trung cấp"

@@ -808,10 +808,10 @@
     <value>Tìm kiếm theo Request ID, tên mã linh kiện...</value>
   </data>
   <data name="MiddleManager_Ja" xml:space="preserve">
-    <value>QLTC</value>
+    <value>中間管理職</value>
   </data>
   <data name="JuniorManager_Ja" xml:space="preserve">
-    <value>QLSC</value>
+    <value>初級管理職</value>
   </data>
   <data name="Step" xml:space="preserve">
     <value>Bước hiện tại</value>

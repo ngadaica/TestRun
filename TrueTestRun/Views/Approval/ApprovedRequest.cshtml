@@ -1,0 +1,151 @@
+﻿@model TrueTestRun.Models.Request
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Approval Preview - " + Model.RequestID;
+    var backUrl = ViewBag.BackUrl as string ?? Url.Action("TruocTestRun", "Request");
+    var previewUrl = Url.Action("PreviewImage", "Request", new { id = Model.RequestID });
+}
+
+<div class="page-header">
+    <div class="page-title-section">
+        <h1 class="page-title">Approved — Preview</h1>
+        <div class="page-subtitle">@Model.RequestID | Test Run Request Management System</div>
+    </div>
+</div>
+
+<div class="preview-panel">
+    <div class="panel-header">
+        <div class="panel-title">
+            <span class="panel-icon">◎</span>
+            Approved Document Preview
+        </div>
+        <div class="panel-subtitle">Màn hình hiển thị sau khi phê duyệt/承認後の表示画面</div>
+    </div>
+    <div class="panel-content">
+        <div class="preview-container">
+            <img id="excelPreviewImage"
+                 src="@($"{previewUrl}?t={DateTime.Now.Ticks}")"
+                 alt="Approved Excel Preview"
+                 class="preview-image" />
+        </div>
+    </div>
+</div>
+
+<div style="text-align:center; margin-top:1.25rem">
+    <a href="@backUrl" class="action-btn secondary large">
+        <span class="btn-icon">◄</span> Back
+    </a>
+</div>
+
+@section Scripts {
+    <script>
+        // Refresh preview to ensure latest image (seal applied) is shown.
+        (function () {
+            var previewUrl = '@previewUrl';
+            function refreshPreview() {
+                var ts = new Date().getTime();
+                var $img = document.getElementById('excelPreviewImage');
+                if ($img) {
+                    $img.src = previewUrl + '?t=' + ts;
+                }
+            }
+
+            // Initial load + a couple retries in case file write needs a moment
+            document.addEventListener('DOMContentLoaded', function () {
+                refreshPreview();
+                setTimeout(refreshPreview, 400);
+                setTimeout(refreshPreview, 1200);
+            });
+        })();
+    </script>
+}
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .page-title {
+        font-size: 1.25rem;
+        margin: 0;
+    }
+
+    .preview-panel {
+        background: #fff;
+        border: 1px solid #e6e6e6;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .panel-header {
+        background: linear-gradient(90deg,#f8fafc,#eef2ff);
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid #e6e6e6;
+    }
+
+    .panel-title {
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+
+    .panel-subtitle {
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin-top: .25rem;
+    }
+
+    .panel-content {
+        padding: 1rem;
+        text-align: center;
+    }
+
+    .preview-container {
+        padding: 0.5rem;
+        border: 2px dashed #e5e7eb;
+        border-radius: 8px;
+        background: #ffffff;
+        display: inline-block;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .preview-image {
+        width: 100%;
+        height: auto;
+        min-height: 360px;
+        max-height: 900px;
+        object-fit: contain;
+        border-radius: 6px;
+        box-shadow: 0 6px 18px rgba(2,6,23,0.06);
+        border: 1px solid #e6e6e6;
+        background: #fff;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1rem;
+        border-radius: 6px;
+        text-decoration: none;
+        border: 1px solid #d1d5db;
+        background: #f8fafc;
+        color: #0f172a;
+    }
+
+        .action-btn.large {
+            padding: 0.9rem 1.4rem;
+            font-weight: 600;
+        }
+
+        .action-btn.secondary {
+            background: #f3f4f6;
+        }
+</style>

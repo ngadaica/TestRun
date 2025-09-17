@@ -39,6 +39,9 @@
     }
 </div>
 
+@* Render antiforgery token once for AJAX delete *@
+@Html.AntiForgeryToken()
+
 <!-- Professional Phase Navigation with Refined Icons -->
 <div class="phase-navigation">
     <div class="phase-tabs">
@@ -282,6 +285,24 @@ else
                                             ◈
                                         </a>
                                     }
+                                    @if (!request.IsCompleted && !request.IsRejected)
+                                    {
+                                        <a href="javascript:void(0)"
+                                           class="action-btn-small reminder"
+                                           data-id="@request.RequestID"
+                                           title="Gửi email nhắc nhở">
+                                            📧
+                                        </a>
+                                    }
+                                    @if (canEdit || canAdminEdit)
+                                    {
+                                        <a href="javascript:void(0)"
+                                           class="action-btn-small delete"
+                                           data-id="@request.RequestID"
+                                           title="@HttpContext.GetGlobalResourceObject("Resources", "Delete")">
+                                            ✖
+                                        </a>
+                                    }
                                 </div>
                             </td>
                         </tr>
@@ -387,6 +408,65 @@ else
                     }
                 }
             });
+
+            // Delete request handler
+$(document).on('click', '.action-btn-small.delete', function (e) {
+    e.stopPropagation();
+    var id = $(this).data('id');
+    if (!id) return;
+
+    if (!confirm('Bạn có chắc chắn muốn xóa đơn ' + id + ' ?')) {
+        return;
+    }
+
+    var token = $('input[name="__RequestVerificationToken"]').val();
+
+    $.ajax({
+        url: '@Url.Action("Delete", "Request")',
+        method: 'POST',
+        data: { id: id, __RequestVerificationToken: token },
+        success: function (resp) {
+            if (resp && resp.success) {
+                // reload to update counters and table
+                location.reload();
+            } else {
+                alert(resp && resp.message ? resp.message : 'Xóa thất bại.');
+            }
+        },
+        error: function () {
+            alert('Xóa thất bại do lỗi server.');
+        }
+    });
+});
+
+// Reminder email handler
+$(document).on('click', '.action-btn-small.reminder', function (e) {
+    e.stopPropagation();
+    var id = $(this).data('id');
+    if (!id) return;
+
+    if (!confirm('Bạn có chắc chắn muốn gửi email nhắc nhở cho đơn ' + id + ' ?')) {
+        return;
+    }
+
+    var token = $('input[name="__RequestVerificationToken"]').val();
+
+    $.ajax({
+        url: '@Url.Action("SendReminder", "Request")',
+        method: 'POST',
+        data: { id: id, __RequestVerificationToken: token },
+        success: function (resp) {
+            if (resp && resp.success) {
+                alert(resp.message || 'Đã gửi email nhắc nhở thành công.');
+            } else {
+                alert(resp && resp.message ? resp.message : 'Gửi email nhắc nhở thất bại.');
+            }
+        },
+        error: function () {
+            alert('Gửi email nhắc nhở thất bại do lỗi server.');
+        }
+    });
+});
         });
 
         function refreshTable() {
@@ -397,7 +477,11 @@ else
 
 <style>
     /* ========== PERFECTLY ALIGNED TABLE WITH REFINED ICONS ========== */
-
+    .action-btn-small.reminder:hover {
+        border-color: var(--warning-amber);
+        background: #fffbeb;
+        color: var(--warning-amber);
+    }
     /* Page Header */
     .page-header {
         display: flex;

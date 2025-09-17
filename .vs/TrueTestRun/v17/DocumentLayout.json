@@ -3,24 +3,44 @@
   "WorkspaceRootPath": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\truetestrun\\controllers\\approvalcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|solutionrelative:truetestrun\\controllers\\approvalcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|c:\\users\\anhpc\\source\\repos\\truetestrun2\\truetestrun2\\truetestrun1\\truetestrun\\truetestrun\\views\\request\\_editstep4.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|solutionrelative:truetestrun\\views\\request\\_editstep4.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|c:\\users\\anhpc\\source\\repos\\truetestrun2\\truetestrun2\\truetestrun1\\truetestrun\\truetestrun\\views\\approval\\approvedrequest.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|solutionrelative:truetestrun\\views\\approval\\approvedrequest.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|c:\\users\\anhpc\\source\\repos\\truetestrun2\\truetestrun2\\truetestrun1\\truetestrun\\truetestrun\\views\\request\\preview.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|solutionrelative:truetestrun\\views\\request\\preview.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|c:\\users\\anhpc\\source\\repos\\truetestrun2\\truetestrun2\\truetestrun1\\truetestrun\\truetestrun\\services\\workflowservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|solutionrelative:truetestrun\\services\\workflowservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|c:\\users\\anhpc\\source\\repos\\truetestrun2\\truetestrun2\\truetestrun1\\truetestrun\\truetestrun\\services\\excelservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|solutionrelative:truetestrun\\services\\excelservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\truetestrun\\services\\emailservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|c:\\users\\anhpc\\source\\repos\\truetestrun2\\truetestrun2\\truetestrun1\\truetestrun\\truetestrun\\services\\emailservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|solutionrelative:truetestrun\\services\\emailservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\truetestrun\\controllers\\requestcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|c:\\users\\anhpc\\source\\repos\\truetestrun2\\truetestrun2\\truetestrun1\\truetestrun\\truetestrun\\services\\filestorageservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|solutionrelative:truetestrun\\services\\filestorageservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|c:\\users\\anhpc\\source\\repos\\truetestrun2\\truetestrun2\\truetestrun1\\truetestrun\\truetestrun\\controllers\\requestcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|solutionrelative:truetestrun\\controllers\\requestcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\truetestrun\\controllers\\usercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|solutionrelative:truetestrun\\controllers\\usercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\truetestrun\\controllers\\homecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|solutionrelative:truetestrun\\controllers\\homecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|c:\\users\\anhpc\\source\\repos\\truetestrun2\\truetestrun2\\truetestrun1\\truetestrun\\truetestrun\\models\\workflowstep.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2A301273-CF59-4BDA-8A81-80E25A388E78}|TrueTestRun\\TrueTestRun.csproj|solutionrelative:truetestrun\\models\\workflowstep.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -30,7 +50,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 9,
           "Children": [
             {
               "$type": "Bookmark",
@@ -39,64 +59,132 @@
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "EmailService.cs",
-              "DocumentMoniker": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Services\\EmailService.cs",
-              "RelativeDocumentMoniker": "TrueTestRun\\Services\\EmailService.cs",
-              "ToolTip": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Services\\EmailService.cs",
-              "RelativeToolTip": "TrueTestRun\\Services\\EmailService.cs",
-              "ViewState": "AgIAAK8BAAAAAAAAAAAAALkCAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-08T02:52:52.714Z",
+              "Title": "_EditStep4.cshtml",
+              "DocumentMoniker": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Views\\Request\\_EditStep4.cshtml",
+              "RelativeDocumentMoniker": "TrueTestRun\\Views\\Request\\_EditStep4.cshtml",
+              "ToolTip": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Views\\Request\\_EditStep4.cshtml",
+              "RelativeToolTip": "TrueTestRun\\Views\\Request\\_EditStep4.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-09-17T08:57:00.313Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ApprovedRequest.cshtml",
+              "DocumentMoniker": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Views\\Approval\\ApprovedRequest.cshtml",
+              "RelativeDocumentMoniker": "TrueTestRun\\Views\\Approval\\ApprovedRequest.cshtml",
+              "ToolTip": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Views\\Approval\\ApprovedRequest.cshtml",
+              "RelativeToolTip": "TrueTestRun\\Views\\Approval\\ApprovedRequest.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-09-17T08:48:11.021Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 3,
-              "Title": "UserController.cs",
-              "DocumentMoniker": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Controllers\\UserController.cs",
-              "RelativeDocumentMoniker": "TrueTestRun\\Controllers\\UserController.cs",
-              "ToolTip": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Controllers\\UserController.cs",
-              "RelativeToolTip": "TrueTestRun\\Controllers\\UserController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-08T02:50:36.643Z"
+              "Title": "Preview.cshtml",
+              "DocumentMoniker": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Views\\Request\\Preview.cshtml",
+              "RelativeDocumentMoniker": "TrueTestRun\\Views\\Request\\Preview.cshtml",
+              "ToolTip": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Views\\Request\\Preview.cshtml",
+              "RelativeToolTip": "TrueTestRun\\Views\\Request\\Preview.cshtml",
+              "ViewState": "AgIAADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-09-17T08:47:46.918Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "RequestController.cs",
-              "DocumentMoniker": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Controllers\\RequestController.cs",
-              "RelativeDocumentMoniker": "TrueTestRun\\Controllers\\RequestController.cs",
-              "ToolTip": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Controllers\\RequestController.cs",
-              "RelativeToolTip": "TrueTestRun\\Controllers\\RequestController.cs",
-              "ViewState": "AgIAAA8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-08T02:49:39.642Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 5,
               "Title": "ExcelService.cs",
               "DocumentMoniker": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Services\\ExcelService.cs",
               "RelativeDocumentMoniker": "TrueTestRun\\Services\\ExcelService.cs",
               "ToolTip": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Services\\ExcelService.cs",
               "RelativeToolTip": "TrueTestRun\\Services\\ExcelService.cs",
-              "ViewState": "AgIAAC0BAAAAAAAAAAAAAGsBAAAVAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-08T02:42:04.456Z",
+              "WhenOpened": "2025-09-17T08:44:17.899Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "FIleStorageService.cs",
+              "DocumentMoniker": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Services\\FIleStorageService.cs",
+              "RelativeDocumentMoniker": "TrueTestRun\\Services\\FIleStorageService.cs",
+              "ToolTip": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Services\\FIleStorageService.cs",
+              "RelativeToolTip": "TrueTestRun\\Services\\FIleStorageService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-17T08:44:15.354Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "RequestController.cs",
+              "DocumentMoniker": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Controllers\\RequestController.cs",
+              "RelativeDocumentMoniker": "TrueTestRun\\Controllers\\RequestController.cs",
+              "ToolTip": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Controllers\\RequestController.cs",
+              "RelativeToolTip": "TrueTestRun\\Controllers\\RequestController.cs",
+              "ViewState": "AgIAACwDAAAAAAAAAAAxwLkCAAAkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-17T08:41:15.939Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 4,
-              "Title": "HomeController.cs",
-              "DocumentMoniker": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Controllers\\HomeController.cs",
-              "RelativeDocumentMoniker": "TrueTestRun\\Controllers\\HomeController.cs",
-              "ToolTip": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Controllers\\HomeController.cs",
-              "RelativeToolTip": "TrueTestRun\\Controllers\\HomeController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB8AAAAAAAAAAAAAAA==",
+              "Title": "WorkflowService.cs",
+              "DocumentMoniker": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Services\\WorkflowService.cs",
+              "RelativeDocumentMoniker": "TrueTestRun\\Services\\WorkflowService.cs",
+              "ToolTip": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Services\\WorkflowService.cs",
+              "RelativeToolTip": "TrueTestRun\\Services\\WorkflowService.cs",
+              "ViewState": "AgIAACIAAAAAAAAAAAAQwDkAAAA3AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-06T04:37:43.999Z"
+              "WhenOpened": "2025-09-17T08:39:31.834Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "WorkflowStep.cs",
+              "DocumentMoniker": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Models\\WorkflowStep.cs",
+              "RelativeDocumentMoniker": "TrueTestRun\\Models\\WorkflowStep.cs",
+              "ToolTip": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Models\\WorkflowStep.cs",
+              "RelativeToolTip": "TrueTestRun\\Models\\WorkflowStep.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-17T08:39:30.482Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ApprovalController.cs",
+              "DocumentMoniker": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Controllers\\ApprovalController.cs",
+              "RelativeDocumentMoniker": "TrueTestRun\\Controllers\\ApprovalController.cs",
+              "ToolTip": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Controllers\\ApprovalController.cs",
+              "RelativeToolTip": "TrueTestRun\\Controllers\\ApprovalController.cs",
+              "ViewState": "AgIAAH0BAAAAAAAAAAAYwJoBAABKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-17T06:59:35.801Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "EmailService.cs",
+              "DocumentMoniker": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Services\\EmailService.cs",
+              "RelativeDocumentMoniker": "TrueTestRun\\Services\\EmailService.cs",
+              "ToolTip": "C:\\Users\\anhpc\\source\\repos\\TrueTestRun2\\TrueTestRun2\\TrueTestRun1\\TrueTestRun\\TrueTestRun\\Services\\EmailService.cs",
+              "RelativeToolTip": "TrueTestRun\\Services\\EmailService.cs",
+              "ViewState": "AgIAAGwAAAAAAAAAAAAkwIwAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-17T04:50:16.889Z",
+              "EditorCaption": ""
             }
           ]
         }

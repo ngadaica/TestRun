@@ -360,14 +360,14 @@ namespace TrueTestRun.Controllers
             var currentUser = Session["CurrentUser"] as User;
             if (req == null) return HttpNotFound();
 
-            // SỬA: Kiểm tra quyền sửa đơn bị từ chối
+            // SỬA: Kiểm tra quyền sửa đơn bị từ chối - MỞ RỘNG CHO STAFF
             if (currentUser == null || !IsStaff(currentUser))
             {
                 TempData["ErrorMessage"] = GetResourceString("NoPermissionToEdit");
                 return RedirectToAction("Index");
             }
 
-            // SỬA: Logic xác định step edit
+            // SỬA: Logic xác định step edit - MỞ RỘNG
             int editStepIndex = 0; // Default: step 0
             string editReason = "";
 
@@ -379,21 +379,42 @@ namespace TrueTestRun.Controllers
                 {
                     editReason = GetResourceString("RequestRejectedAt").Replace("{0}", rejectedStep.StepName).Replace("{1}", rejectedStep.Comment);
 
-                    // Xác định step mà user hiện tại có thể edit
-                    var userCanEditStep = FindEditableStepForUser(req, currentUser, rejectedStep.Index);
-                    if (userCanEditStep != null)
+                    // SỬA: Mở rộng logic xác định step có thể edit
+                    var editableStep = FindEditableStepForUser(req, currentUser, rejectedStep.Index);
+                    if (editableStep != null)
                     {
-                        editStepIndex = userCanEditStep.Index;
+                        editStepIndex = editableStep.Index;
+                    }
+                    else if (req.CreatedByADID == currentUser.ADID)
+                    {
+                        // Owner luôn có thể edit step 0
+                        editStepIndex = 0;
                     }
                     else
                     {
-                        // Nếu không tìm thấy step phù hợp, chỉ cho phép owner edit step 0
-                        if (req.CreatedByADID != currentUser.ADID)
+                        // SỬA: Kiểm tra quyền staff theo phòng ban
+                        bool canEditByDept = false;
+                        
+                        if (rejectedStep.Index > 0)
                         {
-                            TempData["ErrorMessage"] = "Bạn không có quyền sửa đơn này!";
-                            return RedirectToAction("Index");
+                            // Tìm step trước step bị từ chối
+                            var prevStep = req.History?.FirstOrDefault(h => h.Index == rejectedStep.Index - 1);
+                            if (prevStep != null && prevStep.DeptCode == currentUser.DeptCode && 
+                                prevStep.Actor == StepActor.DataEntry)
+                            {
+                                canEditByDept = true;
+                                editStepIndex = prevStep.Index;
+                                editReason += $"\n\nBạn có thể sửa step {prevStep.Index + 1} ({prevStep.StepName}) vì thuộc cùng phòng ban {currentUser.DeptCode}.";
+                            }
                         }
-                        editStepIndex = 0;
+                        
+                        if (!canEditByDept)
+                        {
+                            TempData["ErrorMessage"] = "Bạn không có quyền sửa đơn này!\n" +
+                                                     "あなたはこのリクエストを編集する権限がありません！\n\n" +
+                                                     "Lý do: Bạn không phải là owner và không thuộc phòng ban có thể chỉnh sửa step trước step bị từ chối.";
+                            return RedirectToAction("Rejected");
+                        }
                     }
                 }
             }
@@ -431,20 +452,36 @@ namespace TrueTestRun.Controllers
             return View(req);
         }
 
-        // THÊM: Helper method để tìm step mà user có thể edit
+        // SỬA: Cập nhật helper method để tìm step mà user có thể edit
         private WorkflowStep FindEditableStepForUser(Request request, User user, int rejectedStepIndex)
         {
             if (request.History == null || user == null) return null;
 
-            // Tìm step DataEntry gần nhất trước step bị từ chối mà user có thể edit
-            var editableSteps = request.History
+            // SỬA: Mở rộng logic tìm step có thể edit
+            var editableSteps = new List<WorkflowStep>();
+
+            // 1. Tìm step DataEntry gần nhất trước step bị từ chối mà user có thể edit
+            var dataEntrySteps = request.History
                 .Where(s => s.Index < rejectedStepIndex &&
                            s.Actor == StepActor.DataEntry &&
                            s.DeptCode == user.DeptCode)
                 .OrderByDescending(s => s.Index)
                 .ToList();
 
-            return editableSteps.FirstOrDefault();
+            editableSteps.AddRange(dataEntrySteps);
+
+            // 2. SỬA: Thêm step 0 nếu user là owner
+            if (request.CreatedByADID == user.ADID)
+            {
+                var step0 = request.History?.FirstOrDefault(h => h.Index == 0);
+                if (step0 != null && !editableSteps.Any(s => s.Index == 0))
+                {
+                    editableSteps.Add(step0);
+                }
+            }
+
+            // 3. Trả về step có Index cao nhất (gần với step bị từ chối nhất)
+            return editableSteps.OrderByDescending(s => s.Index).FirstOrDefault();
         }
 
         [HttpPost]
@@ -510,6 +547,140 @@ namespace TrueTestRun.Controllers
 
             TempData["SuccessMessage"] = GetResourceString("StepUpdatedSuccessfully").Replace("{0}", editStepIndex.ToString());
             return GetRedirectToPhase(originalRequest);
+        }
+
+        // Add this method inside the RequestController class.
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Delete(string id)
+        {
+            var currentUser = Session["CurrentUser"] as User;
+            if (currentUser == null)
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập lại." });
+            }
+
+            if (string.IsNullOrEmpty(id))
+            {
+                return Json(new { success = false, message = "Request ID không hợp lệ." });
+            }
+
+            // Load request via file storage to check basic info
+            var request = fs.LoadRequest(id);
+            if (request == null)
+            {
+                return Json(new { success = false, message = $"Không tìm thấy đơn {id}." });
+            }
+
+            // Permission: Admin can always delete. Staff can delete their own non-completed/non-rejected requests.
+            var isAdmin = currentUser.Role == UserRole.Admin;
+            var isStaffOwner = currentUser.Title != null
+                               && currentUser.Title.Trim().Equals("Staff", StringComparison.OrdinalIgnoreCase)
+                               && request.CreatedByADID == currentUser.ADID
+                               && !request.IsCompleted && !request.IsRejected;
+
+            if (!isAdmin && !isStaffOwner)
+            {
+                return Json(new { success = false, message = "Bạn không có quyền xóa đơn này." });
+            }
+
+            try
+            {
+                // Remove DB records (fields, history, documents, request). Use EF context directly.
+                using (var db = new TrueTestRunDbContext())
+                {
+                    // Load related entities
+                    var reqEntity = db.Requests.FirstOrDefault(r => r.RequestID == id);
+                    if (reqEntity != null)
+                    {
+                        // Remove fields
+                        var fields = db.RequestFields.Where(f => f.RequestID == id).ToList();
+                        if (fields.Any())
+                        {
+                            db.RequestFields.RemoveRange(fields);
+                        }
+
+                        // Remove workflow/history
+                        var steps = db.WorkflowSteps.Where(w => w.RequestID == id).ToList();
+                        if (steps.Any())
+                        {
+                            db.WorkflowSteps.RemoveRange(steps);
+                        }
+
+                        // Remove documents (records) and attempt to delete files
+                        var docs = db.RequestDocuments.Where(d => d.RequestID == id).ToList();
+                        foreach (var d in docs)
+                        {
+                            try
+                            {
+                                if (!string.IsNullOrEmpty(d.FilePath))
+                                {
+                                    var physical = d.FilePath;
+                                    // If stored as relative path under App_Data, try map
+                                    if (!Path.IsPathRooted(physical))
+                                    {
+                                        var mapped = Server.MapPath(physical);
+                                        if (mapped != null && System.IO.File.Exists(mapped))
+                                        {
+                                            System.IO.File.Delete(mapped);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (System.IO.File.Exists(physical))
+                                        {
+                                            System.IO.File.Delete(physical);
+                                        }
+                                    }
+                                }
+                            }
+                            catch
+                            {
+                                // ignore file delete errors
+                            }
+                        }
+
+                        if (docs.Any())
+                        {
+                            db.RequestDocuments.RemoveRange(docs);
+                        }
+
+                        // Finally remove request entity
+                        db.Requests.Remove(reqEntity);
+                        db.SaveChanges();
+                    }
+                }
+
+                // Remove folder on disk if exists
+                try
+                {
+                    var folder = Server.MapPath($"~/App_Data/Requests/{id}");
+                    if (!string.IsNullOrEmpty(folder) && Directory.Exists(folder))
+                    {
+                        Directory.Delete(folder, true);
+                    }
+                }
+                catch
+                {
+                    // ignore physical delete errors
+                }
+
+                // Also notify FileStorageService to cleanup any cached state (if any)
+                try
+                {
+                    // FileStorageService may keep data on disk; call SaveRequest with null/cleanup not available.
+                    
+                    var dummy = fs.LoadAllRequests();
+                }
+                catch { }
+
+                return Json(new { success = true, message = $"Đã xóa đơn {id}." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Lỗi khi xóa: {ex.Message}" });
+            }
         }
 
         // THÊM: Helper method xử lý edit theo step
@@ -1179,6 +1350,172 @@ namespace TrueTestRun.Controllers
             }
 
             return result;
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult SendReminder(string id)
+        {
+            var currentUser = Session["CurrentUser"] as User;
+            if (currentUser == null)
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập lại." });
+            }
+
+            if (string.IsNullOrEmpty(id))
+            {
+                return Json(new { success = false, message = "Request ID không hợp lệ." });
+            }
+
+            var request = fs.LoadRequest(id);
+            if (request == null)
+            {
+                return Json(new { success = false, message = $"Không tìm thấy đơn {id}." });
+            }
+
+            // Chỉ cho phép gửi nhắc nhở cho đơn đang xử lý
+            if (request.IsCompleted || request.IsRejected)
+            {
+                return Json(new { success = false, message = "Không thể gửi nhắc nhở cho đơn đã hoàn thành hoặc bị từ chối." });
+            }
+
+            try
+            {
+                var currentStep = wf.GetCurrentStep(request);
+                if (currentStep == null)
+                {
+                    return Json(new { success = false, message = "Không xác định được bước hiện tại của đơn." });
+                }
+
+                // Tạo URL approval
+                var approvalUrl = Url.Action("ProcessRequest", "Approval", new { id = request.RequestID }, protocol: Request.Url.Scheme);
+
+                // Gửi email nhắc nhở
+                em.SendReminderEmail(request, currentStep, approvalUrl, currentUser);
+
+                return Json(new { success = true, message = $"Đã gửi email nhắc nhở cho bước {currentStep.StepName}." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Lỗi khi gửi email: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// THÊM: Gửi email nhắc sửa đơn bị từ chối
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult SendReminderForRejected(string id)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    return Json(new { success = false, message = "Request ID không hợp lệ." });
+                }
+
+                var request = fs.LoadRequest(id);
+                if (request == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đơn yêu cầu." });
+                }
+
+                if (!request.IsRejected)
+                {
+                    return Json(new { success = false, message = "Đơn này không bị từ chối." });
+                }
+
+                var currentUser = Session["CurrentUser"] as User;
+                if (currentUser == null)
+                {
+                    return Json(new { success = false, message = "Phiên đăng nhập đã hết hạn." });
+                }
+
+                // SỬA: Xác định step hiện tại chính xác như trong PhaseList và Rejected view
+                var historyList = request.History?.OrderBy(h => h.Index).ToList();
+                WorkflowStep currentStep = null;
+
+                if (historyList != null && historyList.Count > 0)
+                {
+                    if (request.CurrentStepIndex >= 0 && request.CurrentStepIndex < historyList.Count)
+                    {
+                        currentStep = historyList[request.CurrentStepIndex];
+                    }
+                    else
+                    {
+                        // Fallback: tìm step có status = "Processing" hoặc step bị từ chối
+                        currentStep = historyList.FirstOrDefault(s => s.Status == "Processing")
+                                   ?? historyList.FirstOrDefault(s => s.Status == "Rejected")
+                                   ?? historyList.FirstOrDefault();
+                    }
+                }
+
+                if (currentStep == null)
+                {
+                    return Json(new { success = false, message = "Không xác định được bước hiện tại của đơn." });
+                }
+
+                // SỬA: Tìm người có thể sửa đơn dựa trên step hiện tại
+                User targetUser = null;
+
+                // Tìm người thực hiện step trước step hiện tại
+                if (currentStep.Index > 0)
+                {
+                    var prevStep = request.History?.FirstOrDefault(h => h.Index == currentStep.Index - 1 && h.Status == "Completed");
+                    if (prevStep != null && !string.IsNullOrEmpty(prevStep.ApproverADID))
+                    {
+                        using (var db = new TrueTestRunDbContext())
+                        {
+                            targetUser = db.Users.FirstOrDefault(u => u.ADID == prevStep.ApproverADID);
+                        }
+                        System.Diagnostics.Debug.WriteLine($"[RequestController] Found target user from step {prevStep.Index}: {targetUser?.Name}");
+                    }
+                }
+
+                if (targetUser == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy người có thể nhận email nhắc." });
+                }
+
+                // Tìm người đã từ chối (step có status = "Rejected")
+                var rejectedStep = request.History?.FirstOrDefault(h => h.Status == "Rejected");
+                if (rejectedStep == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy thông tin step bị từ chối." });
+                }
+
+                User rejector = null;
+                using (var db = new TrueTestRunDbContext())
+                {
+                    rejector = db.Users.FirstOrDefault(u => u.ADID == rejectedStep.ApproverADID);
+                }
+
+                if (rejector == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy thông tin người từ chối đơn." });
+                }
+
+                // Tạo URL edit
+                var editUrl = Url.Action("Edit", "Request", new { id = request.RequestID }, protocol: Request.Url.Scheme);
+
+                // Gửi email nhắc sửa đơn bị từ chối
+                em.SendRejectNotificationToPrevApprover(request, targetUser, rejector,
+                    rejectedStep.Comment ?? "Không có lý do cụ thể", editUrl);
+
+                return Json(new
+                {
+                    success = true,
+                    message = $"Đã gửi email nhắc sửa đơn bị từ chối đến {targetUser.Name} ({targetUser.Email})\n" +
+                             $"Đơn hiện tại ở bước {currentStep.Index + 1}: {currentStep.StepName}\n" +
+                             $"拒否された申請の修正リマインダーメールを{targetUser.Name}に送信しました"
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[RequestController] Error in SendReminderForRejected: {ex.Message}");
+                return Json(new { success = false, message = "Gửi email nhắc sửa đơn thất bại do lỗi hệ thống: " + ex.Message });
+            }
         }
     }
 }

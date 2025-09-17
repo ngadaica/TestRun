@@ -6,6 +6,9 @@
     var currentUser = Session["CurrentUser"] as TrueTestRun.Models.User;
 }
 
+@* Render antiforgery token once for AJAX actions *@
+@Html.AntiForgeryToken()
+
 <!-- Page Header with Japanese Corporate Styling -->
 <div class="page-header">
     <div class="page-title-section">
@@ -87,7 +90,7 @@ else
                         <th class="col-component">@HttpContext.GetGlobalResourceObject("Resources", "ComponentCode")</th>
                         <th class="col-component-name">@HttpContext.GetGlobalResourceObject("Resources", "ComponentName")</th>
                         <th class="col-supplier">@HttpContext.GetGlobalResourceObject("Resources", "Supplier")</th>
-                        <th class="col-status">@HttpContext.GetGlobalResourceObject("Resources", "Status")</th>
+                        <th class="col-current-step">@HttpContext.GetGlobalResourceObject("Resources", "CurrentStep")</th>
                         <th class="col-reject-reason">@HttpContext.GetGlobalResourceObject("Resources", "RejectReason")</th>
                         <th class="col-reject-date">@HttpContext.GetGlobalResourceObject("Resources", "RejectedDate")</th>
                         <th class="col-actions">@HttpContext.GetGlobalResourceObject("Resources", "Actions")</th>
@@ -97,6 +100,25 @@ else
                     @foreach (var request in Model.OrderByDescending(r => r.CreatedAt))
                     {
                         var rejectedStep = request.History?.FirstOrDefault(h => h.Status == "Rejected");
+
+                        // SỬA: Xác định step hiện tại giống như trong PhaseList
+                        var historyList = request.History?.OrderBy(h => h.Index).ToList();
+                        TrueTestRun.Models.WorkflowStep currentStep = null;
+
+                        if (historyList != null && historyList.Count > 0)
+                        {
+                            if (request.CurrentStepIndex >= 0 && request.CurrentStepIndex < historyList.Count)
+                            {
+                                currentStep = historyList[request.CurrentStepIndex];
+                            }
+                            else
+                            {
+                                // Fallback: tìm step có status = "Processing" hoặc step bị từ chối
+                                currentStep = historyList.FirstOrDefault(s => s.Status == "Processing")
+                                           ?? historyList.FirstOrDefault(s => s.Status == "Rejected")
+                                           ?? historyList.FirstOrDefault();
+                            }
+                        }
 
                         // Get component information from Excel via ViewBag
                         var componentInfo = ViewBag.ComponentInfo as Dictionary<string, Dictionary<string, string>>;
@@ -125,11 +147,22 @@ else
                             <td class="col-supplier">
                                 <div class="cell-content supplier-name" title="@nhaCungCap">@nhaCungCap</div>
                             </td>
-                            <td class="col-status">
-                                <div class="status-badge rejected">
-                                    <span class="status-indicator">○</span>
-                                    <span class="status-text">Bị từ chối</span>
-                                </div>
+                            <td class="col-current-step">
+                                @* THÊM: Hiển thị step hiện tại *@
+                                @if (currentStep != null)
+                                {
+                                    <div class="status-badge current-step-rejected" title="Đơn đang ở bước @(currentStep.Index + 1): @currentStep.StepName">
+                                        <span class="status-indicator">@(currentStep.Index + 1)</span>
+                                        <span class="status-text">@currentStep.StepName</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="status-badge unknown">
+                                        <span class="status-indicator">?</span>
+                                        <span class="status-text">Không xác định</span>
+                                    </div>
+                                }
                             </td>
                             <td class="col-reject-reason">
                                 @if (rejectedStep != null && !string.IsNullOrEmpty(rejectedStep.Comment))
@@ -164,19 +197,50 @@ else
                                         ◉
                                     </a>
                                     @{
-                                        bool canEdit = currentUser != null &&
-                                                      currentUser.Title != null &&
-                                                      currentUser.Title.Trim().Equals("Staff", StringComparison.OrdinalIgnoreCase) &&
-                                                      request.CreatedByADID == currentUser.ADID;
+                                        // SỬA: Logic quyền sửa mở rộng cho Staff
+                                        bool canEdit = false;
+
+                                        if (currentUser != null && currentUser.Title != null &&
+                                            currentUser.Title.Trim().Equals("Staff", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            // Staff có thể sửa nếu:
+                                            // 1. Là owner của đơn
+                                            bool isOwner = request.CreatedByADID == currentUser.ADID;
+
+                                            // 2. HOẶC có thể sửa step trước step bị từ chối (theo phòng ban)
+                                            bool canEditPrevStep = false;
+
+                                            if (rejectedStep != null && rejectedStep.Index > 0)
+                                            {
+                                                // Tìm step trước step bị từ chối
+                                                var prevStep = request.History?.FirstOrDefault(h => h.Index == rejectedStep.Index - 1);
+                                                if (prevStep != null && prevStep.DeptCode == currentUser.DeptCode &&
+                                                    prevStep.Actor == TrueTestRun.Models.StepActor.DataEntry)
+                                                {
+                                                    canEditPrevStep = true;
+                                                }
+                                            }
+
+                                            canEdit = isOwner || canEditPrevStep;
+                                        }
                                     }
                                     @if (canEdit)
                                     {
                                         <a href="@Url.Action("Edit", "Request", new { id = request.RequestID })"
                                            class="action-btn-small edit rejected"
-                                           title="@HttpContext.GetGlobalResourceObject("Resources", "Edit")">
+                                           title="@HttpContext.GetGlobalResourceObject("Resources", "Edit") - Sửa đơn bị từ chối">
                                             ◆
                                         </a>
                                     }
+                                    <!-- SỬA: Nút nhắc email với thông tin step hiện tại -->
+                                    <a href="javascript:void(0)"
+                                       class="action-btn-small reminder rejected"
+                                       data-id="@request.RequestID"
+                                       data-current-step="@(currentStep?.Index ?? -1)"
+                                       data-step-name="@(currentStep?.StepName ?? "Không xác định")"
+                                       title="Gửi email nhắc sửa đơn - Step: @(currentStep?.Index + 1 ?? 0)">
+                                        📧
+                                    </a>
                                 </div>
                             </td>
                         </tr>
@@ -226,7 +290,84 @@ else
             $('.action-btn-small').on('click', function () {
                 $(this).addClass('loading');
             });
+
+            // SỬA: Reminder email handler với thông tin step chi tiết
+            $(document).on('click', '.action-btn-small.reminder.rejected', function (e) {
+                e.stopPropagation();
+                var id = $(this).data('id');
+                var currentStep = $(this).data('current-step');
+                var stepName = $(this).data('step-name');
+
+                if (!id) return;
+
+                var confirmMessage = 'Bạn có chắc chắn muốn gửi email nhắc sửa đơn bị từ chối ' + id + ' ?';
+                if (currentStep >= 0) {
+                    confirmMessage += '\nĐơn hiện tại đang ở bước ' + (currentStep + 1) + ': ' + stepName;
+                }
+                confirmMessage += '\n拒否された申請' + id + 'の修正リマインダーメールを送信しますか？';
+
+                if (!confirm(confirmMessage)) {
+                    return;
+                }
+
+                var $btn = $(this);
+                var originalText = $btn.html();
+                $btn.html('⏳').prop('disabled', true);
+
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: '@Url.Action("SendReminderForRejected", "Request")',
+                    method: 'POST',
+                    data: { id: id, __RequestVerificationToken: token },
+                    success: function (resp) {
+                        if (resp && resp.success) {
+                            // Thông báo thành công với màu sắc khác biệt cho đơn bị từ chối
+                            var message = resp.message || 'Đã gửi email nhắc sửa đơn bị từ chối thành công.\n拒否された申請の修正リマインダーメールを送信しました。';
+                            if (currentStep >= 0) {
+                                message += '\n(Step ' + (currentStep + 1) + ': ' + stepName + ')';
+                            }
+                            showNotification('success', message);
+                        } else {
+                            showNotification('error', resp && resp.message ? resp.message : 'Gửi email nhắc sửa đơn bị từ chối thất bại.\nリマインダーメールの送信に失敗しました。');
+                        }
+                    },
+                    error: function () {
+                        showNotification('error', 'Gửi email nhắc sửa đơn bị từ chối thất bại do lỗi server.\nサーバーエラーによりリマインダーメールの送信に失敗しました。');
+                    },
+                    complete: function() {
+                        $btn.html(originalText).prop('disabled', false);
+                    }
+                });
+            });
         });
+
+        // Hàm hiển thị thông báo động
+        function showNotification(type, message) {
+            // Xóa thông báo cũ nếu có
+            $('.notification').remove();
+
+            var iconClass = type === 'success' ? 'success' : 'error';
+            var icon = type === 'success' ? '✓' : '✕';
+
+            var notification = $(`
+                <div class="notification ${iconClass}">
+                    <div class="notification-icon">${icon}</div>
+                    <div class="notification-content">
+                        <div class="notification-text">${message}</div>
+                    </div>
+                    <button type="button" class="notification-close" onclick="this.parentElement.style.display='none'">×</button>
+                </div>
+            `);
+
+            // Thêm vào đầu trang
+            $('.page-header').after(notification);
+
+            // Auto dismiss sau 8 giây
+            setTimeout(function () {
+                notification.fadeOut('slow');
+            }, 8000);
+        }
 
         function refreshTable() {
             window.location.reload();
@@ -481,36 +622,66 @@ else
         text-align: center;
     }
 
-    /* Status Badge for Rejected */
+    /* Status Badge for Current Step in Rejected Table */
     .status-badge {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 0.5rem;
-        padding: 0.5rem 0.875rem;
+        gap: 0.4rem;
+        padding: 0.4rem 0.7rem;
         border-radius: 999px;
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         font-weight: 600;
         border: 1px solid transparent;
-        min-width: 110px;
+        min-width: 140px;
+        max-width: 180px;
         text-align: center;
         white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    .status-badge.rejected {
-        background: #fee2e2;
-        border-color: #fecaca;
-        color: var(--error-red);
+    .status-badge.current-step-rejected {
+        background: #fff3cd;
+        border-color: #fde68a;
+        color: #d97706;
+    }
+
+    .status-badge.unknown {
+        background: #f3f4f6;
+        border-color: #d1d5db;
+        color: #6b7280;
     }
 
     .status-indicator {
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         flex-shrink: 0;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+    }
+
+    .status-badge.current-step-rejected .status-indicator {
+        background: rgba(255, 255, 255, 0.9);
+        color: #d97706;
+    }
+
+    .status-badge.unknown .status-indicator {
+        background: rgba(255, 255, 255, 0.9);
+        color: #6b7280;
     }
 
     .status-text {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     /* Reject Reason Styling */
@@ -582,6 +753,22 @@ else
         text-decoration: none;
     }
 
+    /* SỬA: Styling cho nút nhắc email trong rejected table */
+    .action-btn-small.reminder.rejected {
+        background: #fff3cd;
+        border-color: #ffeaa7;
+        color: #d97706;
+    }
+
+    .action-btn-small.reminder.rejected:hover {
+        background: #fef3c7;
+        border-color: #fcd34d;
+        color: #d97706;
+        box-shadow: 0 2px 6px rgba(217, 119, 6, 0.15);
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
     .action-btn-small.loading {
         opacity: 0.7;
         pointer-events: none;
@@ -642,16 +829,16 @@ else
         white-space: nowrap;
     }
 
-    /* Optimized Column Widths for Rejected Table */
-    .col-id { width: 12%; }
-    .col-date { width: 10%; }
-    .col-component { width: 12%; }
-    .col-component-name { width: 15%; }
-    .col-supplier { width: 12%; }
-    .col-status { width: 10%; text-align: center; }
+    /* SỬA: Optimized Column Widths for Rejected Table with Current Step */
+    .col-id { width: 10%; }
+    .col-date { width: 9%; }
+    .col-component { width: 10%; }
+    .col-component-name { width: 12%; }
+    .col-supplier { width: 10%; }
+    .col-current-step { width: 15%; text-align: center; }
     .col-reject-reason { width: 18%; }
-    .col-reject-date { width: 10%; }
-    .col-actions { width: 6%; text-align: center; }
+    .col-reject-date { width: 9%; }
+    .col-actions { width: 7%; text-align: center; }
 
     /* Notifications for Rejected Section */
     .notification {
@@ -750,6 +937,11 @@ else
         .reject-reason {
             max-width: 150px;
         }
+
+        .status-badge {
+            min-width: 120px;
+            max-width: 150px;
+        }
     }
 
     @@media (max-width: 576px) {
@@ -781,6 +973,23 @@ else
 
         .reject-reason {
             max-width: 120px;
+        }
+
+        .status-badge {
+            min-width: 100px;
+            max-width: 120px;
+            padding: 0.375rem 0.5rem;
+            font-size: 0.7rem;
+        }
+
+        .status-text {
+            font-size: 0.7rem;
+        }
+
+        .status-indicator {
+            width: 16px;
+            height: 16px;
+            font-size: 0.7rem;
         }
     }
 </style>

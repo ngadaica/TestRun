@@ -52,7 +52,7 @@ namespace TrueTestRun.Services
                 
                 
                 // Comment tổng quát Step 4
-                { "CommentStep4",              "U46"  },
+                { "CommentStep4",              "D46"  },
 
                 // Các checkbox EE khác
                 {"EPE-EE3", "B52" },
@@ -62,7 +62,7 @@ namespace TrueTestRun.Services
                 { "KetQuaStep6",               "T43"  }, // Vị trí cho việc khoanh tròn OK/NG
                 { "NGSo_R_Step6",              "X44"  }, // r=
                 { "NGSo_N_Step6",              "AB44"  }, // n=
-                { "NoiDungNG_Step6",           "V47"  }, // Nội dung NG
+                { "NoiDungNG_Step6",           "U46"  }, // Nội dung NG
                 { "CommentStep6",              "B66"  }, // Comment Step 6
 
                 // ===== STEP 8 - EE STAFF ĐIỀN FORM =====
@@ -82,9 +82,9 @@ namespace TrueTestRun.Services
                 // Bảng 2: Kiểm tra lấy mẫu 抜取(QA Line)
                 { "NGSo_R_LayMau_Step8",       "AA54" }, // NG数：r =
                 { "OKSo_N_LayMau_Step8",       "AA55" }, // OK数：n =
-                { "NoiDungNG_LayMau_Step8",    "W57" }, // NG内容
+                { "NoiDungNG_LayMau_Step8",    "X57" }, // NG内容
                 
-                { "Comment_Step10",            "A62" },
+                { "Comment_Step10",            "A61" },
         };
 
         public ExcelService()
@@ -196,7 +196,7 @@ namespace TrueTestRun.Services
         { 5, new List<string> {"N45"} },
         { 7, new List<string> {"AE45"} },
         { 9, new List<string> {"N54", "AE54"} },
-        { 10, new List<string> {"AE62"} },
+        { 10, new List<string> {"AE61"} },
     };
 
             if (!sealLocationMapping.ContainsKey(stepIndex))
