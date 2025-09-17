@@ -377,7 +377,7 @@ namespace TrueTestRun.Controllers
             // Xử lý dữ liệu form cho Step 4
             else if (currentStep.Index == 4) // Step 4 - PCB Staff điền form
             {
-                var formData = new List<RequestField>();
+                var formData = new List<RequestField>(); //
 
                 // Xử lý 7 ô thông tin
                 var infoKeys = new[] { "ThongTin1Step4", "ThongTin2Step4", "ThongTin3Step4", "ThongTin4Step4", "ThongTin5Step4", "ThongTin6Step4", "ThongTin7Step4" };
@@ -389,7 +389,7 @@ namespace TrueTestRun.Controllers
                         formData.Add(new RequestField
                         {
                             RequestID = request.RequestID,
-                            Key = key,
+                            Key = key,    
                             Value = value
                         });
                     }
