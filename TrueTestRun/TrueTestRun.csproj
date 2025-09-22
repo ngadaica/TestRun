@@ -424,6 +424,7 @@
     <Content Include="Views\Request\_EditStep8.cshtml" />
     <Content Include="Views\Shared\_DocumentViewButton.cshtml" />
     <Content Include="Views\Approval\ApprovedRequest.cshtml" />
+    <Content Include="Views\Approval\ApprovalFormStep5.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\Lots\" />

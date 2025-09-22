@@ -97,6 +97,10 @@ namespace TrueTestRun.Controllers
             {
                 viewName = "DataEntryStep4";
             }
+            else if (currentStep.Index == 5) // Step 5 - QLTC PCB phê duyệt (Approval)
+            {
+                viewName = "ApprovalFormStep5";
+            }
             else if (currentStep.Index == 6) // Step 6 - PCB Staff điền kết quả
             {
                 viewName = "DataEntryStep6";
@@ -108,9 +112,6 @@ namespace TrueTestRun.Controllers
 
             return View(viewName, request);
         }
-
-        // Replace the existing ProcessApproval method and add the GetPhaseUrl helper.
-        // This is a drop-in replacement for the method in the current file.
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -136,7 +137,7 @@ namespace TrueTestRun.Controllers
                 if (currentUser == null)
                 {
                     System.Diagnostics.Debug.WriteLine("[ApprovalController] Current user is null, attempting re-authentication");
-                    
+
                     // Try to re-authenticate
                     currentUser = Session["CurrentUser"] as User;
                     if (currentUser == null)
@@ -153,7 +154,7 @@ namespace TrueTestRun.Controllers
                     return GetRedirectToPhase(request);
                 }
 
-                // ========== SỬA: LOGIC KIỂM TRA QUYỀN ĐƠN GIẢN ==========
+                // ========== SỬA: LOGIC KIỂM TRA QUYỀN ĐƠN GIẢN ========== 
                 bool canPerformAction = false;
 
                 // SỬA: Logic đơn giản dựa trên Actor
@@ -213,10 +214,11 @@ namespace TrueTestRun.Controllers
                     catch (Exception emailEx)
                     {
                         System.Diagnostics.Debug.WriteLine($"[ApprovalController] Email notification failed: {emailEx.Message}");
-                        // Don't fail the whole operation for email issues
                     }
 
-                    // After approve, show the "approved" screen instead of redirecting to phase list.
+                    // Clear any live preview session so the preview uses saved fields
+                    try { Session.Remove("LivePreviewFields"); } catch { }
+
                     ViewBag.BackUrl = GetPhaseUrl(request);
                     ViewBag.CurrentUser = currentUser;
                     ViewBag.CurrentStep = currentStep;
@@ -233,7 +235,7 @@ namespace TrueTestRun.Controllers
             {
                 System.Diagnostics.Debug.WriteLine($"[ApprovalController] ProcessApproval error: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"[ApprovalController] Stack trace: {ex.StackTrace}");
-                
+
                 var errorMessage = "Có lỗi xảy ra khi xử lý phê duyệt. ";
                 if (ex.Message.Contains("authentication") || ex.Message.Contains("session"))
                 {
@@ -243,9 +245,9 @@ namespace TrueTestRun.Controllers
                 {
                     errorMessage += "Vui lòng thử lại sau.";
                 }
-                
+
                 TempData["ErrorMessage"] = errorMessage;
-                
+
                 try
                 {
                     var request = _fs.LoadRequest(RequestID);
@@ -287,24 +289,68 @@ namespace TrueTestRun.Controllers
         {
             var excelPath = Server.MapPath($"~/App_Data/Requests/{request.RequestID}/request.xlsx");
 
-            // Lấy ảnh con dấu
-            byte[] sealImage = _imageService.GetOrCreateSealImage(currentUser.DeptCode, currentUser.Name, currentUser.Role);
-
-            if (sealImage != null && sealImage.Length > 0)
+            try
             {
-                _ex.AddSealImage(excelPath, currentStep.Index, sealImage);
+                var step5Keys = new[] { "LapRapStep5", "TinhNangStep5", "NgoaiQuanStep5", "CommentStep5" };
+                var formData = new List<RequestField>();
+
+                // Only update Step 5 fields at Step 5 or when those inputs are posted
+                var postedKeys = Request.Form.AllKeys ?? new string[0];
+                bool hasStep5Inputs = step5Keys.Any(k => postedKeys.Contains(k, StringComparer.OrdinalIgnoreCase));
+                bool shouldUpdateStep5 = currentStep.Index == 5 || hasStep5Inputs;
+
+                if (shouldUpdateStep5)
+                {
+                    bool IsChecked(string key)
+                    {
+                        var vals = Request.Form.GetValues(key);
+                        if (vals == null || vals.Length == 0) return false;
+                        foreach (var v in vals)
+                        {
+                            var t = (v ?? "").Trim();
+                            if (t.Equals("true", StringComparison.OrdinalIgnoreCase) ||
+                                t.Equals("on", StringComparison.OrdinalIgnoreCase) ||
+                                t.Equals("1") ||
+                                t.Equals("yes", StringComparison.OrdinalIgnoreCase))
+                                return true;
+                        }
+                        return false;
+                    }
+
+                    foreach (var key in new[] { "LapRapStep5", "TinhNangStep5", "NgoaiQuanStep5" })
+                    {
+                        var normalized = IsChecked(key) ? "true" : "false";
+                        formData.Add(new RequestField { RequestID = request.RequestID, Key = key, Value = normalized });
+                    }
+
+                    var c = Request.Form["CommentStep5"];
+                    if (string.IsNullOrWhiteSpace(c)) c = Request.Form["Comments"];
+                    if (string.IsNullOrWhiteSpace(c)) c = comment;
+                    if (!string.IsNullOrWhiteSpace(c))
+                    {
+                        formData.Add(new RequestField { RequestID = request.RequestID, Key = "CommentStep5", Value = c });
+                    }
+
+                    // Merge into request.Fields
+                    var allStep5Keys = new HashSet<string>(step5Keys, StringComparer.OrdinalIgnoreCase);
+                    var remaining = request.Fields.Where(f => !allStep5Keys.Contains(f.Key)).ToList();
+                    request.Fields.Clear();
+                    foreach (var f in remaining.Concat(formData)) request.Fields.Add(f);
+
+                    _fs.SaveRequest(request);
+                    try { _ex.FillFields(excelPath, request); } catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ApprovalController] Error capturing Step5 fields: {ex.Message}");
             }
 
-            // SỬA: Debug log để theo dõi phase transition
-            var oldPhase = request.CurrentPhase;
-            System.Diagnostics.Debug.WriteLine($"[ApprovalController] Request {request.RequestID} completing step {currentStep.Index}, current phase: {oldPhase}");
+            // Seal, advance, save, fill
+            var sealImage = _imageService.GetOrCreateSealImage(currentUser.DeptCode, currentUser.Name, currentUser.Role);
+            if (sealImage != null && sealImage.Length > 0) _ex.AddSealImage(excelPath, currentStep.Index, sealImage);
 
-            // Advance workflow (phase sẽ được cập nhật tự động trong WorkflowService)
             _wf.AdvanceStep(request, currentUser.ADID, comment);
-
-            // SỬA: Debug log sau khi advance
-            System.Diagnostics.Debug.WriteLine($"[ApprovalController] Request {request.RequestID} advanced to step {request.CurrentStepIndex}, new phase: {request.CurrentPhase}");
-
             _fs.SaveRequest(request);
             _ex.FillFields(excelPath, request);
 
@@ -377,9 +423,9 @@ namespace TrueTestRun.Controllers
             // Xử lý dữ liệu form cho Step 4
             else if (currentStep.Index == 4) // Step 4 - PCB Staff điền form
             {
-                var formData = new List<RequestField>(); //
+                var formData = new List<RequestField>();
 
-                // Xử lý 7 ô thông tin
+                // Keep only 7 info fields at Step 4
                 var infoKeys = new[] { "ThongTin1Step4", "ThongTin2Step4", "ThongTin3Step4", "ThongTin4Step4", "ThongTin5Step4", "ThongTin6Step4", "ThongTin7Step4" };
                 foreach (var key in infoKeys)
                 {
@@ -389,38 +435,14 @@ namespace TrueTestRun.Controllers
                         formData.Add(new RequestField
                         {
                             RequestID = request.RequestID,
-                            Key = key,    
+                            Key = key,
                             Value = value
                         });
                     }
                 }
 
-                // Xử lý 3 checkbox
-                var checkboxKeys = new[] { "LapRapStep4", "TinhNangStep4", "NgoaiQuanStep4" };
-                foreach (var key in checkboxKeys)
-                {
-                    var value = Request.Form[key];
-                    formData.Add(new RequestField
-                    {
-                        RequestID = request.RequestID,
-                        Key = key,
-                        Value = value == "true" ? "true" : "false"
-                    });
-                }
-
-                // SỬA: Xử lý comment tổng quát - chỉ thêm nếu có nội dung
-                if (!string.IsNullOrEmpty(comment))
-                {
-                    formData.Add(new RequestField
-                    {
-                        RequestID = request.RequestID,
-                        Key = "CommentStep4",
-                        Value = comment
-                    });
-                }
-
-                // Cập nhật fields - remove existing Step 4 fields first
-                var allStep4Keys = infoKeys.Concat(checkboxKeys).Concat(new[] { "CommentStep4" }).ToHashSet();
+                // Update fields - remove only Step 4 info fields
+                var allStep4Keys = new HashSet<string>(infoKeys);
                 var existingFields = request.Fields.Where(f => !allStep4Keys.Contains(f.Key)).ToList();
                 request.Fields.Clear();
 
@@ -848,6 +870,60 @@ namespace TrueTestRun.Controllers
             }
             catch (Exception ex)
             {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public ActionResult UpdateStep5Preview(string RequestID, FormCollection form)
+        {
+            try
+            {
+                var request = _fs.LoadRequest(RequestID);
+                if (request == null)
+                {
+                    return Json(new { success = false, message = "Request not found" });
+                }
+
+                // Tạo temporary request với dữ liệu Step 5 mới
+                var tempRequest = new Request
+                {
+                    RequestID = request.RequestID,
+                    Fields = new List<RequestField>(request.Fields),
+                    History = request.History
+                };
+
+                // Xóa các field Step 5 cũ
+                var step5Keys = new[] { "LapRapStep5", "TinhNangStep5", "NgoaiQuanStep5", "CommentStep5" };
+                var step5Fields = tempRequest.Fields.Where(f => step5Keys.Contains(f.Key)).ToList();
+                foreach (var field in step5Fields) tempRequest.Fields.Remove(field);
+
+                // Chuẩn hóa checkbox và comment từ form
+                Func<string, string> cb = k =>
+                {
+                    var v = form[k];
+                    return (v == "true" || v == "on" || v == "1") ? "true" : "false";
+                };
+
+                tempRequest.Fields.Add(new RequestField { RequestID = RequestID, Key = "LapRapStep5", Value = cb("LapRapStep5") });
+                tempRequest.Fields.Add(new RequestField { RequestID = RequestID, Key = "TinhNangStep5", Value = cb("TinhNangStep5") });
+                tempRequest.Fields.Add(new RequestField { RequestID = RequestID, Key = "NgoaiQuanStep5", Value = cb("NgoaiQuanStep5") });
+
+                var cmt = form["CommentStep5"] ?? "";
+                if (!string.IsNullOrWhiteSpace(cmt))
+                {
+                    tempRequest.Fields.Add(new RequestField { RequestID = RequestID, Key = "CommentStep5", Value = cmt });
+                }
+
+                // Cập nhật Excel với dữ liệu tạm thời (không lưu vào request)
+                var excelPath = Server.MapPath($"~/App_Data/Requests/{RequestID}/request.xlsx");
+                _ex.FillFields(excelPath, tempRequest);
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ApprovalController] UpdateStep5Preview error: {ex.Message}");
                 return Json(new { success = false, message = ex.Message });
             }
         }

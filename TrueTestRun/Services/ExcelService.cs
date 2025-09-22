@@ -29,7 +29,7 @@ namespace TrueTestRun.Services
                 { "DaKiemTra",                 "S28"  },
                 { "CommentFASample",           "E30"  },
                 { "CommentLapRapTruoc",        "E37"  },
-                { "CommentDaKiemTra",          "V30"  },
+                { "CommentDaKiemTra",          "U30"  },
 
                 // ===== CHECKBOX VÀ COMMENT CHO STEP 2 - PCB =====
                 { "DaNhanHangTestRun",         "S35"  }, // Đã nhận hàng test run cho PCB
@@ -45,14 +45,14 @@ namespace TrueTestRun.Services
                 { "ThongTin6Step4",            "Q20" },
                 { "ThongTin7Step4",            "AA20" },
                 
-                // 3 checkbox Step 4
-                { "LapRapStep4",               "B43"  },
-                { "TinhNangStep4",             "B44"  },
-                { "NgoaiQuanStep4",            "H43"  },
+                // 3 checkbox Step 5
+                { "LapRapStep5",               "B43"  },
+                { "TinhNangStep5",             "B44"  },
+                { "NgoaiQuanStep5",            "H43"  },
                 
                 
-                // Comment tổng quát Step 4
-                { "CommentStep4",              "D46"  },
+                // Comment tổng quát Step 5
+                { "CommentStep5",              "D46"  },
 
                 // Các checkbox EE khác
                 {"EPE-EE3", "B52" },
@@ -91,21 +91,65 @@ namespace TrueTestRun.Services
         {
             SpreadsheetInfo.SetLicense("FREE-LIMITED-KEY");
         }
+        private static bool IsTrueLike(string val)
+        {
+            if (string.IsNullOrWhiteSpace(val)) return false;
+            var parts = val.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var part in parts)
+            {
+                var t = part.Trim();
+                if (t.Equals("true", StringComparison.OrdinalIgnoreCase) ||
+                    t.Equals("on", StringComparison.OrdinalIgnoreCase) ||
+                    t.Equals("1") ||
+                    t.Equals("yes", StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
+        }
 
         /// <summary>
         /// Điền dữ liệu vào template dựa trên mapping, fallback NamedRange
         /// </summary>
         public void FillFields(string excelPath, Request request)
         {
-            using (var pkg = new ExcelPackage(new FileInfo(excelPath)))
+            using (var pkg = new OfficeOpenXml.ExcelPackage(new FileInfo(excelPath)))
             {
                 var ws = pkg.Workbook.Worksheets["D001"] ?? throw new InvalidOperationException("Sheet 'D001' không tồn tại.");
 
-                // NULL CHECK cho request.Fields
                 if (request?.Fields != null)
                 {
-                    // BƯỚC ĐẶC BIỆT: XỬ LÝ KetQuaStep6 TRƯỚC để đảm bảo xóa highlight cũ
-                    var ketQuaField = request.Fields.FirstOrDefault(f => f.Key == "KetQuaStep6");
+                    // Build a fast lookup for existing fields
+                    var fieldDict = request.Fields
+                        .GroupBy(f => f.Key, StringComparer.OrdinalIgnoreCase)
+                        .ToDictionary(g => g.Key, g => g.Last().Value ?? "", StringComparer.OrdinalIgnoreCase);
+
+                    // Step 5 fallback: if Step 5 keys are absent but Step 4 values exist, use Step 4 for writing.
+                    var step5Keys = new[] { "LapRapStep5", "TinhNangStep5", "NgoaiQuanStep5", "CommentStep5" };
+                    bool hasAnyStep5 = step5Keys.Any(k => fieldDict.ContainsKey(k));
+
+                    var effectiveFields = new List<RequestField>(request.Fields);
+                    if (!hasAnyStep5)
+                    {
+                        var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    { "LapRapStep5",   "LapRapStep4"   },
+                    { "TinhNangStep5", "TinhNangStep4" },
+                    { "NgoaiQuanStep5","NgoaiQuanStep4"},
+                    { "CommentStep5",  "CommentStep4"  },
+                };
+
+                        foreach (var kv in map)
+                        {
+                            if (!fieldDict.ContainsKey(kv.Key) && fieldDict.ContainsKey(kv.Value))
+                            {
+                                // Only use fallback for writing; do not persist into request.Fields here.
+                                effectiveFields.Add(new RequestField { Key = kv.Key, Value = fieldDict[kv.Value] });
+                            }
+                        }
+                    }
+
+                    // Render Step 6 OK/NG highlight first
+                    var ketQuaField = effectiveFields.FirstOrDefault(f => f.Key.Equals("KetQuaStep6", StringComparison.OrdinalIgnoreCase));
                     if (ketQuaField != null && cellMapping.TryGetValue("KetQuaStep6", out var ketQuaCellAddress))
                     {
                         if (!string.IsNullOrEmpty(ketQuaField.Value))
@@ -114,59 +158,45 @@ namespace TrueTestRun.Services
                         }
                         else
                         {
-                            // Nếu không có giá trị (user chưa chọn), xóa tất cả highlight
                             var range = ws.Cells[ketQuaCellAddress];
                             int row = range.Start.Row;
                             int col = range.Start.Column;
                             string okCell = ketQuaCellAddress;
                             string ngCell = $"{GetColumnName(col + 2)}{row}";
-
-                            // Clear only if the cells are not empty
-                            if (!string.IsNullOrEmpty(ws.Cells[okCell].Text))
-                                ClearCellHighlight(ws, okCell);
-                            if (!string.IsNullOrEmpty(ws.Cells[ngCell].Text))
-                                ClearCellHighlight(ws, ngCell);
+                            if (!string.IsNullOrEmpty(ws.Cells[okCell].Text)) ClearCellHighlight(ws, okCell);
+                            if (!string.IsNullOrEmpty(ws.Cells[ngCell].Text)) ClearCellHighlight(ws, ngCell);
                         }
                     }
 
-                    // Vòng lặp cho các trường khác
-                    foreach (var field in request.Fields)
+                    // Write all mapped cells
+                    foreach (var field in effectiveFields)
                     {
-                        if (cellMapping.TryGetValue(field.Key, out var cellAddress))
-                        {
-                            // Bỏ qua KetQuaStep6 vì đã xử lý ở trên
-                            if (field.Key == "KetQuaStep6")
-                                continue;
+                        if (!cellMapping.TryGetValue(field.Key, out var cellAddress)) continue;
+                        if (field.Key.Equals("KetQuaStep6", StringComparison.OrdinalIgnoreCase)) continue;
 
-                            // Accept both "true" and "on" for checked checkboxes
-                            if (field.Value == "true" || field.Value == "on")
-                            {
-                                ws.Cells[cellAddress].Value = "v";
-                            }
-                            else if (!string.IsNullOrEmpty(field.Value) && field.Value != "false")
-                            {
-                                ws.Cells[cellAddress].Value = field.Value;
-                            }
-                            else
-                            {
-                                ws.Cells[cellAddress].Value = null;
-                            }
+                        if (IsTrueLike(field.Value))
+                        {
+                            ws.Cells[cellAddress].Value = "v";
+                        }
+                        else if (!string.IsNullOrEmpty(field.Value) && !field.Value.Equals("false", StringComparison.OrdinalIgnoreCase))
+                        {
+                            ws.Cells[cellAddress].Value = field.Value;
+                        }
+                        else
+                        {
+                            ws.Cells[cellAddress].Value = null;
                         }
                     }
                 }
 
-                // NULL CHECK cho request.History
+                // History comments (kept)
                 if (request?.History != null)
                 {
-                    // Vòng lặp 2 (MỚI): Điền comment từ lịch sử phê duyệt
                     foreach (var step in request.History)
                     {
-                        // Tìm key cho comment của bước này, ví dụ: "Comment_Step0"
                         string commentKey = $"Comment_Step{step.Index}";
                         if (cellMapping.TryGetValue(commentKey, out var cellAddress) && !string.IsNullOrEmpty(step.Comment))
-                        {
                             ws.Cells[cellAddress].Value = step.Comment;
-                        }
                     }
                 }
 

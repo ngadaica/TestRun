@@ -108,58 +108,7 @@
                 </div>
             </div>
 
-            <!-- BẢNG XÁC NHẬN STEP 4 -->
-            <div class="form-card">
-                <div class="card-header">
-                    <h5><span class="header-icon">◓</span> Bảng xác nhận Step 4</h5>
-                </div>
-                <div class="card-body">
-                    <!-- 3 Checkbox -->
-                    <div class="check-group">
-                        <div class="check-item">
-                            <input class="check-input" type="checkbox" name="LapRapStep4" value="true" id="chkLapRapStep4"
-                                   @(Model.Fields.FirstOrDefault(f => f.Key == "LapRapStep4")?.Value == "true" ? "checked" : "") />
-                            <label class="check-label" for="chkLapRapStep4">
-                                1. Lắp ráp
-                            </label>
-                            <div class="check-subtitle">組立性</div>
-                        </div>
-                    </div>
 
-                    <div class="check-group">
-                        <div class="check-item">
-                            <input class="check-input" type="checkbox" name="TinhNangStep4" value="true" id="chkTinhNangStep4"
-                                   @(Model.Fields.FirstOrDefault(f => f.Key == "TinhNangStep4")?.Value == "true" ? "checked" : "") />
-                            <label class="check-label" for="chkTinhNangStep4">
-                                2. Tính năng
-                            </label>
-                            <div class="check-subtitle">機能検査</div>
-                        </div>
-                    </div>
-
-                    <div class="check-group">
-                        <div class="check-item">
-                            <input class="check-input" type="checkbox" name="NgoaiQuanStep4" value="true" id="chkNgoaiQuanStep4"
-                                   @(Model.Fields.FirstOrDefault(f => f.Key == "NgoaiQuanStep4")?.Value == "true" ? "checked" : "") />
-                            <label class="check-label" for="chkNgoaiQuanStep4">
-                                3. Ngoại quan
-                            </label>
-                            <div class="check-subtitle">外観検査</div>
-                        </div>
-                    </div>
-
-                    <!-- Comment chung cho Step 4 -->
-                    <div class="comment-section">
-                        <label class="notes-label">Ghi comment:</label>
-                        <textarea name="CommentStep4" class="form-control" rows="4"
-                                  required>@(Model.Fields.FirstOrDefault(f => f.Key == "CommentStep4")?.Value ?? "")</textarea>
-                        <div class="form-helper">
-                            <span class="helper-icon">◎</span>
-                            Vui lòng mô tả chi tiết để người phê duyệt tiếp theo hiểu rõ tình hình.
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <div class="document-section">
                 @Html.Partial("_DocumentViewButton", Model.RequestID)
@@ -208,83 +157,43 @@
         var confirmComplete = '@Html.Raw(HttpUtility.JavaScriptStringEncode(HttpContext.GetGlobalResourceObject("Resources", "ConfirmComplete").ToString()))';
 
         $(document).ready(function () {
-            // Live update preview khi thay đổi input, checkbox hoặc comment
+            // Live update preview
             $('#step4Form input, #step4Form textarea').on('change input', function() {
                 updatePreview();
             });
 
             function updatePreview() {
-                // SỬA: Thay vì dùng serialize(), ta sẽ manually build data để đảm bảo empty values được gửi
                 var formData = {};
-
-                // Lấy tất cả input fields
                 $('#step4Form input[type="text"], #step4Form textarea').each(function() {
                     var name = $(this).attr('name');
-                    var value = $(this).val() || ''; // Đảm bảo empty string thay vì undefined
-                    if (name) {
-                        formData[name] = value;
-                    }
+                    var value = $(this).val() || '';
+                    if (name) formData[name] = value;
                 });
 
-                // Lấy checkbox values
-                $('#step4Form input[type="checkbox"]').each(function() {
-                    var name = $(this).attr('name');
-                    if (name) {
-                        formData[name] = $(this).is(':checked') ? 'true' : 'false';
-                    }
-                });
+                // Note: Step 4 no longer has checkboxes / comment, so nothing else to gather.
 
-                // Thêm RequestID và antiforgery token
                 formData['RequestID'] = $('input[name="RequestID"]').val();
                 formData['__RequestVerificationToken'] = $('input[name="__RequestVerificationToken"]').val();
-
-                console.log('Sending form data:', formData); // Debug log
 
                 $.ajax({
                     url: '@Url.Action("UpdateStep4Preview", "Approval")',
                     type: 'POST',
                     data: formData,
                     success: function(response) {
-                        console.log('Server response:', response); // Debug log
                         if (response.success) {
                             var timestamp = new Date().getTime();
                             $('#excelPreviewImage').attr('src', '@Url.Action("PreviewImage", "Request", new { id = Model.RequestID })' + '?t=' + timestamp);
                         }
-                    },
-                    error: function(xhr, status, error) {
-                        console.log('AJAX Error:', status, error);
-                        console.log('Response text:', xhr.responseText);
                     }
                 });
             }
 
-            // Form validation
+            // Form validation: only confirm (remove CommentStep4 enforcement)
             $('#step4Form').on('submit', function (e) {
-                var comment = $('textarea[name="CommentStep4"]').val().trim();
-
-                if (!comment) {
-                    alert('Vui lòng nhập ghi chú mô tả công việc đã thực hiện!');
-                    $('textarea[name="CommentStep4"]').focus();
-                    e.preventDefault();
-                    return false;
-                }
-
                 if (!confirm(confirmComplete)) {
                     e.preventDefault();
                     return false;
                 }
-            });
-
-            // Auto dismiss alerts after 5 seconds
-            setTimeout(function () {
-                $('.notification').fadeOut('slow');
-            }, 5000);
-
-            // Character counter for textarea
-            $('textarea[name="CommentStep4"]').on('input', function() {
-                var len = $(this).val().length;
-                var info = $(this).siblings('.form-helper');
-                info.html('<span class="helper-icon">◎</span> Đã nhập ' + len + ' ký tự. Vui lòng mô tả chi tiết để người phê duyệt tiếp theo hiểu rõ tình hình.');
             });
 
             // Load initial preview

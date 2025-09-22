@@ -394,12 +394,12 @@ namespace TrueTestRun.Controllers
                     {
                         // SỬA: Kiểm tra quyền staff theo phòng ban
                         bool canEditByDept = false;
-                        
+
                         if (rejectedStep.Index > 0)
                         {
                             // Tìm step trước step bị từ chối
                             var prevStep = req.History?.FirstOrDefault(h => h.Index == rejectedStep.Index - 1);
-                            if (prevStep != null && prevStep.DeptCode == currentUser.DeptCode && 
+                            if (prevStep != null && prevStep.DeptCode == currentUser.DeptCode &&
                                 prevStep.Actor == StepActor.DataEntry)
                             {
                                 canEditByDept = true;
@@ -407,7 +407,7 @@ namespace TrueTestRun.Controllers
                                 editReason += $"\n\nBạn có thể sửa step {prevStep.Index + 1} ({prevStep.StepName}) vì thuộc cùng phòng ban {currentUser.DeptCode}.";
                             }
                         }
-                        
+
                         if (!canEditByDept)
                         {
                             TempData["ErrorMessage"] = "Bạn không có quyền sửa đơn này!\n" +
@@ -670,7 +670,7 @@ namespace TrueTestRun.Controllers
                 try
                 {
                     // FileStorageService may keep data on disk; call SaveRequest with null/cleanup not available.
-                    
+
                     var dummy = fs.LoadAllRequests();
                 }
                 catch { }

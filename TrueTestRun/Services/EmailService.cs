@@ -125,16 +125,16 @@ namespace TrueTestRun.Services
             switch (stepIndex)
             {
 
-                case 1: return "Doan.PhamCong@brother-bivn.com.vn"; //Doan.PhamCong@brother-bivn.com.vn
+                case 1: return "giang.nguyenthi@brother-bivn.com.vn"; //Doan.PhamCong@brother-bivn.com.vn
                 case 2: return "Ly.NguyenThi@brother-bivn.com.vn"; //Ly.NguyenThi@brother-bivn.com.vn
-                case 3: return "jun.sato@brother-bivn.com.vn"; //jun.sato@brother-bivn.com.vn
+                case 3: return "giang.nguyenthi@brother-bivn.com.vn"; //jun.sato@brother-bivn.com.vn
                 case 4: return "Ly.NguyenThi@brother-bivn.com.vn"; //Ly.NguyenThi@brother-bivn.com.vn
-                case 5: return "jun.sato@brother-bivn.com.vn"; //jun.sato@brother-bivn.com.vn
+                case 5: return "giang.nguyenthi@brother-bivn.com.vn"; //jun.sato@brother-bivn.com.vn
                 case 6: return "Ly.NguyenThi@brother-bivn.com.vn"; //Ly.NguyenThi@brother-bivn.com.vn
-                case 7: return "jun.sato@brother-bivn.com.vn"; //jun.sato@brother-bivn.com.vn
-                case 8: return "nguyenthi.duyen5@brother-bivn.com.vn"; //nguyenthi.duyen5@brother-bivn.com.vn
-                case 9: return "Doan.PhamCong@brother-bivn.com.vn"; //Doan.PhamCong@brother-bivn.com.vn
-                case 10: return "naoya.yada@brother-bivn.com.vn"; //naoya.yada@brother-bivn.com.vn
+                case 7: return "giang.nguyenthi@brother-bivn.com.vn"; //jun.sato@brother-bivn.com.vn
+                case 8: return "Hoangthi.Minh@brother-bivn.com.vn"; //nguyenthi.duyen5@brother-bivn.com.vn
+                case 9: return "giang.nguyenthi@brother-bivn.com.vn"; //Doan.PhamCong@brother-bivn.com.vn
+                case 10: return "giang.nguyenthi@brother-bivn.com.vn"; //naoya.yada@brother-bivn.com.vn
                 default: return "phamduc.anh@brother-bivn.com.vn";
 
             }

@@ -8,8 +8,32 @@
 
 <div class="page-header">
     <div class="page-title-section">
-        <h1 class="page-title">Approved — Preview</h1>
-        <div class="page-subtitle">@Model.RequestID | Test Run Request Management System</div>
+        <h1 class="page-title">✓ Đã phê duyệt thành công</h1>
+        <div class="page-subtitle">@Model.RequestID | 承認完了 | Approval Completed</div>
+    </div>
+</div>
+
+@if (System.Web.HttpContext.Current.IsDebuggingEnabled)
+{
+    <div class="debug-panel" style="background: #f0f9ff; border: 1px solid #0ea5e9; padding: 1rem; margin-bottom: 1rem; border-radius: 6px;">
+        <h6>DEBUG: Step 5 Checkbox Values</h6>
+        @{
+            var keys = new[] { "LapRapStep4", "TinhNangStep4", "NgoaiQuanStep4" };
+            foreach (var k in keys)
+            {
+                var v = Model.Fields.FirstOrDefault(f => f.Key == k)?.Value ?? "(null)";
+                <div>@k: <strong>@v</strong> @(v == "true" ? "✓" : "✗")</div>
+            }
+        }
+        <small>Timestamp: @DateTime.Now.ToString("HH:mm:ss.fff")</small>
+    </div>
+}
+
+<div class="success-message">
+    <div class="success-icon">✅</div>
+    <div class="success-content">
+        <div class="success-title">Phê duyệt hoàn tất!</div>
+        <div class="success-subtitle">承認が完了しました | The approval has been completed successfully</div>
     </div>
 </div>
 
@@ -17,16 +41,16 @@
     <div class="panel-header">
         <div class="panel-title">
             <span class="panel-icon">◎</span>
-            Approved Document Preview
+             Document Preview
         </div>
-        <div class="panel-subtitle">Màn hình hiển thị sau khi phê duyệt/承認後の表示画面</div>
     </div>
     <div class="panel-content">
         <div class="preview-container">
+            <div id="loadingIndicator" class="loading-spinner" aria-hidden="true" style="display:none;">⏳</div>
             <img id="excelPreviewImage"
-                 src="@($"{previewUrl}?t={DateTime.Now.Ticks}")"
-                 alt="Approved Excel Preview"
-                 class="preview-image" />
+                 class="preview-image"
+                 src="@previewUrl"
+                 alt="Excel Preview for @Model.RequestID" />
         </div>
     </div>
 </div>
@@ -39,22 +63,39 @@
 
 @section Scripts {
     <script>
-        // Refresh preview to ensure latest image (seal applied) is shown.
         (function () {
-            var previewUrl = '@previewUrl';
-            function refreshPreview() {
+            var basePreviewUrl = '@previewUrl';
+            var $img = document.getElementById('excelPreviewImage');
+            var $loading = document.getElementById('loadingIndicator');
+            var maxRefreshAttempts = 5;
+
+            function refreshPreview(attempt) {
+                attempt = attempt || 0;
+                if (attempt >= maxRefreshAttempts) {
+                    if ($loading) $loading.style.display = 'none';
+                    return;
+                }
                 var ts = new Date().getTime();
-                var $img = document.getElementById('excelPreviewImage');
+                var newSrc = basePreviewUrl + '?t=' + ts + '&refresh=approved&attempt=' + attempt;
+
                 if ($img) {
-                    $img.src = previewUrl + '?t=' + ts;
+                    if ($loading && attempt > 0) $loading.style.display = 'block';
+
+                    $img.onerror = function () {
+                        setTimeout(function () { refreshPreview(attempt + 1); }, 300 * (attempt + 1));
+                    };
+                    $img.onload = function () {
+                        if ($loading) $loading.style.display = 'none';
+                    };
+                    $img.src = newSrc;
                 }
             }
 
-            // Initial load + a couple retries in case file write needs a moment
             document.addEventListener('DOMContentLoaded', function () {
-                refreshPreview();
-                setTimeout(refreshPreview, 400);
-                setTimeout(refreshPreview, 1200);
+                refreshPreview(0);
+                setTimeout(function () { refreshPreview(1); }, 500);
+                setTimeout(function () { refreshPreview(2); }, 1500);
+                setTimeout(function () { refreshPreview(3); }, 3000);
             });
         })();
     </script>
@@ -69,8 +110,45 @@
     }
 
     .page-title {
-        font-size: 1.25rem;
+        font-size: 1.5rem;
         margin: 0;
+        color: #059669;
+        font-weight: 600;
+    }
+
+    .page-subtitle {
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+
+    /* SỬA: Success message styling */
+    .success-message {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .success-icon {
+        font-size: 2rem;
+        flex-shrink: 0;
+    }
+
+    .success-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #166534;
+        margin-bottom: 0.25rem;
+    }
+
+    .success-subtitle {
+        font-size: 0.875rem;
+        color: #16a34a;
     }
 
     .preview-panel {
@@ -78,13 +156,14 @@
         border: 1px solid #e6e6e6;
         border-radius: 10px;
         overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        border-left: 4px solid #059669;
     }
 
     .panel-header {
-        background: linear-gradient(90deg,#f8fafc,#eef2ff);
+        background: linear-gradient(90deg, #f0fdf4, #dcfce7);
         padding: 1rem 1.25rem;
-        border-bottom: 1px solid #e6e6e6;
+        border-bottom: 1px solid #bbf7d0;
     }
 
     .panel-title {
@@ -92,22 +171,23 @@
         display: flex;
         align-items: center;
         gap: .5rem;
+        color: #166534;
     }
 
     .panel-subtitle {
         font-size: 0.85rem;
-        color: #6b7280;
+        color: #16a34a;
         margin-top: .25rem;
     }
 
     .panel-content {
-        padding: 1rem;
+        padding: 1.5rem;
         text-align: center;
     }
 
     .preview-container {
-        padding: 0.5rem;
-        border: 2px dashed #e5e7eb;
+        padding: 1rem;
+        border: 2px solid #bbf7d0;
         border-radius: 8px;
         background: #ffffff;
         display: inline-block;
@@ -119,13 +199,29 @@
     .preview-image {
         width: 100%;
         height: auto;
-        min-height: 360px;
+        min-height: 400px;
         max-height: 900px;
         object-fit: contain;
         border-radius: 6px;
-        box-shadow: 0 6px 18px rgba(2,6,23,0.06);
-        border: 1px solid #e6e6e6;
+        box-shadow: 0 8px 24px rgba(5, 150, 105, 0.15);
+        border: 1px solid #bbf7d0;
         background: #fff;
+        transition: opacity 0.3s ease;
+    }
+
+    .loading-spinner {
+        font-size: 1.5rem;
+        animation: spin 1s linear infinite;
+    }
+
+    @@keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
     }
 
     .action-btn {
@@ -138,6 +234,7 @@
         border: 1px solid #d1d5db;
         background: #f8fafc;
         color: #0f172a;
+        transition: all 0.2s ease;
     }
 
         .action-btn.large {
@@ -145,7 +242,14 @@
             font-weight: 600;
         }
 
-        .action-btn.secondary {
-            background: #f3f4f6;
+        .action-btn.secondary:hover {
+            background: #f1f5f9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
+
+    .debug-panel {
+        font-family: 'Consolas', monospace;
+        font-size: 0.8rem;
+    }
 </style>

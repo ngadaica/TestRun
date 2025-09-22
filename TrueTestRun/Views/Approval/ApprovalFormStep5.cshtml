@@ -1,0 +1,1007 @@
+﻿@model TrueTestRun.Models.Request
+@{
+    ViewBag.Title = "Phê duyệt Step 5 - QLTC PCB - " + Model.RequestID;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var currentUser = ViewBag.CurrentUser as TrueTestRun.Models.User;
+    var currentStep = ViewBag.CurrentStep as TrueTestRun.Models.WorkflowStep;
+    bool canApprove = ViewBag.CanApprove ?? false;
+}
+
+<!-- Professional Page Header -->
+<div class="page-header">
+    <div class="page-title-section">
+        <h1 class="page-title">Phê duyệt Step 5 - QLTC PCB</h1>
+        <div class="page-subtitle">@Model.RequestID | Test Run Request Management System</div>
+    </div>
+    <div class="page-actions">
+        <a href="javascript:history.back()" class="action-btn secondary">
+            <span class="action-icon">←</span>
+            Quay lại
+        </a>
+    </div>
+</div>
+
+<!-- Request Information Panel -->
+<div class="info-panel">
+    <div class="panel-header">
+        <div class="panel-title">
+            <span class="panel-icon">◉</span>
+            Thông tin Request
+        </div>
+        <div class="panel-subtitle">Request Details & Current Status</div>
+    </div>
+    <div class="panel-content">
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Request ID</div>
+                <div class="info-value request-id">@Model.RequestID</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Ngày tạo</div>
+                <div class="info-value">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Bước hiện tại</div>
+                <div class="info-value">
+                    @if (currentStep != null)
+                    {
+                        <div class="step-badge">@currentStep.StepName</div>
+                    }
+                    else
+                    {
+                        <div class="step-badge unknown">Không xác định</div>
+                    }
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Trạng thái</div>
+                <div class="info-value">
+                    <div class="status-badge processing">
+                        <span class="status-icon">◐</span>
+                        <span class="status-text">Đang xử lý</span>
+                    </div>
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Hành động</div>
+                <div class="info-value">
+                    <div class="action-indicator approval">
+                        <span class="action-icon">◈</span>
+                        <span class="action-text">Phê duyệt & điền form</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Excel Preview Panel -->
+<div class="preview-panel">
+    <div class="panel-header">
+        <div class="panel-title">
+            <span class="panel-icon">◎</span>
+            Excel Preview
+        </div>
+        <div class="panel-subtitle">@Model.RequestID - Document Preview</div>
+    </div>
+    <div class="panel-content">
+        <div class="preview-container">
+            <div class="preview-wrapper">
+                <img src="@Url.Action("PreviewImage", "Request", new { id = Model.RequestID })"
+                     class="preview-image"
+                     alt="Excel Preview"
+                     id="excelPreviewImage" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Attached Documents Panel -->
+<div class="documents-panel">
+    <div class="panel-header">
+        <div class="panel-title">
+            <span class="panel-icon">◇</span>
+            Tài liệu đính kèm
+        </div>
+        <div class="panel-subtitle">Related Documents & Attachments</div>
+    </div>
+    <div class="panel-content">
+        <div class="documents-section">
+            @Html.Partial("_DocumentViewButton", Model.RequestID)
+            <div class="documents-note">
+                <span class="note-icon">ⓘ</span>
+                <span class="note-text">Click để xem tài liệu đính kèm</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Step 5 Approval with Checkbox Panel -->
+@if (canApprove)
+{
+    <div class="approval-panel step5-panel">
+        <div class="panel-header">
+            <div class="panel-title">
+                <span class="panel-icon">◈</span>
+                Phê duyệt & điền form Step 5 - QLTC PCB
+            </div>
+            <div class="panel-subtitle">Vừa tích checkbox, ghi comment vừa phê duyệt</div>
+        </div>
+        <div class="panel-content">
+            @using (Html.BeginForm("ProcessApproval", "Approval", FormMethod.Post, new { id = "approvalForm", @class = "approval-form" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.Hidden("RequestID", Model.RequestID)
+
+                <div class="form-container">
+                    <div class="form-section">
+                        <div class="section-header">
+                            <div class="section-title">
+                                <span class="section-icon">☑️</span>
+                                Bảng xác nhận Step 5
+                            </div>
+                            <div class="section-subtitle">Điền checkbox và comment trước khi phê duyệt</div>
+                        </div>
+
+                        <!-- Checkbox 1: Lắp ráp -->
+                        <div class="form-group">
+                            <div class="checkbox-container">
+                                <input type="hidden" name="LapRapStep5" value="false" />
+                                <input class="form-checkbox" type="checkbox" name="LapRapStep5" value="true" id="chkLapRapStep5"
+                                       @(Model.Fields.FirstOrDefault(f => f.Key == "LapRapStep5")?.Value == "true" ? "checked" : "") />
+                                <label class="checkbox-label" for="chkLapRapStep5">
+                                    <span class="checkbox-icon">◆</span>
+                                    <span class="checkbox-text">
+                                        <strong>1. Lắp ráp</strong>
+                                        <div class="checkbox-subtitle">組立性</div>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Checkbox 2: Tính năng -->
+                        <div class="form-group">
+                            <div class="checkbox-container">
+                                <input type="hidden" name="TinhNangStep5" value="false" />
+                                <input class="form-checkbox" type="checkbox" name="TinhNangStep5" value="true" id="chkTinhNangStep5"
+                                       @(Model.Fields.FirstOrDefault(f => f.Key == "TinhNangStep5")?.Value == "true" ? "checked" : "") />
+                                <label class="checkbox-label" for="chkTinhNangStep5">
+                                    <span class="checkbox-icon">◆</span>
+                                    <span class="checkbox-text">
+                                        <strong>2. Tính năng</strong>
+                                        <div class="checkbox-subtitle">機能検査</div>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Checkbox 3: Ngoại quan -->
+                        <div class="form-group">
+                            <div class="checkbox-container">
+                                <input type="hidden" name="NgoaiQuanStep5" value="false" />
+                                <input class="form-checkbox" type="checkbox" name="NgoaiQuanStep5" value="true" id="chkNgoaiQuanStep5"
+                                       @(Model.Fields.FirstOrDefault(f => f.Key == "NgoaiQuanStep5")?.Value == "true" ? "checked" : "") />
+                                <label class="checkbox-label" for="chkNgoaiQuanStep5">
+                                    <span class="checkbox-icon">◆</span>
+                                    <span class="checkbox-text">
+                                        <strong>3. Ngoại quan</strong>
+                                        <div class="checkbox-subtitle">外観検査</div>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Comment cho Step 5 -->
+                        <div class="form-group">
+                            <div class="section-title">
+                                <span class="section-icon">◇</span>
+                                Ghi comment (không bắt buộc)
+                            </div>
+                            <textarea name="CommentStep5" class="form-control large" rows="4"
+                                      placeholder="Ghi chú của QLTC PCB...">@(Model.Fields.FirstOrDefault(f => f.Key == "CommentStep5")?.Value ?? "")</textarea>
+                            <div class="form-note">
+                                <span class="note-icon">ℹ️</span>
+                                <span class="note-text">Comment không bắt buộc. Chỉ ghi khi cần thiết.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="actions-section">
+                        <div class="actions-grid">
+                            <button type="submit" name="action" value="approve" class="action-btn primary large">
+                                <span class="btn-icon">✓</span>
+                                <span class="btn-text">Phê duyệt</span>
+                            </button>
+
+                            <button type="button" class="action-btn danger large" id="btnReject">
+                                <span class="btn-icon">✕</span>
+                                <span class="btn-text">Từ chối</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- Professional Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content professional-modal">
+            <div class="modal-header">
+                <div class="modal-title-section">
+                    <h5 class="modal-title" id="rejectModalLabel">
+                        <span class="modal-icon">✕</span>
+                        Từ chối phê duyệt
+                    </h5>
+                    <div class="modal-subtitle">Cung cấp lý do từ chối</div>
+                </div>
+                <button type="button" class="modal-close" data-bs-dismiss="modal" aria-label="Close">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="rejectForm" class="reject-form">
+                    @Html.AntiForgeryToken()
+                    @Html.Hidden("RequestID", Model.RequestID)
+                    <input type="hidden" name="action" value="reject" />
+
+                    <div class="form-section">
+                        <div class="section-header">
+                            <div class="section-title">
+                                <span class="section-icon">◇</span>
+                                Lý do từ chối
+                            </div>
+                            <div class="section-subtitle">Chi tiết lý do từ chối</div>
+                        </div>
+                        <div class="form-group">
+                            <textarea name="Comments" id="rejectReason" class="form-control large" rows="4"
+                                      placeholder="Nhập lý do từ chối..."></textarea>
+                            <div class="form-note">
+                                <span class="note-icon">ⓘ</span>
+                                <span class="note-text">Lý do từ chối (không bắt buộc)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="warning-section">
+                        <div class="warning-content">
+                            <span class="warning-icon">⚠</span>
+                            <div class="warning-text">
+                                <strong>Cảnh báo:</strong>
+                                <span>Việc từ chối sẽ gửi đơn về cho người có thể chỉnh sửa</span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="modal-actions">
+                    <button type="button" class="action-btn secondary" data-bs-dismiss="modal">
+                        <span class="btn-icon">←</span>
+                        <span class="btn-text">Hủy</span>
+                    </button>
+                    <button type="button" class="action-btn danger" id="confirmReject">
+                        <span class="btn-icon">✕</span>
+                        <span class="btn-text">Xác nhận từ chối</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            function refreshPreview() {
+                var t = new Date().getTime();
+                $('#excelPreviewImage').attr('src', '@Url.Action("PreviewImage", "Request", new { id = Model.RequestID })' + '?t=' + t);
+            }
+
+            function collectStep5FormData() {
+                var data = {};
+                data['RequestID'] = '@Model.RequestID';
+                data['__RequestVerificationToken'] = $('input[name="__RequestVerificationToken"]').val();
+
+                // Checkbox → true/false
+                data['LapRapStep5']   = $('#chkLapRapStep5').is(':checked') ? 'true' : 'false';
+                data['TinhNangStep5'] = $('#chkTinhNangStep5').is(':checked') ? 'true' : 'false';
+                data['NgoaiQuanStep5']= $('#chkNgoaiQuanStep5').is(':checked') ? 'true' : 'false';
+
+                // Comment (optional)
+                data['CommentStep5'] = $('textarea[name="CommentStep5"]').val() || '';
+                return data;
+            }
+
+            let previewTimeout;
+            function scheduleUpdate() {
+                clearTimeout(previewTimeout);
+                previewTimeout = setTimeout(function () {
+                    $.ajax({
+                        url: '@Url.Action("UpdateStep5Preview", "Approval")',
+                        type: 'POST',
+                        data: collectStep5FormData(),
+                        success: function (resp) {
+                            if (resp && resp.success) refreshPreview();
+                        },
+                        error: function (xhr) {
+                            console.log('UpdateStep5Preview error:', xhr.responseText);
+                        }
+                    });
+                }, 300);
+            }
+
+            // Bind changes for live preview
+            $('#chkLapRapStep5, #chkTinhNangStep5, #chkNgoaiQuanStep5, textarea[name="CommentStep5"]').on('change input', scheduleUpdate);
+
+            // Character counter: Step 5 comment
+            $('textarea[name="CommentStep5"]').on('input', function () {
+                var len = $(this).val().length;
+                $(this).siblings('.form-note').find('.note-text')
+                    .text(len + ' ký tự đã nhập - Comment không bắt buộc. Chỉ ghi khi cần thiết.');
+            });
+
+            // Approve submit confirm
+            $('#approvalForm').on('submit', function (e) {
+                var action = $(document.activeElement).val();
+                if (action === 'approve') {
+                    if (!confirm('Bạn có chắc chắn muốn phê duyệt đơn này không?')) {
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+            });
+
+            // Reject modal actions (giữ nguyên)
+            $('#btnReject').on('click', function () { $('#rejectModal').modal('show'); });
+            $('#confirmReject').on('click', function () {
+                var reason = $('#rejectReason').val().trim();
+                if (!confirm('Bạn có chắc chắn muốn từ chối đơn này không?')) return;
+                var form = $('<form>', { method: 'POST', action: '@Url.Action("ProcessApproval", "Approval")' });
+                form.append($('<input>', { type: 'hidden', name: '__RequestVerificationToken', value: $('input[name="__RequestVerificationToken"]').val() }));
+                form.append($('<input>', { type: 'hidden', name: 'RequestID', value: '@Model.RequestID' }));
+                form.append($('<input>', { type: 'hidden', name: 'action', value: 'reject' }));
+                form.append($('<input>', { type: 'hidden', name: 'Comments', value: reason }));
+                $('body').append(form); form.submit();
+            });
+
+            // Initial preview sync
+            scheduleUpdate();
+        });
+    </script>
+}
+
+<style>
+    /* ========== STEP 5 SPECIFIC STYLING ========== */
+
+    /* Page Header */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .page-title-section h1.page-title {
+        font-size: 1.875rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 0.5rem 0;
+    }
+
+    .page-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin: 0;
+    }
+
+    .page-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    /* Professional Panels */
+    .info-panel,
+    .preview-panel,
+    .documents-panel,
+    .approval-panel {
+        background: var(--background-white);
+        border-radius: 12px;
+        border: 1px solid var(--border-light);
+        box-shadow: var(--shadow-soft);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+
+    .panel-header {
+        background: var(--background-secondary);
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .panel-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .panel-icon {
+        font-size: 1rem;
+        opacity: 0.7;
+        color: var(--corporate-blue);
+    }
+
+    .panel-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin: 0;
+    }
+
+    .panel-content {
+        padding: 2rem;
+    }
+
+    /* Step 5 Panel Special Styling */
+    .step5-panel {
+        border: 2px solid #fbbf24;
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    }
+
+        .step5-panel .panel-header {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: var(--background-white);
+        }
+
+        .step5-panel .panel-icon {
+            color: var(--background-white);
+            opacity: 1;
+        }
+
+    /* Information Grid */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .info-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .info-value {
+        font-size: 1rem;
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+
+    .request-id {
+        font-family: 'Consolas', 'Monaco', monospace;
+        color: var(--corporate-blue);
+        font-weight: 600;
+        font-size: 1.125rem;
+    }
+
+    /* Status & Action Badges */
+    .step-badge,
+    .status-badge,
+    .action-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border: 1px solid transparent;
+    }
+
+    .step-badge {
+        background: var(--corporate-blue);
+        color: var(--background-white);
+    }
+
+        .step-badge.unknown {
+            background: var(--text-muted);
+            color: var(--background-white);
+        }
+
+    .status-badge.processing {
+        background: #fef3c7;
+        border-color: #fde68a;
+        color: #92400e;
+    }
+
+    .action-indicator.approval {
+        background: #dcfce7;
+        border-color: #bbf7d0;
+        color: #166534;
+    }
+
+    .status-icon,
+    .action-icon {
+        font-size: 0.875rem;
+        flex-shrink: 0;
+    }
+
+    /* Preview Panel */
+    .preview-container {
+        background: var(--background-primary);
+        border: 2px dashed var(--border-medium);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .preview-wrapper {
+        display: inline-block;
+        max-width: 100%;
+    }
+
+    .preview-image {
+        max-width: 100%;
+        height: auto;
+        min-height: 500px;
+        border-radius: 8px;
+        box-shadow: var(--shadow-medium);
+        border: 1px solid var(--border-light);
+    }
+
+    /* Documents Panel */
+    .documents-section {
+        text-align: center;
+        padding: 1rem 0;
+    }
+
+    .documents-note {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+
+    .note-icon {
+        font-size: 0.875rem;
+        opacity: 0.7;
+    }
+
+    /* Form Container */
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+    }
+
+    .section-header {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .section-icon {
+        font-size: 0.9rem;
+        opacity: 0.7;
+        color: var(--corporate-blue);
+    }
+
+    .section-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin: 0;
+    }
+
+    /* Form Controls */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 2px solid var(--border-light);
+        border-radius: 8px;
+        font-size: 0.95rem;
+        color: var(--text-primary);
+        background: var(--background-white);
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+    }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--corporate-blue);
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        }
+
+        .form-control.large {
+            padding: 1rem 1.25rem;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+    .form-note {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+
+    /* Checkbox Styling */
+    .checkbox-container {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1.25rem;
+        background: var(--background-white);
+        border: 2px solid var(--border-light);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+        .checkbox-container:hover {
+            background: var(--background-secondary);
+            border-color: var(--border-medium);
+        }
+
+    .form-checkbox {
+        width: 20px;
+        height: 20px;
+        accent-color: var(--corporate-blue);
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        cursor: pointer;
+        font-weight: 500;
+        color: var(--text-primary);
+        margin: 0;
+        flex: 1;
+    }
+
+    .checkbox-icon {
+        font-size: 0.9rem;
+        opacity: 0.7;
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+
+    .checkbox-text {
+        flex: 1;
+    }
+
+    .checkbox-subtitle {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        font-weight: normal;
+        margin-top: 0.25rem;
+    }
+
+    /* Action Buttons */
+    .actions-section {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border-light);
+    }
+
+    .actions-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 1rem 1.5rem;
+        border: 2px solid transparent;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-align: center;
+    }
+
+        .action-btn.large {
+            padding: 1.25rem 2rem;
+            font-size: 1.125rem;
+        }
+
+        .action-btn.primary {
+            background: var(--corporate-blue);
+            color: var(--background-white);
+            border-color: var(--corporate-blue);
+        }
+
+            .action-btn.primary:hover {
+                background: #1e40af;
+                border-color: #1e40af;
+                color: var(--background-white);
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-medium);
+            }
+
+        .action-btn.danger {
+            background: var(--error-red);
+            color: var(--background-white);
+            border-color: var(--error-red);
+        }
+
+            .action-btn.danger:hover {
+                background: #b91c1c;
+                border-color: #b91c1c;
+                color: var(--background-white);
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-medium);
+            }
+
+        .action-btn.secondary {
+            background: var(--background-secondary);
+            color: var(--text-secondary);
+            border-color: var(--border-medium);
+        }
+
+            .action-btn.secondary:hover {
+                background: var(--background-primary);
+                color: var(--text-primary);
+                border-color: var(--border-medium);
+                transform: translateY(-1px);
+            }
+
+    .btn-icon {
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    /* Professional Modal */
+    .professional-modal {
+        border-radius: 12px;
+        border: none;
+        box-shadow: var(--shadow-large);
+        overflow: hidden;
+    }
+
+    .modal-header {
+        background: var(--background-secondary);
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .modal-title-section {
+        flex: 1;
+    }
+
+    .modal-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 0.5rem 0;
+    }
+
+    .modal-icon {
+        font-size: 1rem;
+        opacity: 0.7;
+        color: var(--error-red);
+    }
+
+    .modal-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin: 0;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+
+        .modal-close:hover {
+            background: var(--background-primary);
+            color: var(--text-primary);
+        }
+
+    .modal-body {
+        padding: 2rem;
+    }
+
+    .modal-footer {
+        background: var(--background-secondary);
+        padding: 1.5rem 2rem;
+        border-top: 1px solid var(--border-light);
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+    }
+
+    /* Warning Section */
+    .warning-section {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background: #fef3c7;
+        border: 1px solid #fbbf24;
+        border-radius: 8px;
+    }
+
+    .warning-content {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .warning-icon {
+        font-size: 1.25rem;
+        color: #d97706;
+        flex-shrink: 0;
+        margin-top: 0.125rem;
+    }
+
+    .warning-text {
+        color: #92400e;
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+
+    /* CSS Variables */
+    :root {
+        --corporate-blue: #1e3a8a;
+        --background-white: #ffffff;
+        --background-secondary: #f8fafc;
+        --background-primary: #f1f5f9;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --border-light: #e2e8f0;
+        --border-medium: #cbd5e1;
+        --error-red: #dc2626;
+        --success-green: #059669;
+        --shadow-soft: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        --shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-large: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 1024px) {
+        .page-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .actions-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .panel-content {
+            padding: 1.5rem;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .page-title {
+            font-size: 1.5rem;
+        }
+
+        .panel-header {
+            padding: 1rem 1.5rem;
+        }
+
+        .panel-content {
+            padding: 1rem;
+        }
+
+        .form-container {
+            max-width: 100%;
+        }
+
+        .preview-container {
+            padding: 1rem;
+        }
+
+        .preview-image {
+            min-height: 300px;
+        }
+
+        .modal-header,
+        .modal-body,
+        .modal-footer {
+            padding: 1rem;
+        }
+
+        .modal-actions {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .checkbox-container {
+            padding: 1rem;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .info-grid {
+            gap: 0.75rem;
+        }
+
+        .actions-grid {
+            gap: 0.75rem;
+        }
+
+        .action-btn.large {
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+        }
+
+        .form-control.large {
+            padding: 0.875rem 1rem;
+        }
+    }
+</style>
